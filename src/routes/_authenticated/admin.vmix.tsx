@@ -743,3 +743,172 @@ function StatusBadge({ result }: { result?: EndpointResult }) {
     </Badge>
   );
 }
+
+function DataSourceCard({
+  sourceMode,
+  loading,
+  todayDate,
+  match,
+  currentDate,
+  currentHome,
+  currentAway,
+  teams,
+  onApplyManual,
+  onRerunAuto,
+  hasLive,
+}: {
+  sourceMode: "idle" | "auto" | "manual" | "live-hydrated";
+  loading: boolean;
+  todayDate: string;
+  match: { date: string; home: string; away: string } | null;
+  currentDate: string;
+  currentHome: string;
+  currentAway: string;
+  teams: string[];
+  onApplyManual: (date: string, home: string, away: string) => void;
+  onRerunAuto: () => void;
+  hasLive: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [mDate, setMDate] = useState<string>(currentDate);
+  const [mHome, setMHome] = useState<string>(currentHome || DEFAULT_TEAM);
+  const [mAway, setMAway] = useState<string>(currentAway);
+
+  useEffect(() => {
+    if (open) {
+      setMDate(currentDate);
+      setMHome(currentHome || DEFAULT_TEAM);
+      setMAway(currentAway);
+    }
+  }, [open, currentDate, currentHome, currentAway]);
+
+  const isHomeGame = !!match && match.home === DEFAULT_TEAM;
+  const opponents = teams.filter((t) => t !== mHome);
+
+  let badge: React.ReactNode;
+  let message: React.ReactNode;
+  if (loading && sourceMode === "idle") {
+    badge = <Badge variant="outline">…</Badge>;
+    message = "Hämtar dagens schema…";
+  } else if (sourceMode === "manual") {
+    badge = <Badge className="bg-amber-500 hover:bg-amber-500">MANUELL</Badge>;
+    message = (
+      <>
+        Manuell override aktiv – <strong>{currentHome}</strong> vs{" "}
+        <strong>{currentAway}</strong> ({currentDate}). Formuläret nedan speglar
+        det du valt. Klicka <em>Uppdatera från schemat</em> för att gå tillbaka
+        till dagens automatiska hemmamatch.
+      </>
+    );
+  } else if (sourceMode === "live-hydrated") {
+    badge = <Badge variant="default">LIVE</Badge>;
+    message = (
+      <>
+        Formuläret återspeglar den nuvarande LIVE-publiceringen (
+        <strong>{currentHome}</strong> vs <strong>{currentAway}</strong>,{" "}
+        {currentDate}). Använd manuell override eller <em>Uppdatera från schemat</em>{" "}
+        för att byta.
+      </>
+    );
+  } else if (isHomeGame) {
+    badge = <Badge className="bg-emerald-600 hover:bg-emerald-600">AUTO</Badge>;
+    message = (
+      <>
+        Hemmamatch hittad för {DEFAULT_TEAM}: <strong>{match!.home}</strong> vs{" "}
+        <strong>{match!.away}</strong> ({match!.date}). Formuläret nedan är
+        förifyllt från dagens schema och rostrar har hämtats.
+      </>
+    );
+  } else {
+    badge = <Badge variant="outline">AUTO</Badge>;
+    message = (
+      <>
+        Ingen hemmamatch hittad för {DEFAULT_TEAM} idag ({todayDate}).
+        {match
+          ? ` (Dagens match är ${match.home} vs ${match.away}, inte hemma.)`
+          : ""}{" "}
+        Använd manuell override för att välja en annan match.
+      </>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <CalendarDays className="h-4 w-4" /> Datakälla
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-start gap-2 text-sm">
+          <div className="mt-0.5">{badge}</div>
+          <p className="text-muted-foreground">{message}</p>
+        </div>
+        {hasLive && (
+          <p className="text-xs text-muted-foreground">
+            Obs: en LIVE-publicering är aktiv. Ändringar här påverkar inte
+            JSON-feeden förrän du klickar <em>Publicera till vMix</em>.
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant={open ? "secondary" : "outline"} onClick={() => setOpen((v) => !v)}>
+            {open ? "Stäng manuell override" : "Manuell override"}
+          </Button>
+          {(sourceMode === "manual" || sourceMode === "live-hydrated") && (
+            <Button size="sm" variant="outline" onClick={onRerunAuto}>
+              <RefreshCw className="h-3 w-3 mr-1" /> Uppdatera från schemat
+            </Button>
+          )}
+        </div>
+
+        {open && (
+          <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Välj vilken match som helst (även spelade matcher) för att testa
+              vMix-feeden. Rostrar hämtas automatiskt när du bekräftar.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <Label>Datum</Label>
+                <Input type="date" value={mDate} onChange={(e) => setMDate(e.target.value)} />
+              </div>
+              <div>
+                <Label>Hemmalag</Label>
+                <Select value={mHome} onValueChange={setMHome}>
+                  <SelectTrigger><SelectValue placeholder="Välj hemmalag" /></SelectTrigger>
+                  <SelectContent>
+                    {teams.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Bortalag</Label>
+                <Select value={mAway} onValueChange={setMAway}>
+                  <SelectTrigger><SelectValue placeholder="Välj bortalag" /></SelectTrigger>
+                  <SelectContent>
+                    {opponents.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                disabled={!mDate || !mHome || !mAway || mHome === mAway}
+                onClick={() => {
+                  onApplyManual(mDate, mHome, mAway);
+                  setOpen(false);
+                }}
+              >
+                Använd denna match
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+                Avbryt
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
