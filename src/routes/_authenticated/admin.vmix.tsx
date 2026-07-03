@@ -248,6 +248,8 @@ function VmixAdminPage() {
         </CardContent>
       </Card>
 
+      <EndpointTester endpoints={endpoints} />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Matchinställningar</CardTitle>
