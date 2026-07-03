@@ -31,6 +31,8 @@ import {
   Scale,
   Settings,
   Star,
+  Settings,
+  Tv,
   Users,
   X,
 } from "lucide-react";
