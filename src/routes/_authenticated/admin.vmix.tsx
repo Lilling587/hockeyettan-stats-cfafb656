@@ -490,3 +490,159 @@ function PlayerTable({
     </div>
   );
 }
+
+type EndpointResult = {
+  status: "idle" | "loading" | "ok" | "error";
+  httpStatus?: number;
+  ms?: number;
+  body?: unknown;
+  error?: string;
+  fetchedAt?: string;
+};
+
+function EndpointTester({
+  endpoints,
+}: {
+  endpoints: { label: string; url: string }[];
+}) {
+  const [results, setResults] = useState<Record<string, EndpointResult>>({});
+  const [autoRefresh, setAutoRefresh] = useState(false);
+
+  const runOne = async (url: string) => {
+    setResults((r) => ({ ...r, [url]: { ...r[url], status: "loading" } }));
+    const t0 = performance.now();
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      const ms = Math.round(performance.now() - t0);
+      const text = await res.text();
+      let body: unknown = text;
+      try { body = JSON.parse(text); } catch { /* keep as text */ }
+      setResults((r) => ({
+        ...r,
+        [url]: {
+          status: res.ok ? "ok" : "error",
+          httpStatus: res.status,
+          ms,
+          body,
+          fetchedAt: new Date().toISOString(),
+          error: res.ok ? undefined : `HTTP ${res.status}`,
+        },
+      }));
+    } catch (e) {
+      setResults((r) => ({
+        ...r,
+        [url]: {
+          status: "error",
+          ms: Math.round(performance.now() - t0),
+          error: (e as Error).message,
+          fetchedAt: new Date().toISOString(),
+        },
+      }));
+    }
+  };
+
+  const runAll = () => endpoints.forEach((e) => runOne(e.url));
+
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const id = setInterval(runAll, 10_000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh, endpoints]);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <div>
+          <CardTitle className="text-base">Testa endpoints</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Hämtar varje JSON-feed live och visar status, svarstid och preview.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant={autoRefresh ? "default" : "outline"}
+            onClick={() => setAutoRefresh((v) => !v)}
+          >
+            Auto 10s {autoRefresh ? "på" : "av"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={runAll}>
+            <RefreshCw className="h-3 w-3 mr-1" /> Testa alla
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {endpoints.map((e) => {
+          const r = results[e.url];
+          return (
+            <div key={e.url} className="rounded border bg-muted/30 p-2 text-xs">
+              <div className="flex items-center gap-2">
+                <StatusBadge result={r} />
+                <span className="font-mono font-medium">{e.label}</span>
+                {r?.ms !== undefined && (
+                  <span className="text-muted-foreground">{r.ms} ms</span>
+                )}
+                {r?.httpStatus !== undefined && (
+                  <span className="text-muted-foreground">HTTP {r.httpStatus}</span>
+                )}
+                {r?.fetchedAt && (
+                  <span className="text-muted-foreground ml-1">
+                    · {new Date(r.fetchedAt).toLocaleTimeString("sv-SE")}
+                  </span>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="ml-auto h-6"
+                  onClick={() => runOne(e.url)}
+                  disabled={r?.status === "loading"}
+                >
+                  {r?.status === "loading" ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+              {r?.error && (
+                <p className="mt-1 text-destructive">{r.error}</p>
+              )}
+              {r?.body !== undefined && (
+                <pre className="mt-2 max-h-64 overflow-auto rounded bg-background/60 p-2 font-mono text-[11px] leading-relaxed">
+                  {typeof r.body === "string"
+                    ? r.body.slice(0, 4000)
+                    : JSON.stringify(r.body, null, 2).slice(0, 4000)}
+                </pre>
+              )}
+              {!r && (
+                <p className="mt-1 text-muted-foreground italic">Inte testad ännu.</p>
+              )}
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatusBadge({ result }: { result?: EndpointResult }) {
+  if (!result || result.status === "idle") return <Badge variant="outline">–</Badge>;
+  if (result.status === "loading")
+    return (
+      <Badge variant="outline" className="gap-1">
+        <Loader2 className="h-3 w-3 animate-spin" /> Hämtar
+      </Badge>
+    );
+  if (result.status === "ok")
+    return (
+      <Badge variant="default" className="gap-1 bg-emerald-600 hover:bg-emerald-600">
+        <CheckCircle2 className="h-3 w-3" /> OK
+      </Badge>
+    );
+  return (
+    <Badge variant="destructive" className="gap-1">
+      <XCircle className="h-3 w-3" /> Fel
+    </Badge>
+  );
+}
