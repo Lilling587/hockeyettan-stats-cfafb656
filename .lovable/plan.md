@@ -1,92 +1,66 @@
-# vMix Data Source for Grästorps IK broadcast graphics
-
 ## Goal
 
-Expose stable HTTP endpoints on the app that vMix GT Designer (on another LAN computer) polls as Data Sources. Contents: full Hockeyettan Södra standings, home lineup, and away lineup for today's Grästorps IK game. A "Publish to vMix" admin button controls which game is active and when the data goes live.
+At the top of `/admin/vmix`, automatically check if Grästorps IK has a home game today and prefill the form with that game's data. Add a manual override that lets you pick any date + any two teams (great for testing vMix against a past game), and clearly show which source is currently populating the form.
 
-Endpoints will be served by the published Lovable URL over the internet (vMix reaches them from any LAN as long as the broadcast machine has internet). No local file writes, no shared folders.
+Nothing publishes automatically — this only fills the form fields. You still press **Publicera till vMix** to update the 4 JSON endpoints. That matches the current publish-first model and avoids accidental live changes.
 
-## Endpoints (public, read-only JSON)
+## UX
 
-Under `src/routes/api/public/vmix/`:
+New card at the top of the page, above "Matchinställningar":
 
-- `GET /api/public/vmix/current.json` — currently published game metadata (teams, date, venue, status, `publishedAt`).
-- `GET /api/public/vmix/standings.json` — full Hockeyettan Södra standings for the active season.
-- `GET /api/public/vmix/home-lineup.json` — home team lineup for the published game.
-- `GET /api/public/vmix/away-lineup.json` — away team lineup for the published game.
-
-All responses include permissive CORS headers (`Access-Control-Allow-Origin: *`) and short `Cache-Control: public, max-age=15` so vMix can poll safely without hammering the origin. `OPTIONS` handler on each route.
-
-If no game is currently published, endpoints return `{ "published": false, "updatedAt": "..." }` with HTTP 200 (vMix hates 404s).
-
-## Data model
-
-New table `vmix_publications` (one row per active broadcast; usually just one):
-
-```
-id uuid pk
-game_date date
-home_team text
-away_team text          -- one of these is always "Grästorps IK"
-venue text nullable
-standings_json jsonb    -- snapshot at publish time
-home_lineup_json jsonb  -- { players: [{ number, name, position, line? }], goalies: [...], coach? }
-away_lineup_json jsonb
-published_at timestamptz default now()
-published_by uuid references auth.users(id)
-is_active boolean default true
+```text
+┌─ Datakälla ───────────────────────────────────────────────┐
+│ [Badge: AUTO] Hemmamatch hittad: Grästorps IK vs X        │
+│               (2026-07-03, Ishuset Grästorp)              │
+│ Formuläret nedan är förifyllt från dagens schema.         │
+│                                                            │
+│ [ Manuell override ▾ ]  [ Uppdatera från schemat ]        │
+└────────────────────────────────────────────────────────────┘
 ```
 
-RLS: `SELECT` to `anon` and `authenticated` (endpoints read via anon). Writes: admin only via server function (`has_role(auth.uid(), 'admin')`).
+States for the badge/message:
+- **AUTO – match hittad**: "Hemmamatch hittad: {home} vs {away} ({date})"
+- **AUTO – ingen match**: "Ingen hemmamatch för Grästorps IK idag ({today})"
+- **MANUELL**: "Manuell override aktiv – {home} vs {away} ({date})"
+- **Loading**: "Hämtar dagens schema…"
 
-## Admin UI: `/admin/vmix`
+Manuell override panel (expands inline in the same card) contains:
+- Datum (shadcn date picker, defaults to today, allows past dates)
+- Hemmalag (Select — full team list)
+- Bortalag (Select — full team list, filtered to exclude home)
+- Button: **Använd denna match**
+- Button: **Avbryt**
 
-New authenticated admin route. Sections:
+Button: **Uppdatera från schemat** (visible when manual override is active) — re-runs auto detection and repopulates the form.
 
-1. **Today's Grästorp game** — auto-detects home/away opponent from the schedule for today. Falls back to a manual team picker if no game today.
-2. **Standings preview** — pulls current standings via existing `fetchFullStandings` server function; shows table.
-3. **Home lineup editor** and **Away lineup editor** — each has:
-   - "Hämta från roster" button → calls a new server function that scrapes the team's roster page (reuses existing swehockey URLs; extracts number, name, position from the team roster HTML) and populates the editor.
-   - Editable table: line/pair, number, name, position. Add/remove rows. Mark starters.
-   - Coach + notes (free text).
-4. **Publish to vMix** button — snapshots standings + both lineups into `vmix_publications`, sets `is_active = true`, marks previous rows inactive.
-5. **Unpublish** button — sets `is_active = false`.
-6. **Copy vMix URLs** — quick-copy buttons for the four endpoint URLs.
+## Behavior
 
-## Server functions and routes
+1. On mount, call `getTodaysMatchup` (already exists in `src/lib/stats.functions.ts`) with team = "Grästorps IK".
+2. If a match is returned AND `homeTeam === "Grästorps IK"`, prefill the form (date, home, away) and call `fetchTeamRoster` for both teams to prefill lineups. Set source = `auto`.
+3. If no home game today, leave the form empty, show the "Ingen hemmamatch idag" message. Home/away/date remain editable manually.
+4. When user clicks **Använd denna match** in the override panel:
+   - Set date/home/away from the picker
+   - Call `fetchTeamRoster` for both teams to prefill lineups
+   - Set source = `manual`
+   - Show "MANUELL" badge
+5. When user clicks **Uppdatera från schemat**: same as step 1–2, source resets to `auto`.
+6. If an active publication already exists (existing `activeQuery` hydrate effect), that hydration still wins on first load and source is labelled `manual` (since it came from a previous manual publish) with a note "Formuläret återspeglar nuvarande LIVE-publicering". This keeps existing behavior intact.
 
-New files:
+The 4 JSON endpoints are only updated when the user presses the existing **Publicera till vMix** button. The badge on the publish bar continues to show LIVE/ingen-publicering as today.
 
-- `src/lib/vmix.server.ts` — pure server helpers: `scrapeTeamRoster(teamName, season)`, `buildStandingsPayload(season)`, `buildVmixResponse(pub, kind)`.
-- `src/lib/vmix.functions.ts` — `getActivePublication`, `publishVmix({ game, homeLineup, awayLineup })`, `unpublishVmix()`, `fetchTeamRoster({ team })`. All admin-write functions use `requireSupabaseAuth` + `has_role('admin')` check.
-- `src/routes/api/public/vmix/current.ts`, `standings.ts`, `home-lineup.ts`, `away-lineup.ts` — thin handlers that read the active row via server-side publishable Supabase client and return the snapshot JSON.
-- `src/routes/_authenticated/admin.vmix.tsx` — admin editor UI (shadcn Table + Input + Button).
+## Technical
 
-## Migration
+Files to change (frontend only):
 
-- Create `vmix_publications` table + grants + RLS policies (`SELECT` for anon/authenticated; `ALL` for service_role; admin writes go through server functions using `requireSupabaseAuth`).
+- `src/routes/_authenticated/admin.vmix.tsx`
+  - Import `getTodaysMatchup` from `@/lib/stats.functions`.
+  - Add `sourceMode: "auto" | "manual" | "live-hydrated"` state and a `todaysMatchQuery` (react-query, `enabled: !!isAdmin`, no auto-refresh).
+  - Add a new `<DataSourceCard />` component (in the same file, matching the existing local-component style) that renders the badge, message, and override controls.
+  - Reuse the existing `prefillHome` / `prefillAway` mutations to load rosters after setting teams; extract a small `applyMatchup({date, home, away, source})` helper that sets state + triggers both roster fetches.
+  - Only run the auto-hydrate effect once per admin session; skip auto-apply if `activeQuery.data` hydrated the form (mark as `live-hydrated`).
 
-## JSON shape (example: home-lineup.json)
+No server, database, or endpoint changes. `getSeasonSchedule` already supports past dates and is what powers `getTodaysMatchup`, so historical manual matchups Just Work.
 
-```json
-{
-  "published": true,
-  "updatedAt": "2026-07-02T17:30:00Z",
-  "game": { "date": "2026-07-02", "home": "Grästorps IK", "away": "IF Troja-Ljungby", "venue": "Ishuset Grästorp" },
-  "team": "Grästorps IK",
-  "goalies": [{ "number": 30, "name": "...", "starter": true }],
-  "skaters": [
-    { "line": 1, "position": "LW", "number": 11, "name": "..." },
-    { "line": 1, "position": "C",  "number": 19, "name": "..." }
-  ],
-  "coach": "..."
-}
-```
+## Answer to your question
 
-vMix GT Designer binds fields directly to these keys.
-
-## Out of scope
-
-- Auto-scraping of live/game-specific lineups (Hockeyettan rarely publishes them pre-game in machine-readable form). Manual editor with roster-prefill is the reliable path.
-- LAN file delivery — dropped in favor of HTTP polling per your choice.
-- Auto-refresh trigger — publishing is manual per your choice; re-press "Publish to vMix" to snapshot new standings mid-broadcast.
+Yes — with the manual override you can pick any past date and any two teams, prefill the form from their rosters, and then press **Publicera till vMix**. The 4 JSON feeds will then serve that historical matchup, which is exactly what you want for vMix GT Designer test runs. Press **Avpublicera** (or **Uppdatera från schemat** + Publicera) when you're done testing.

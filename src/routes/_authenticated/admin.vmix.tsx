@@ -2,11 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CheckCircle2, Copy, Download, Loader2, Plus, RefreshCw, Trash2, XCircle } from "lucide-react";
+import { ArrowLeft, CalendarDays, CheckCircle2, Copy, Download, Loader2, Plus, RefreshCw, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
-import { listTeams } from "@/lib/stats.functions";
+import { getTodaysMatchup, listTeams } from "@/lib/stats.functions";
 import {
   fetchTeamRoster,
   getActivePublication,
@@ -56,6 +56,7 @@ function VmixAdminPage() {
   const queryClient = useQueryClient();
   const fetchIsAdmin = useServerFn(checkIsAdmin);
   const fetchTeams = useServerFn(listTeams);
+  const fetchTodays = useServerFn(getTodaysMatchup);
   const fetchActive = useServerFn(getActivePublication);
   const fetchRoster = useServerFn(fetchTeamRoster);
   const publish = useServerFn(publishVmix);
@@ -98,6 +99,8 @@ function VmixAdminPage() {
   const [awayLineup, setAwayLineup] = useState<VmixLineupInput>(
     emptyLineup(""),
   );
+  const [sourceMode, setSourceMode] = useState<"idle" | "auto" | "manual" | "live-hydrated">("idle");
+  const [autoApplied, setAutoApplied] = useState(false);
 
   // Hydrate from active publication (once).
   useEffect(() => {
@@ -110,6 +113,8 @@ function VmixAdminPage() {
     setNotes(pub.notes ?? "");
     setHomeLineup(pub.homeLineup);
     setAwayLineup(pub.awayLineup);
+    setSourceMode("live-hydrated");
+    setAutoApplied(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeQuery.data?.id]);
 
@@ -172,6 +177,67 @@ function VmixAdminPage() {
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
 
+  // Today's Grästorps IK home game auto-detection.
+  const todaysQuery = useQuery({
+    queryKey: ["vmix-todays-matchup"],
+    queryFn: () => fetchTodays({ data: {} }),
+    enabled: !!adminQuery.data?.isAdmin,
+    staleTime: 5 * 60_000,
+  });
+
+  const applyMatchup = async (
+    date: string,
+    home: string,
+    away: string,
+    source: "auto" | "manual",
+  ) => {
+    setGameDate(date);
+    setHomeTeam(home);
+    setAwayTeam(away);
+    setSourceMode(source);
+    try {
+      const [homeRoster, awayRoster] = await Promise.all([
+        fetchRoster({ data: { team: home } }),
+        fetchRoster({ data: { team: away } }),
+      ]);
+      setHomeLineup(homeRoster);
+      setAwayLineup(awayRoster);
+      toast.success(
+        source === "auto"
+          ? `Dagens hemmamatch laddad: ${home} vs ${away}`
+          : `Manuell match laddad: ${home} vs ${away}`,
+      );
+    } catch (e) {
+      toast.error(`Kunde inte hämta roster: ${(e as Error).message}`);
+    }
+  };
+
+  // Auto-apply today's home game once when detected (unless a LIVE publication already hydrated the form).
+  useEffect(() => {
+    if (autoApplied) return;
+    if (!todaysQuery.data) return;
+    if (activeQuery.data) return; // live publication wins
+    const m = todaysQuery.data.match;
+    if (m && m.home === DEFAULT_TEAM) {
+      setAutoApplied(true);
+      void applyMatchup(m.date, m.home, m.away, "auto");
+    } else {
+      setAutoApplied(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todaysQuery.data, activeQuery.data, autoApplied]);
+
+  const rerunAuto = async () => {
+    const res = await todaysQuery.refetch();
+    const m = res.data?.match;
+    if (m && m.home === DEFAULT_TEAM) {
+      await applyMatchup(m.date, m.home, m.away, "auto");
+    } else {
+      setSourceMode("auto");
+      toast.info(`Ingen hemmamatch hittad för ${DEFAULT_TEAM} idag.`);
+    }
+  };
+
   const baseUrl =
     typeof window !== "undefined" ? window.location.origin : "";
   const endpoints = [
@@ -227,9 +293,26 @@ function VmixAdminPage() {
                   variant="ghost"
                   size="sm"
                   className="ml-auto h-6 gap-1"
-                  onClick={() => {
-                    navigator.clipboard.writeText(e.url);
-                    toast.success("Kopierad");
+                  onClick={async () => {
+                    try {
+                      if (navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(e.url);
+                      } else {
+                        throw new Error("Clipboard API unavailable");
+                      }
+                      toast.success("Kopierad");
+                    } catch {
+                      // Fallback for iframes / permission-denied contexts.
+                      const ta = document.createElement("textarea");
+                      ta.value = e.url;
+                      ta.style.position = "fixed";
+                      ta.style.opacity = "0";
+                      document.body.appendChild(ta);
+                      ta.select();
+                      try { document.execCommand("copy"); toast.success("Kopierad"); }
+                      catch { toast.error("Kunde inte kopiera – markera och kopiera manuellt"); }
+                      document.body.removeChild(ta);
+                    }
                   }}
                 >
                   <Copy className="h-3 w-3" /> Kopiera
@@ -249,6 +332,20 @@ function VmixAdminPage() {
       </Card>
 
       <EndpointTester endpoints={endpoints} />
+
+      <DataSourceCard
+        sourceMode={sourceMode}
+        loading={todaysQuery.isLoading}
+        todayDate={todaysQuery.data?.date ?? new Date().toISOString().slice(0, 10)}
+        match={todaysQuery.data?.match ?? null}
+        currentDate={gameDate}
+        currentHome={homeTeam}
+        currentAway={awayTeam}
+        teams={teams}
+        onApplyManual={(d, h, a) => applyMatchup(d, h, a, "manual")}
+        onRerunAuto={rerunAuto}
+        hasLive={!!activeQuery.data}
+      />
 
       <Card>
         <CardHeader>
@@ -644,5 +741,174 @@ function StatusBadge({ result }: { result?: EndpointResult }) {
     <Badge variant="destructive" className="gap-1">
       <XCircle className="h-3 w-3" /> Fel
     </Badge>
+  );
+}
+
+function DataSourceCard({
+  sourceMode,
+  loading,
+  todayDate,
+  match,
+  currentDate,
+  currentHome,
+  currentAway,
+  teams,
+  onApplyManual,
+  onRerunAuto,
+  hasLive,
+}: {
+  sourceMode: "idle" | "auto" | "manual" | "live-hydrated";
+  loading: boolean;
+  todayDate: string;
+  match: { date: string; home: string; away: string } | null;
+  currentDate: string;
+  currentHome: string;
+  currentAway: string;
+  teams: string[];
+  onApplyManual: (date: string, home: string, away: string) => void;
+  onRerunAuto: () => void;
+  hasLive: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [mDate, setMDate] = useState<string>(currentDate);
+  const [mHome, setMHome] = useState<string>(currentHome || DEFAULT_TEAM);
+  const [mAway, setMAway] = useState<string>(currentAway);
+
+  useEffect(() => {
+    if (open) {
+      setMDate(currentDate);
+      setMHome(currentHome || DEFAULT_TEAM);
+      setMAway(currentAway);
+    }
+  }, [open, currentDate, currentHome, currentAway]);
+
+  const isHomeGame = !!match && match.home === DEFAULT_TEAM;
+  const opponents = teams.filter((t) => t !== mHome);
+
+  let badge: React.ReactNode;
+  let message: React.ReactNode;
+  if (loading && sourceMode === "idle") {
+    badge = <Badge variant="outline">…</Badge>;
+    message = "Hämtar dagens schema…";
+  } else if (sourceMode === "manual") {
+    badge = <Badge className="bg-amber-500 hover:bg-amber-500">MANUELL</Badge>;
+    message = (
+      <>
+        Manuell override aktiv – <strong>{currentHome}</strong> vs{" "}
+        <strong>{currentAway}</strong> ({currentDate}). Formuläret nedan speglar
+        det du valt. Klicka <em>Uppdatera från schemat</em> för att gå tillbaka
+        till dagens automatiska hemmamatch.
+      </>
+    );
+  } else if (sourceMode === "live-hydrated") {
+    badge = <Badge variant="default">LIVE</Badge>;
+    message = (
+      <>
+        Formuläret återspeglar den nuvarande LIVE-publiceringen (
+        <strong>{currentHome}</strong> vs <strong>{currentAway}</strong>,{" "}
+        {currentDate}). Använd manuell override eller <em>Uppdatera från schemat</em>{" "}
+        för att byta.
+      </>
+    );
+  } else if (isHomeGame) {
+    badge = <Badge className="bg-emerald-600 hover:bg-emerald-600">AUTO</Badge>;
+    message = (
+      <>
+        Hemmamatch hittad för {DEFAULT_TEAM}: <strong>{match!.home}</strong> vs{" "}
+        <strong>{match!.away}</strong> ({match!.date}). Formuläret nedan är
+        förifyllt från dagens schema och rostrar har hämtats.
+      </>
+    );
+  } else {
+    badge = <Badge variant="outline">AUTO</Badge>;
+    message = (
+      <>
+        Ingen hemmamatch hittad för {DEFAULT_TEAM} idag ({todayDate}).
+        {match
+          ? ` (Dagens match är ${match.home} vs ${match.away}, inte hemma.)`
+          : ""}{" "}
+        Använd manuell override för att välja en annan match.
+      </>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <CalendarDays className="h-4 w-4" /> Datakälla
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-start gap-2 text-sm">
+          <div className="mt-0.5">{badge}</div>
+          <p className="text-muted-foreground">{message}</p>
+        </div>
+        {hasLive && (
+          <p className="text-xs text-muted-foreground">
+            Obs: en LIVE-publicering är aktiv. Ändringar här påverkar inte
+            JSON-feeden förrän du klickar <em>Publicera till vMix</em>.
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant={open ? "secondary" : "outline"} onClick={() => setOpen((v) => !v)}>
+            {open ? "Stäng manuell override" : "Manuell override"}
+          </Button>
+          {(sourceMode === "manual" || sourceMode === "live-hydrated") && (
+            <Button size="sm" variant="outline" onClick={onRerunAuto}>
+              <RefreshCw className="h-3 w-3 mr-1" /> Uppdatera från schemat
+            </Button>
+          )}
+        </div>
+
+        {open && (
+          <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Välj vilken match som helst (även spelade matcher) för att testa
+              vMix-feeden. Rostrar hämtas automatiskt när du bekräftar.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <Label>Datum</Label>
+                <Input type="date" value={mDate} onChange={(e) => setMDate(e.target.value)} />
+              </div>
+              <div>
+                <Label>Hemmalag</Label>
+                <Select value={mHome} onValueChange={setMHome}>
+                  <SelectTrigger><SelectValue placeholder="Välj hemmalag" /></SelectTrigger>
+                  <SelectContent>
+                    {teams.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Bortalag</Label>
+                <Select value={mAway} onValueChange={setMAway}>
+                  <SelectTrigger><SelectValue placeholder="Välj bortalag" /></SelectTrigger>
+                  <SelectContent>
+                    {opponents.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                disabled={!mDate || !mHome || !mAway || mHome === mAway}
+                onClick={() => {
+                  onApplyManual(mDate, mHome, mAway);
+                  setOpen(false);
+                }}
+              >
+                Använd denna match
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+                Avbryt
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
