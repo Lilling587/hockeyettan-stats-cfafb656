@@ -177,6 +177,67 @@ function VmixAdminPage() {
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
 
+  // Today's Grästorps IK home game auto-detection.
+  const todaysQuery = useQuery({
+    queryKey: ["vmix-todays-matchup"],
+    queryFn: () => fetchTodays({ data: {} }),
+    enabled: !!adminQuery.data?.isAdmin,
+    staleTime: 5 * 60_000,
+  });
+
+  const applyMatchup = async (
+    date: string,
+    home: string,
+    away: string,
+    source: "auto" | "manual",
+  ) => {
+    setGameDate(date);
+    setHomeTeam(home);
+    setAwayTeam(away);
+    setSourceMode(source);
+    try {
+      const [homeRoster, awayRoster] = await Promise.all([
+        fetchRoster({ data: { team: home } }),
+        fetchRoster({ data: { team: away } }),
+      ]);
+      setHomeLineup(homeRoster);
+      setAwayLineup(awayRoster);
+      toast.success(
+        source === "auto"
+          ? `Dagens hemmamatch laddad: ${home} vs ${away}`
+          : `Manuell match laddad: ${home} vs ${away}`,
+      );
+    } catch (e) {
+      toast.error(`Kunde inte hämta roster: ${(e as Error).message}`);
+    }
+  };
+
+  // Auto-apply today's home game once when detected (unless a LIVE publication already hydrated the form).
+  useEffect(() => {
+    if (autoApplied) return;
+    if (!todaysQuery.data) return;
+    if (activeQuery.data) return; // live publication wins
+    const m = todaysQuery.data.match;
+    if (m && m.home === DEFAULT_TEAM) {
+      setAutoApplied(true);
+      void applyMatchup(m.date, m.home, m.away, "auto");
+    } else {
+      setAutoApplied(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todaysQuery.data, activeQuery.data, autoApplied]);
+
+  const rerunAuto = async () => {
+    const res = await todaysQuery.refetch();
+    const m = res.data?.match;
+    if (m && m.home === DEFAULT_TEAM) {
+      await applyMatchup(m.date, m.home, m.away, "auto");
+    } else {
+      setSourceMode("auto");
+      toast.info(`Ingen hemmamatch hittad för ${DEFAULT_TEAM} idag.`);
+    }
+  };
+
   const baseUrl =
     typeof window !== "undefined" ? window.location.origin : "";
   const endpoints = [
