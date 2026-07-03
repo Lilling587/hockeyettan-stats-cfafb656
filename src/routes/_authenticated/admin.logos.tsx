@@ -478,8 +478,8 @@ function RowUploadButton({
       />
       <label
         htmlFor={inputId}
-        title="Ladda upp egen logga (PNG/JPG/SVG/WEBP, minst 128×128 px, max 5 MB)"
-        aria-label="Ladda upp egen logga (PNG/JPG/SVG/WEBP, minst 128x128 px, max 5 MB)"
+        title="Ladda upp egen logga (PNG/JPG/SVG/WEBP, minst 72×72 px, max 5 MB)"
+        aria-label="Ladda upp egen logga (PNG/JPG/SVG/WEBP, minst 72x72 px, max 5 MB)"
         className={`inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground ${
           busy ? "pointer-events-none opacity-50" : "cursor-pointer"
         }`}
