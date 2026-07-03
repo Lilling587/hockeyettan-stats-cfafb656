@@ -99,6 +99,8 @@ function VmixAdminPage() {
   const [awayLineup, setAwayLineup] = useState<VmixLineupInput>(
     emptyLineup(""),
   );
+  const [sourceMode, setSourceMode] = useState<"idle" | "auto" | "manual" | "live-hydrated">("idle");
+  const [autoApplied, setAutoApplied] = useState(false);
 
   // Hydrate from active publication (once).
   useEffect(() => {
@@ -111,6 +113,8 @@ function VmixAdminPage() {
     setNotes(pub.notes ?? "");
     setHomeLineup(pub.homeLineup);
     setAwayLineup(pub.awayLineup);
+    setSourceMode("live-hydrated");
+    setAutoApplied(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeQuery.data?.id]);
 
