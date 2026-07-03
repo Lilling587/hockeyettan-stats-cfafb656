@@ -333,6 +333,20 @@ function VmixAdminPage() {
 
       <EndpointTester endpoints={endpoints} />
 
+      <DataSourceCard
+        sourceMode={sourceMode}
+        loading={todaysQuery.isLoading}
+        todayDate={todaysQuery.data?.date ?? new Date().toISOString().slice(0, 10)}
+        match={todaysQuery.data?.match ?? null}
+        currentDate={gameDate}
+        currentHome={homeTeam}
+        currentAway={awayTeam}
+        teams={teams}
+        onApplyManual={(d, h, a) => applyMatchup(d, h, a, "manual")}
+        onRerunAuto={rerunAuto}
+        hasLive={!!activeQuery.data}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Matchinställningar</CardTitle>
