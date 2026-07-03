@@ -31,6 +31,7 @@ import {
   Scale,
   Settings,
   Star,
+  Tv,
   Users,
   X,
 } from "lucide-react";
@@ -533,6 +534,12 @@ function Dashboard() {
                   <Link to="/admin/health">
                     <Settings className="mr-2 h-4 w-4 shrink-0" />
                     Hälsa
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+                  <Link to="/admin/vmix">
+                    <Tv className="mr-2 h-4 w-4 shrink-0" />
+                    vMix
                   </Link>
                 </Button>
                 <Button
