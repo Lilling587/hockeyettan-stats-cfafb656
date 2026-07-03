@@ -293,9 +293,26 @@ function VmixAdminPage() {
                   variant="ghost"
                   size="sm"
                   className="ml-auto h-6 gap-1"
-                  onClick={() => {
-                    navigator.clipboard.writeText(e.url);
-                    toast.success("Kopierad");
+                  onClick={async () => {
+                    try {
+                      if (navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(e.url);
+                      } else {
+                        throw new Error("Clipboard API unavailable");
+                      }
+                      toast.success("Kopierad");
+                    } catch {
+                      // Fallback for iframes / permission-denied contexts.
+                      const ta = document.createElement("textarea");
+                      ta.value = e.url;
+                      ta.style.position = "fixed";
+                      ta.style.opacity = "0";
+                      document.body.appendChild(ta);
+                      ta.select();
+                      try { document.execCommand("copy"); toast.success("Kopierad"); }
+                      catch { toast.error("Kunde inte kopiera – markera och kopiera manuellt"); }
+                      document.body.removeChild(ta);
+                    }
                   }}
                 >
                   <Copy className="h-3 w-3" /> Kopiera
