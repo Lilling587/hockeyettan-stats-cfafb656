@@ -264,7 +264,7 @@ function BulkUpload({
             (t.ex. <code>kallinge.png</code>) tilldelas automatiskt.
           </p>
           <p className="text-xs text-muted-foreground">
-            Krav: bildfil (PNG, JPG, SVG eller WEBP), minst 128×128 px, max 5 MB.
+            Krav: bildfil (PNG, JPG, SVG eller WEBP), minst 72×72 px (HockeyEttan-standard), max 5 MB.
           </p>
           <input
             ref={inputRef}
