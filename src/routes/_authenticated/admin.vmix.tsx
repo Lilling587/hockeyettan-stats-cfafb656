@@ -56,6 +56,7 @@ function VmixAdminPage() {
   const queryClient = useQueryClient();
   const fetchIsAdmin = useServerFn(checkIsAdmin);
   const fetchTeams = useServerFn(listTeams);
+  const fetchTodays = useServerFn(getTodaysMatchup);
   const fetchActive = useServerFn(getActivePublication);
   const fetchRoster = useServerFn(fetchTeamRoster);
   const publish = useServerFn(publishVmix);
