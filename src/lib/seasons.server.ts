@@ -1,3 +1,5 @@
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { SEASONS } from "./seasons.config";
 
 const STANDINGS_INDEX_URL =
@@ -52,10 +54,30 @@ export type ScanResult = {
 
 const SCAN_TTL_MS = 6 * 60 * 60 * 1000;
 
+function seasonAdmin(): SupabaseClient<Database> | null {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient<Database>(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
 export async function runSeasonScan(
   opts: { force?: boolean } = {},
 ): Promise<ScanResult> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin = seasonAdmin();
+  if (!supabaseAdmin) {
+    return {
+      checkedAt: new Date().toISOString(),
+      newCount: 0,
+      pending: [],
+      error: "Season detection storage is unavailable in this environment.",
+    };
+  }
 
   // Throttle: skip if a recent successful check ran, unless forced.
   if (!opts.force) {
@@ -129,7 +151,8 @@ export async function runSeasonScan(
 }
 
 export async function listPendingDetections(): Promise<ScanResult["pending"]> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin = seasonAdmin();
+  if (!supabaseAdmin) return [];
   const { data } = await supabaseAdmin
     .from("season_detections")
     .select("id, label, competition_id, detected_at")
@@ -147,7 +170,8 @@ export async function confirmDetection(input: {
   id: string;
   competitionId?: string;
 }): Promise<void> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin = seasonAdmin();
+  if (!supabaseAdmin) throw new Error("Season detection storage is unavailable in this environment.");
   const { data: row, error: selErr } = await supabaseAdmin
     .from("season_detections")
     .select("label, competition_id, status")
@@ -175,7 +199,8 @@ export async function confirmDetection(input: {
 }
 
 export async function dismissDetection(id: string): Promise<void> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin = seasonAdmin();
+  if (!supabaseAdmin) throw new Error("Season detection storage is unavailable in this environment.");
   await supabaseAdmin
     .from("season_detections")
     .update({ status: "dismissed", resolved_at: new Date().toISOString() })
@@ -189,7 +214,8 @@ export async function getMergedSeasons(): Promise<
   Array<{ label: string; competitionId: string }>
 > {
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = seasonAdmin();
+    if (!supabaseAdmin) return [...SEASONS];
     const { data } = await supabaseAdmin
       .from("season_overrides")
       .select("label, competition_id");
