@@ -11,7 +11,7 @@ const payloadSchema = z.object({
   message: z.string().min(1).max(4000),
   level: z.enum(["error", "warn", "info"]).optional().default("error"),
   stack: z.string().max(20_000).optional(),
-  context: z.record(z.unknown()).optional(),
+  context: z.record(z.string(), z.unknown()).optional(),
   route: z.string().max(500).optional(),
   userAgent: z.string().max(500).optional(),
   userId: z.string().uuid().optional(),
