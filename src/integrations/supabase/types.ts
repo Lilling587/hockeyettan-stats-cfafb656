@@ -400,11 +400,13 @@ export type Database = {
       }
       vmix_publications: {
         Row: {
-          away_lineup_json: Json
+          away_slots: Json
           away_team: string
+          away_team_code: string
           game_date: string
-          home_lineup_json: Json
+          home_slots: Json
           home_team: string
+          home_team_code: string
           id: string
           is_active: boolean
           notes: string | null
@@ -415,11 +417,13 @@ export type Database = {
           venue: string | null
         }
         Insert: {
-          away_lineup_json?: Json
+          away_slots?: Json
           away_team: string
+          away_team_code?: string
           game_date: string
-          home_lineup_json?: Json
+          home_slots?: Json
           home_team: string
+          home_team_code?: string
           id?: string
           is_active?: boolean
           notes?: string | null
@@ -430,11 +434,13 @@ export type Database = {
           venue?: string | null
         }
         Update: {
-          away_lineup_json?: Json
+          away_slots?: Json
           away_team?: string
+          away_team_code?: string
           game_date?: string
-          home_lineup_json?: Json
+          home_slots?: Json
           home_team?: string
+          home_team_code?: string
           id?: string
           is_active?: boolean
           notes?: string | null
@@ -443,6 +449,24 @@ export type Database = {
           standings_json?: Json
           updated_at?: string
           venue?: string | null
+        }
+        Relationships: []
+      }
+      vmix_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
         }
         Relationships: []
       }
