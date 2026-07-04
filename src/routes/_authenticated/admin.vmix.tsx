@@ -414,69 +414,7 @@ function VmixAdminPage() {
         hasLive={!!activeQuery.data}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Matchinställningar</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <Label>Datum</Label>
-            <Input
-              type="date"
-              value={gameDate}
-              onChange={(e) => setGameDate(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Arena</Label>
-            <Input
-              value={venue}
-              onChange={(e) => setVenue(e.target.value)}
-              placeholder="Ishuset Grästorp"
-            />
-          </div>
-          <div>
-            <Label>Hemmalag</Label>
-            <Select value={homeTeam} onValueChange={setHomeTeam}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Bortalag</Label>
-            <Select value={awayTeam} onValueChange={setAwayTeam}>
-              <SelectTrigger>
-                <SelectValue placeholder="Välj bortalag" />
-              </SelectTrigger>
-              <SelectContent>
-                {opponents.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="sm:col-span-2">
-            <Label>Anteckningar</Label>
-            <Textarea
-              rows={2}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Kommentatorsnoteringar (visas i current.json)"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
+      
       <SlotLineupEditor
         title="Hemmalag – lineup"
         teamName={homeTeam}
