@@ -34,6 +34,7 @@ import { Route as ApiPublicVmixCurrentRouteImport } from './routes/api/public/vm
 import { Route as ApiPublicVmixAwayLineupRouteImport } from './routes/api/public/vmix/away-lineup'
 import { Route as ApiPublicHooksPregameEmailsRouteImport } from './routes/api/public/hooks/pregame-emails'
 import { Route as ApiPublicHooksPostgameEmailsRouteImport } from './routes/api/public/hooks/postgame-emails'
+import { Route as ApiPublicVmixLineupVersionRouteImport } from './routes/api/public/vmix/lineup.$version'
 
 const SpelareRoute = SpelareRouteImport.update({
   id: '/spelare',
@@ -167,6 +168,12 @@ const ApiPublicHooksPostgameEmailsRoute =
     path: '/api/public/hooks/postgame-emails',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicVmixLineupVersionRoute =
+  ApiPublicVmixLineupVersionRouteImport.update({
+    id: '/api/public/vmix/lineup/$version',
+    path: '/api/public/vmix/lineup/$version',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/api/public/vmix/home-lineup': typeof ApiPublicVmixHomeLineupRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -219,6 +227,7 @@ export interface FileRoutesByTo {
   '/api/public/vmix/home-lineup': typeof ApiPublicVmixHomeLineupRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -247,6 +256,7 @@ export interface FileRoutesById {
   '/api/public/vmix/home-lineup': typeof ApiPublicVmixHomeLineupRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -275,6 +285,7 @@ export interface FileRouteTypes {
     | '/api/public/vmix/home-lineup'
     | '/api/public/vmix/standings'
     | '/lovable/email/queue/process'
+    | '/api/public/vmix/lineup/$version'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '/api/public/vmix/home-lineup'
     | '/api/public/vmix/standings'
     | '/lovable/email/queue/process'
+    | '/api/public/vmix/lineup/$version'
   id:
     | '__root__'
     | '/'
@@ -328,6 +340,7 @@ export interface FileRouteTypes {
     | '/api/public/vmix/home-lineup'
     | '/api/public/vmix/standings'
     | '/lovable/email/queue/process'
+    | '/api/public/vmix/lineup/$version'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -351,6 +364,7 @@ export interface RootRouteChildren {
   ApiPublicVmixHomeLineupRoute: typeof ApiPublicVmixHomeLineupRoute
   ApiPublicVmixStandingsRoute: typeof ApiPublicVmixStandingsRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
+  ApiPublicVmixLineupVersionRoute: typeof ApiPublicVmixLineupVersionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -530,6 +544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPostgameEmailsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/vmix/lineup/$version': {
+      id: '/api/public/vmix/lineup/$version'
+      path: '/api/public/vmix/lineup/$version'
+      fullPath: '/api/public/vmix/lineup/$version'
+      preLoaderRoute: typeof ApiPublicVmixLineupVersionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -574,6 +595,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicVmixHomeLineupRoute: ApiPublicVmixHomeLineupRoute,
   ApiPublicVmixStandingsRoute: ApiPublicVmixStandingsRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
+  ApiPublicVmixLineupVersionRoute: ApiPublicVmixLineupVersionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
