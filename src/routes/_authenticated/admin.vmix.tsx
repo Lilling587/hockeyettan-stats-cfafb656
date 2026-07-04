@@ -2,17 +2,33 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, CheckCircle2, Copy, Download, Loader2, Plus, RefreshCw, Trash2, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  Copy,
+  Download,
+  Loader2,
+  RefreshCw,
+  Settings2,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
 import { getTodaysMatchup, listTeams } from "@/lib/stats.functions";
 import {
+  emptySlots,
   fetchTeamRoster,
   getActivePublication,
+  getVmixSettings,
   publishVmix,
+  saveVmixSettings,
+  SLOT_KEYS,
   unpublishVmix,
-  type VmixLineupInput,
+  type SlotPlayer,
+  type VmixLineupSlots,
+  type VmixSettings,
 } from "@/lib/vmix.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,10 +61,16 @@ export const Route = createFileRoute("/_authenticated/admin/vmix")({
   component: VmixAdminPage,
 });
 
-type Player = VmixLineupInput["goalies"][number];
-
-function emptyLineup(team: string): VmixLineupInput {
-  return { team, goalies: [], skaters: [], coach: null, notes: null };
+function countFilledSlots(slots: VmixLineupSlots): { goalies: number; skaters: number } {
+  let g = 0;
+  let s = 0;
+  for (const k of SLOT_KEYS) {
+    const p = slots[k];
+    if (!p || !p.name) continue;
+    if (k === "GK1" || k === "GK2") g++;
+    else s++;
+  }
+  return { goalies: g, skaters: s };
 }
 
 function VmixAdminPage() {
@@ -59,6 +81,8 @@ function VmixAdminPage() {
   const fetchTodays = useServerFn(getTodaysMatchup);
   const fetchActive = useServerFn(getActivePublication);
   const fetchRoster = useServerFn(fetchTeamRoster);
+  const fetchSettings = useServerFn(getVmixSettings);
+  const saveSettings = useServerFn(saveVmixSettings);
   const publish = useServerFn(publishVmix);
   const unpublish = useServerFn(unpublishVmix);
 
@@ -87,19 +111,27 @@ function VmixAdminPage() {
     enabled: !!adminQuery.data?.isAdmin,
   });
 
+  const settingsQuery = useQuery({
+    queryKey: ["vmix-settings"],
+    queryFn: () => fetchSettings(),
+    enabled: !!adminQuery.data?.isAdmin,
+  });
+
   const today = new Date().toISOString().slice(0, 10);
   const [gameDate, setGameDate] = useState<string>(today);
   const [homeTeam, setHomeTeam] = useState<string>(DEFAULT_TEAM);
   const [awayTeam, setAwayTeam] = useState<string>("");
   const [venue, setVenue] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
-  const [homeLineup, setHomeLineup] = useState<VmixLineupInput>(
-    emptyLineup(DEFAULT_TEAM),
+  const [homeSlots, setHomeSlots] = useState<VmixLineupSlots>(() =>
+    emptySlots(DEFAULT_TEAM, ""),
   );
-  const [awayLineup, setAwayLineup] = useState<VmixLineupInput>(
-    emptyLineup(""),
+  const [awaySlots, setAwaySlots] = useState<VmixLineupSlots>(() =>
+    emptySlots("", ""),
   );
-  const [sourceMode, setSourceMode] = useState<"idle" | "auto" | "manual" | "live-hydrated">("idle");
+  const [sourceMode, setSourceMode] = useState<
+    "idle" | "auto" | "manual" | "live-hydrated"
+  >("idle");
   const [autoApplied, setAutoApplied] = useState(false);
 
   // Hydrate from active publication (once).
@@ -111,18 +143,18 @@ function VmixAdminPage() {
     setAwayTeam(pub.awayTeam);
     setVenue(pub.venue ?? "");
     setNotes(pub.notes ?? "");
-    setHomeLineup(pub.homeLineup);
-    setAwayLineup(pub.awayLineup);
+    setHomeSlots(pub.homeSlots);
+    setAwaySlots(pub.awaySlots);
     setSourceMode("live-hydrated");
     setAutoApplied(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeQuery.data?.id]);
 
   useEffect(() => {
-    setHomeLineup((prev) => ({ ...prev, team: homeTeam }));
+    setHomeSlots((prev) => ({ ...prev, team: homeTeam }));
   }, [homeTeam]);
   useEffect(() => {
-    setAwayLineup((prev) => ({ ...prev, team: awayTeam }));
+    setAwaySlots((prev) => ({ ...prev, team: awayTeam }));
   }, [awayTeam]);
 
   const teams = teamsQuery.data?.teams ?? [];
@@ -133,17 +165,20 @@ function VmixAdminPage() {
 
   const prefillHome = useMutation({
     mutationFn: () => fetchRoster({ data: { team: homeTeam } }),
-    onSuccess: (lineup) => {
-      setHomeLineup(lineup);
-      toast.success(`Hemmaroster hämtad: ${lineup.skaters.length} utespelare, ${lineup.goalies.length} MV`);
+    onSuccess: (slots) => {
+      // Preserve the producer-entered teamCode when refetching roster.
+      setHomeSlots((prev) => ({ ...slots, teamCode: prev.teamCode }));
+      const c = countFilledSlots(slots);
+      toast.success(`Hemmaroster hämtad: ${c.skaters} utespelare, ${c.goalies} MV`);
     },
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
   const prefillAway = useMutation({
     mutationFn: () => fetchRoster({ data: { team: awayTeam } }),
-    onSuccess: (lineup) => {
-      setAwayLineup(lineup);
-      toast.success(`Bortaroster hämtad: ${lineup.skaters.length} utespelare, ${lineup.goalies.length} MV`);
+    onSuccess: (slots) => {
+      setAwaySlots((prev) => ({ ...slots, teamCode: prev.teamCode }));
+      const c = countFilledSlots(slots);
+      toast.success(`Bortaroster hämtad: ${c.skaters} utespelare, ${c.goalies} MV`);
     },
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
@@ -155,17 +190,20 @@ function VmixAdminPage() {
           gameDate,
           homeTeam,
           awayTeam,
+          homeTeamCode: homeSlots.teamCode,
+          awayTeamCode: awaySlots.teamCode,
           venue: venue || null,
           notes: notes || null,
-          homeLineup,
-          awayLineup,
+          homeSlots,
+          awaySlots,
         },
       }),
     onSuccess: () => {
       toast.success("Publicerat till vMix");
       queryClient.invalidateQueries({ queryKey: ["vmix-active"] });
     },
-    onError: (e) => toast.error(`Publicering misslyckades: ${(e as Error).message}`),
+    onError: (e) =>
+      toast.error(`Publicering misslyckades: ${(e as Error).message}`),
   });
 
   const unpublishMut = useMutation({
@@ -177,7 +215,6 @@ function VmixAdminPage() {
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
 
-  // Today's Grästorps IK home game auto-detection.
   const todaysQuery = useQuery({
     queryKey: ["vmix-todays-matchup"],
     queryFn: () => fetchTodays({ data: {} }),
@@ -200,8 +237,8 @@ function VmixAdminPage() {
         fetchRoster({ data: { team: home } }),
         fetchRoster({ data: { team: away } }),
       ]);
-      setHomeLineup(homeRoster);
-      setAwayLineup(awayRoster);
+      setHomeSlots(homeRoster);
+      setAwaySlots(awayRoster);
       toast.success(
         source === "auto"
           ? `Dagens hemmamatch laddad: ${home} vs ${away}`
@@ -212,11 +249,10 @@ function VmixAdminPage() {
     }
   };
 
-  // Auto-apply today's home game once when detected (unless a LIVE publication already hydrated the form).
   useEffect(() => {
     if (autoApplied) return;
     if (!todaysQuery.data) return;
-    if (activeQuery.data) return; // live publication wins
+    if (activeQuery.data) return;
     const m = todaysQuery.data.match;
     if (m && m.home === DEFAULT_TEAM) {
       setAutoApplied(true);
@@ -238,13 +274,19 @@ function VmixAdminPage() {
     }
   };
 
-  const baseUrl =
-    typeof window !== "undefined" ? window.location.origin : "";
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const settings = settingsQuery.data;
+  const clubId = settings?.club_id ?? "570";
+  const lineupVersion = settings?.lineup_version ?? "0";
   const endpoints = [
     { label: "current.json", url: `${baseUrl}/api/public/vmix/current` },
     { label: "standings.json", url: `${baseUrl}/api/public/vmix/standings` },
     { label: "home-lineup.json", url: `${baseUrl}/api/public/vmix/home-lineup` },
     { label: "away-lineup.json", url: `${baseUrl}/api/public/vmix/away-lineup` },
+    {
+      label: "lineup.json",
+      url: `${baseUrl}/api/public/vmix/lineup/${lineupVersion}?ClubId=${clubId}`,
+    },
   ];
 
   if (!adminQuery.data?.isAdmin) {
@@ -259,12 +301,16 @@ function VmixAdminPage() {
     <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
       <div className="flex items-center justify-between">
         <div>
-          <Link to="/" className="text-xs text-muted-foreground inline-flex items-center gap-1 hover:text-foreground">
+          <Link
+            to="/"
+            className="text-xs text-muted-foreground inline-flex items-center gap-1 hover:text-foreground"
+          >
             <ArrowLeft className="h-3 w-3" /> Hem
           </Link>
           <h1 className="text-2xl font-semibold">vMix broadcast data</h1>
           <p className="text-sm text-muted-foreground">
-            Publicera dagens Grästorps IK-match som JSON-feeds för vMix GT Designer.
+            Publicera dagens Grästorps IK-match som JSON-feeds för vMix GT
+            Designer.
           </p>
         </div>
         <div className="text-right text-xs text-muted-foreground">
@@ -276,17 +322,33 @@ function VmixAdminPage() {
         </div>
       </div>
 
+      <SettingsCard
+        settings={settings ?? null}
+        loading={settingsQuery.isLoading}
+        onSave={async (v) => {
+          await saveSettings({ data: v });
+          await queryClient.invalidateQueries({ queryKey: ["vmix-settings"] });
+          toast.success("Inställningar sparade");
+        }}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">vMix-endpoints</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            Klistra in i vMix Data Sources → Web (JSON). Poll-intervall 5–15 s rekommenderas.
+            Klistra in i vMix Data Sources → Web (JSON). Poll-intervall 5–15 s
+            rekommenderas. <span className="font-mono">lineup.json</span> speglar
+            det riktiga Swehockey-API:t – byt bara domännamn i vMix för att växla
+            från primär till backup.
           </p>
           <ul className="space-y-1">
             {endpoints.map((e) => (
-              <li key={e.url} className="flex items-center gap-2 rounded border bg-muted/40 px-2 py-1 text-xs">
+              <li
+                key={e.url}
+                className="flex items-center gap-2 rounded border bg-muted/40 px-2 py-1 text-xs"
+              >
                 <span className="font-mono w-36 shrink-0">{e.label}</span>
                 <span className="font-mono truncate">{e.url}</span>
                 <Button
@@ -302,15 +364,18 @@ function VmixAdminPage() {
                       }
                       toast.success("Kopierad");
                     } catch {
-                      // Fallback for iframes / permission-denied contexts.
                       const ta = document.createElement("textarea");
                       ta.value = e.url;
                       ta.style.position = "fixed";
                       ta.style.opacity = "0";
                       document.body.appendChild(ta);
                       ta.select();
-                      try { document.execCommand("copy"); toast.success("Kopierad"); }
-                      catch { toast.error("Kunde inte kopiera – markera och kopiera manuellt"); }
+                      try {
+                        document.execCommand("copy");
+                        toast.success("Kopierad");
+                      } catch {
+                        toast.error("Kunde inte kopiera – markera manuellt");
+                      }
                       document.body.removeChild(ta);
                     }
                   }}
@@ -336,7 +401,9 @@ function VmixAdminPage() {
       <DataSourceCard
         sourceMode={sourceMode}
         loading={todaysQuery.isLoading}
-        todayDate={todaysQuery.data?.date ?? new Date().toISOString().slice(0, 10)}
+        todayDate={
+          todaysQuery.data?.date ?? new Date().toISOString().slice(0, 10)
+        }
         match={todaysQuery.data?.match ?? null}
         currentDate={gameDate}
         currentHome={homeTeam}
@@ -354,51 +421,81 @@ function VmixAdminPage() {
         <CardContent className="grid gap-3 sm:grid-cols-2">
           <div>
             <Label>Datum</Label>
-            <Input type="date" value={gameDate} onChange={(e) => setGameDate(e.target.value)} />
+            <Input
+              type="date"
+              value={gameDate}
+              onChange={(e) => setGameDate(e.target.value)}
+            />
           </div>
           <div>
             <Label>Arena</Label>
-            <Input value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="Ishuset Grästorp" />
+            <Input
+              value={venue}
+              onChange={(e) => setVenue(e.target.value)}
+              placeholder="Ishuset Grästorp"
+            />
           </div>
           <div>
             <Label>Hemmalag</Label>
             <Select value={homeTeam} onValueChange={setHomeTeam}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {teams.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                {teams.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div>
             <Label>Bortalag</Label>
             <Select value={awayTeam} onValueChange={setAwayTeam}>
-              <SelectTrigger><SelectValue placeholder="Välj bortalag" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Välj bortalag" />
+              </SelectTrigger>
               <SelectContent>
-                {opponents.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                {opponents.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="sm:col-span-2">
             <Label>Anteckningar</Label>
-            <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Kommentatorsnoteringar (visas i current.json)" />
+            <Textarea
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Kommentatorsnoteringar (visas i current.json)"
+            />
           </div>
         </CardContent>
       </Card>
 
-      <LineupEditor
+      <SlotLineupEditor
         title="Hemmalag – lineup"
-        team={homeTeam}
-        lineup={homeLineup}
-        setLineup={setHomeLineup}
+        teamName={homeTeam}
+        onTeamChange={setHomeTeam}
+        teams={teams}
+        slots={homeSlots}
+        setSlots={setHomeSlots}
         onPrefill={() => prefillHome.mutate()}
         prefilling={prefillHome.isPending}
       />
 
-      <LineupEditor
+      <SlotLineupEditor
         title="Bortalag – lineup"
-        team={awayTeam || "(välj bortalag)"}
-        lineup={awayLineup}
-        setLineup={setAwayLineup}
+        teamName={awayTeam || ""}
+        onTeamChange={setAwayTeam}
+        teams={opponents}
+        placeholder="(välj bortalag)"
+        slots={awaySlots}
+        setSlots={setAwaySlots}
         onPrefill={() => awayTeam && prefillAway.mutate()}
         prefilling={prefillAway.isPending}
         disablePrefill={!awayTeam}
@@ -410,7 +507,9 @@ function VmixAdminPage() {
           disabled={publishMut.isPending || !awayTeam}
           onClick={() => publishMut.mutate()}
         >
-          {publishMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {publishMut.isPending && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
           Publicera till vMix
         </Button>
         <Button
@@ -422,7 +521,8 @@ function VmixAdminPage() {
         </Button>
         {activeQuery.data && (
           <span className="text-xs text-muted-foreground ml-auto">
-            Publicerad {new Date(activeQuery.data.publishedAt).toLocaleString("sv-SE")}
+            Publicerad{" "}
+            {new Date(activeQuery.data.publishedAt).toLocaleString("sv-SE")}
           </span>
         )}
       </div>
@@ -430,163 +530,349 @@ function VmixAdminPage() {
   );
 }
 
-function LineupEditor({
-  title,
-  team,
-  lineup,
-  setLineup,
-  onPrefill,
-  prefilling,
-  disablePrefill,
+// ---------- Settings card ----------
+
+function SettingsCard({
+  settings,
+  loading,
+  onSave,
 }: {
-  title: string;
-  team: string;
-  lineup: VmixLineupInput;
-  setLineup: (l: VmixLineupInput) => void;
-  onPrefill: () => void;
-  prefilling: boolean;
-  disablePrefill?: boolean;
+  settings: VmixSettings | null;
+  loading: boolean;
+  onSave: (v: VmixSettings) => Promise<void>;
 }) {
-  const updateList = (
-    kind: "goalies" | "skaters",
-    idx: number,
-    patch: Partial<Player>,
-  ) => {
-    const list = [...lineup[kind]];
-    list[idx] = { ...list[idx], ...patch };
-    setLineup({ ...lineup, [kind]: list });
-  };
-  const addRow = (kind: "goalies" | "skaters") => {
-    const newPlayer: Player = { number: null, name: "", position: kind === "goalies" ? "G" : null, line: null };
-    setLineup({ ...lineup, [kind]: [...lineup[kind], newPlayer] });
-  };
-  const removeRow = (kind: "goalies" | "skaters", idx: number) => {
-    setLineup({ ...lineup, [kind]: lineup[kind].filter((_, i) => i !== idx) });
-  };
+  const [assetBaseUrl, setAssetBaseUrl] = useState("");
+  const [clubId, setClubId] = useState("");
+  const [lineupVersion, setLineupVersion] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!settings) return;
+    setAssetBaseUrl(settings.asset_base_url);
+    setClubId(settings.club_id);
+    setLineupVersion(settings.lineup_version);
+  }, [settings]);
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-base">
-          {title} · <span className="font-normal text-muted-foreground">{team}</span>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Settings2 className="h-4 w-4" /> vMix-inställningar
         </CardTitle>
-        <Button size="sm" variant="outline" onClick={onPrefill} disabled={prefilling || disablePrefill}>
-          {prefilling && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-          Hämta från roster
-        </Button>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="grid gap-3 sm:grid-cols-3">
         <div>
-          <div className="mb-1 flex items-center justify-between">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">Målvakter</div>
-            <Button size="sm" variant="ghost" onClick={() => addRow("goalies")}>
-              <Plus className="h-3 w-3 mr-1" /> Lägg till
-            </Button>
-          </div>
-          <PlayerTable
-            players={lineup.goalies}
-            onChange={(i, p) => updateList("goalies", i, p)}
-            onRemove={(i) => removeRow("goalies", i)}
-            showLine={false}
+          <Label>Asset Base URL</Label>
+          <Input
+            value={assetBaseUrl}
+            onChange={(e) => setAssetBaseUrl(e.target.value)}
+            placeholder="http://192.168.1.235:8765"
+            disabled={loading}
           />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            IP-adress och port för vMix-datorns webbserver.
+          </p>
         </div>
         <div>
-          <div className="mb-1 flex items-center justify-between">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">Utespelare</div>
-            <Button size="sm" variant="ghost" onClick={() => addRow("skaters")}>
-              <Plus className="h-3 w-3 mr-1" /> Lägg till
-            </Button>
-          </div>
-          <PlayerTable
-            players={lineup.skaters}
-            onChange={(i, p) => updateList("skaters", i, p)}
-            onRemove={(i) => removeRow("skaters", i)}
-            showLine
+          <Label>Club ID</Label>
+          <Input
+            value={clubId}
+            onChange={(e) => setClubId(e.target.value)}
+            placeholder="570"
+            disabled={loading}
           />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Grästorps IK:s ClubId i Swehockey-systemet.
+          </p>
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <div>
-            <Label>Tränare</Label>
-            <Input
-              value={lineup.coach ?? ""}
-              onChange={(e) => setLineup({ ...lineup, coach: e.target.value || null })}
-            />
-          </div>
-          <div>
-            <Label>Anteckningar</Label>
-            <Input
-              value={lineup.notes ?? ""}
-              onChange={(e) => setLineup({ ...lineup, notes: e.target.value || null })}
-            />
-          </div>
+        <div>
+          <Label>Lineup Version</Label>
+          <Input
+            value={lineupVersion}
+            onChange={(e) => setLineupVersion(e.target.value)}
+            placeholder="0"
+            disabled={loading}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Versionsparametern i API-URL:en (/api/lineup/0).
+          </p>
+        </div>
+        <div className="sm:col-span-3">
+          <Button
+            size="sm"
+            disabled={saving || loading || !assetBaseUrl || !clubId || !lineupVersion}
+            onClick={async () => {
+              setSaving(true);
+              try {
+                await onSave({
+                  asset_base_url: assetBaseUrl,
+                  club_id: clubId,
+                  lineup_version: lineupVersion,
+                });
+              } catch (e) {
+                toast.error(`Kunde inte spara: ${(e as Error).message}`);
+              } finally {
+                setSaving(false);
+              }
+            }}
+          >
+            {saving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+            Spara inställningar
+          </Button>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function PlayerTable({
-  players,
+// ---------- Slot-based lineup editor ----------
+
+const DEF_ROWS = [1, 2, 3, 4, 5] as const;
+const FWD_ROWS = [1, 2, 3, 4, 5] as const;
+
+function SlotInputs({
+  slot,
+  value,
   onChange,
-  onRemove,
-  showLine,
 }: {
-  players: Player[];
-  onChange: (idx: number, patch: Partial<Player>) => void;
-  onRemove: (idx: number) => void;
-  showLine: boolean;
+  slot: string;
+  value: SlotPlayer;
+  onChange: (v: SlotPlayer) => void;
 }) {
-  if (players.length === 0) {
-    return <p className="text-xs text-muted-foreground italic">Inga spelare tillagda ännu.</p>;
-  }
+  const number = value?.number ?? "";
+  const name = value?.name ?? "";
+  const commit = (patch: { number?: number | string; name?: string }) => {
+    const next = {
+      number: patch.number !== undefined ? patch.number : number,
+      name: patch.name !== undefined ? patch.name : name,
+    };
+    if (!String(next.number).trim() && !String(next.name).trim()) {
+      onChange(null);
+    } else {
+      onChange({
+        name: String(next.name).toUpperCase(),
+        number: next.number,
+      });
+    }
+  };
   return (
-    <div className="space-y-1">
-      {players.map((p, i) => (
-        <div key={i} className="grid grid-cols-12 gap-1 items-center">
-          <Input
-            className="col-span-2 h-8"
-            placeholder="#"
-            inputMode="numeric"
-            value={p.number ?? ""}
-            onChange={(e) => {
-              const n = Number(e.target.value);
-              onChange(i, { number: Number.isFinite(n) && e.target.value ? n : null });
-            }}
-          />
-          <Input
-            className="col-span-5 h-8"
-            placeholder="Namn"
-            value={p.name}
-            onChange={(e) => onChange(i, { name: e.target.value })}
-          />
-          <Input
-            className="col-span-2 h-8"
-            placeholder="Pos"
-            value={p.position ?? ""}
-            onChange={(e) => onChange(i, { position: e.target.value || null })}
-          />
-          {showLine ? (
-            <Input
-              className="col-span-2 h-8"
-              placeholder="Kedja"
-              inputMode="numeric"
-              value={p.line ?? ""}
-              onChange={(e) => {
-                const n = Number(e.target.value);
-                onChange(i, { line: Number.isFinite(n) && e.target.value ? n : null });
-              }}
-            />
-          ) : (
-            <div className="col-span-2" />
-          )}
-          <Button variant="ghost" size="sm" className="col-span-1 h-8 w-8 p-0" onClick={() => onRemove(i)}>
-            <Trash2 className="h-3 w-3" />
-          </Button>
-        </div>
-      ))}
+    <div className="flex items-center gap-1">
+      <div className="text-[10px] font-mono w-8 shrink-0 text-muted-foreground">
+        {slot}
+      </div>
+      <Input
+        className="h-7 w-12 px-1 text-xs"
+        placeholder="#"
+        inputMode="numeric"
+        value={String(number)}
+        onChange={(e) => {
+          const raw = e.target.value.trim();
+          if (!raw) return commit({ number: "" });
+          const n = Number(raw);
+          commit({ number: Number.isFinite(n) ? n : raw });
+        }}
+      />
+      <Input
+        className="h-7 flex-1 text-xs"
+        placeholder="EFTERNAMN, FÖRNAMN"
+        value={name}
+        onChange={(e) => commit({ name: e.target.value })}
+      />
     </div>
   );
 }
+
+function SlotLineupEditor({
+  title,
+  teamName,
+  onTeamChange,
+  teams,
+  placeholder,
+  slots,
+  setSlots,
+  onPrefill,
+  prefilling,
+  disablePrefill,
+}: {
+  title: string;
+  teamName: string;
+  onTeamChange: (v: string) => void;
+  teams: string[];
+  placeholder?: string;
+  slots: VmixLineupSlots;
+  setSlots: React.Dispatch<React.SetStateAction<VmixLineupSlots>>;
+  onPrefill: () => void;
+  prefilling: boolean;
+  disablePrefill?: boolean;
+}) {
+  const setSlot = (key: keyof VmixLineupSlots, v: SlotPlayer) => {
+    setSlots((prev) => ({ ...prev, [key]: v }));
+  };
+  const filled = countFilledSlots(slots);
+
+  return (
+    <Card>
+      <CardHeader className="space-y-2">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="flex-1 min-w-[200px]">
+            <CardTitle className="text-base">{title}</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              {filled.goalies} MV · {filled.skaters} utespelare
+            </p>
+          </div>
+          <div className="w-48">
+            <Label className="text-[11px]">Lag</Label>
+            <Select value={teamName} onValueChange={onTeamChange}>
+              <SelectTrigger className="h-8">
+                <SelectValue placeholder={placeholder ?? "Välj lag"} />
+              </SelectTrigger>
+              <SelectContent>
+                {teams.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-28">
+            <Label className="text-[11px]">Logotypkod</Label>
+            <Input
+              className="h-8 uppercase"
+              maxLength={5}
+              placeholder="t.ex. GRÄ"
+              value={slots.teamCode}
+              onChange={(e) =>
+                setSlots((prev) => ({
+                  ...prev,
+                  teamCode: e.target.value.toUpperCase(),
+                }))
+              }
+            />
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onPrefill}
+            disabled={prefilling || disablePrefill}
+          >
+            {prefilling && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+            Hämta från roster
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {/* Målvakter */}
+        <section>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Målvakter
+          </h3>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <SlotInputs
+              slot="MV1"
+              value={slots.GK1}
+              onChange={(v) => setSlot("GK1", v)}
+            />
+            <SlotInputs
+              slot="MV2"
+              value={slots.GK2}
+              onChange={(v) => setSlot("GK2", v)}
+            />
+          </div>
+        </section>
+
+        {/* Backpar */}
+        <section>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Backpar
+          </h3>
+          <div className="grid gap-2 sm:grid-cols-3 text-[11px] font-medium text-muted-foreground">
+            <div>LD (Vänster)</div>
+            <div>RD (Höger)</div>
+            <div>XD (Extra back)</div>
+          </div>
+          <div className="mt-1 space-y-2">
+            {DEF_ROWS.map((row) => (
+              <div key={row} className="grid gap-2 sm:grid-cols-3">
+                <SlotInputs
+                  slot={`LD${row}`}
+                  value={slots[`LD${row}` as keyof VmixLineupSlots] as SlotPlayer}
+                  onChange={(v) =>
+                    setSlot(`LD${row}` as keyof VmixLineupSlots, v)
+                  }
+                />
+                <SlotInputs
+                  slot={`RD${row}`}
+                  value={slots[`RD${row}` as keyof VmixLineupSlots] as SlotPlayer}
+                  onChange={(v) =>
+                    setSlot(`RD${row}` as keyof VmixLineupSlots, v)
+                  }
+                />
+                <SlotInputs
+                  slot={`XD${row}`}
+                  value={slots[`XD${row}` as keyof VmixLineupSlots] as SlotPlayer}
+                  onChange={(v) =>
+                    setSlot(`XD${row}` as keyof VmixLineupSlots, v)
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Forwards */}
+        <section>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Forwards
+          </h3>
+          <div className="grid gap-2 sm:grid-cols-3 text-[11px] font-medium text-muted-foreground">
+            <div>LW (Vänster)</div>
+            <div>C (Center)</div>
+            <div>RW (Höger)</div>
+          </div>
+          <div className="mt-1 space-y-2">
+            {FWD_ROWS.map((row) => (
+              <div key={row} className="grid gap-2 sm:grid-cols-3">
+                <SlotInputs
+                  slot={`LW${row}`}
+                  value={slots[`LW${row}` as keyof VmixLineupSlots] as SlotPlayer}
+                  onChange={(v) =>
+                    setSlot(`LW${row}` as keyof VmixLineupSlots, v)
+                  }
+                />
+                <SlotInputs
+                  slot={`C${row}`}
+                  value={slots[`C${row}` as keyof VmixLineupSlots] as SlotPlayer}
+                  onChange={(v) =>
+                    setSlot(`C${row}` as keyof VmixLineupSlots, v)
+                  }
+                />
+                <SlotInputs
+                  slot={`RW${row}`}
+                  value={slots[`RW${row}` as keyof VmixLineupSlots] as SlotPlayer}
+                  onChange={(v) =>
+                    setSlot(`RW${row}` as keyof VmixLineupSlots, v)
+                  }
+                />
+              </div>
+            ))}
+            {row5Hint()}
+          </div>
+        </section>
+      </CardContent>
+    </Card>
+  );
+}
+
+function row5Hint() {
+  return (
+    <p className="text-[10px] italic text-muted-foreground">
+      Rad 5 = (Extra)
+    </p>
+  );
+}
+
+// ---------- Endpoint tester ----------
 
 type EndpointResult = {
   status: "idle" | "loading" | "ok" | "error";
@@ -613,7 +899,11 @@ function EndpointTester({
       const ms = Math.round(performance.now() - t0);
       const text = await res.text();
       let body: unknown = text;
-      try { body = JSON.parse(text); } catch { /* keep as text */ }
+      try {
+        body = JSON.parse(text);
+      } catch {
+        /* keep as text */
+      }
       setResults((r) => ({
         ...r,
         [url]: {
@@ -673,7 +963,10 @@ function EndpointTester({
         {endpoints.map((e) => {
           const r = results[e.url];
           return (
-            <div key={e.url} className="rounded border bg-muted/30 p-2 text-xs">
+            <div
+              key={e.url}
+              className="rounded border bg-muted/30 p-2 text-xs"
+            >
               <div className="flex items-center gap-2">
                 <StatusBadge result={r} />
                 <span className="font-mono font-medium">{e.label}</span>
@@ -681,7 +974,9 @@ function EndpointTester({
                   <span className="text-muted-foreground">{r.ms} ms</span>
                 )}
                 {r?.httpStatus !== undefined && (
-                  <span className="text-muted-foreground">HTTP {r.httpStatus}</span>
+                  <span className="text-muted-foreground">
+                    HTTP {r.httpStatus}
+                  </span>
                 )}
                 {r?.fetchedAt && (
                   <span className="text-muted-foreground ml-1">
@@ -702,9 +997,7 @@ function EndpointTester({
                   )}
                 </Button>
               </div>
-              {r?.error && (
-                <p className="mt-1 text-destructive">{r.error}</p>
-              )}
+              {r?.error && <p className="mt-1 text-destructive">{r.error}</p>}
               {r?.body !== undefined && (
                 <pre className="mt-2 max-h-64 overflow-auto rounded bg-background/60 p-2 font-mono text-[11px] leading-relaxed">
                   {typeof r.body === "string"
@@ -713,7 +1006,9 @@ function EndpointTester({
                 </pre>
               )}
               {!r && (
-                <p className="mt-1 text-muted-foreground italic">Inte testad ännu.</p>
+                <p className="mt-1 text-muted-foreground italic">
+                  Inte testad ännu.
+                </p>
               )}
             </div>
           );
@@ -733,7 +1028,10 @@ function StatusBadge({ result }: { result?: EndpointResult }) {
     );
   if (result.status === "ok")
     return (
-      <Badge variant="default" className="gap-1 bg-emerald-600 hover:bg-emerald-600">
+      <Badge
+        variant="default"
+        className="gap-1 bg-emerald-600 hover:bg-emerald-600"
+      >
         <CheckCircle2 className="h-3 w-3" /> OK
       </Badge>
     );
@@ -743,6 +1041,8 @@ function StatusBadge({ result }: { result?: EndpointResult }) {
     </Badge>
   );
 }
+
+// ---------- Data source (auto / manual) ----------
 
 function DataSourceCard({
   sourceMode,
@@ -795,9 +1095,7 @@ function DataSourceCard({
     message = (
       <>
         Manuell override aktiv – <strong>{currentHome}</strong> vs{" "}
-        <strong>{currentAway}</strong> ({currentDate}). Formuläret nedan speglar
-        det du valt. Klicka <em>Uppdatera från schemat</em> för att gå tillbaka
-        till dagens automatiska hemmamatch.
+        <strong>{currentAway}</strong> ({currentDate}).
       </>
     );
   } else if (sourceMode === "live-hydrated") {
@@ -806,17 +1104,17 @@ function DataSourceCard({
       <>
         Formuläret återspeglar den nuvarande LIVE-publiceringen (
         <strong>{currentHome}</strong> vs <strong>{currentAway}</strong>,{" "}
-        {currentDate}). Använd manuell override eller <em>Uppdatera från schemat</em>{" "}
-        för att byta.
+        {currentDate}).
       </>
     );
   } else if (isHomeGame) {
-    badge = <Badge className="bg-emerald-600 hover:bg-emerald-600">AUTO</Badge>;
+    badge = (
+      <Badge className="bg-emerald-600 hover:bg-emerald-600">AUTO</Badge>
+    );
     message = (
       <>
         Hemmamatch hittad för {DEFAULT_TEAM}: <strong>{match!.home}</strong> vs{" "}
-        <strong>{match!.away}</strong> ({match!.date}). Formuläret nedan är
-        förifyllt från dagens schema och rostrar har hämtats.
+        <strong>{match!.away}</strong> ({match!.date}).
       </>
     );
   } else {
@@ -826,8 +1124,7 @@ function DataSourceCard({
         Ingen hemmamatch hittad för {DEFAULT_TEAM} idag ({todayDate}).
         {match
           ? ` (Dagens match är ${match.home} vs ${match.away}, inte hemma.)`
-          : ""}{" "}
-        Använd manuell override för att välja en annan match.
+          : ""}
       </>
     );
   }
@@ -851,7 +1148,11 @@ function DataSourceCard({
           </p>
         )}
         <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" variant={open ? "secondary" : "outline"} onClick={() => setOpen((v) => !v)}>
+          <Button
+            size="sm"
+            variant={open ? "secondary" : "outline"}
+            onClick={() => setOpen((v) => !v)}
+          >
             {open ? "Stäng manuell override" : "Manuell override"}
           </Button>
           {(sourceMode === "manual" || sourceMode === "live-hydrated") && (
@@ -865,28 +1166,44 @@ function DataSourceCard({
           <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
             <p className="text-xs text-muted-foreground">
               Välj vilken match som helst (även spelade matcher) för att testa
-              vMix-feeden. Rostrar hämtas automatiskt när du bekräftar.
+              vMix-feeden.
             </p>
             <div className="grid gap-3 sm:grid-cols-3">
               <div>
                 <Label>Datum</Label>
-                <Input type="date" value={mDate} onChange={(e) => setMDate(e.target.value)} />
+                <Input
+                  type="date"
+                  value={mDate}
+                  onChange={(e) => setMDate(e.target.value)}
+                />
               </div>
               <div>
                 <Label>Hemmalag</Label>
                 <Select value={mHome} onValueChange={setMHome}>
-                  <SelectTrigger><SelectValue placeholder="Välj hemmalag" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj hemmalag" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {teams.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    {teams.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label>Bortalag</Label>
                 <Select value={mAway} onValueChange={setMAway}>
-                  <SelectTrigger><SelectValue placeholder="Välj bortalag" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj bortalag" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {opponents.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    {opponents.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
