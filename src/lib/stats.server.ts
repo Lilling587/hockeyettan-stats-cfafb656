@@ -34,8 +34,15 @@ async function generateJson<T extends z.ZodTypeAny>(
 // ---------- Clients ----------
 
 function admin() {
-  const url = process.env.SUPABASE_URL!;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const url = process.env.SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "Supabase server env missing (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY or SUPABASE_PUBLISHABLE_KEY).",
+    );
+  }
   return createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
   });

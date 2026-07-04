@@ -121,6 +121,9 @@ function VmixAdminPage() {
   const [gameDate, setGameDate] = useState<string>(today);
   const [homeTeam, setHomeTeam] = useState<string>(DEFAULT_TEAM);
   const [awayTeam, setAwayTeam] = useState<string>("");
+  const [venue, setVenue] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
+  
   
   const [homeSlots, setHomeSlots] = useState<VmixLineupSlots>(() =>
     emptySlots(DEFAULT_TEAM, ""),
