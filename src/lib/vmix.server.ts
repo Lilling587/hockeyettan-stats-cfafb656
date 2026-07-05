@@ -56,9 +56,30 @@ function isGoalie(pos: string | null): boolean {
   return /^(G|GK|MV|GOALIE|MÅLVAKT|GOALKEEPER)$/i.test(p);
 }
 
-function isDefense(pos: string | null): boolean {
+function isLeftDefense(pos: string | null): boolean {
+  return (pos ?? "").toUpperCase().trim() === "LD";
+}
+
+function isRightDefense(pos: string | null): boolean {
+  return (pos ?? "").toUpperCase().trim() === "RD";
+}
+
+function isGenericDefense(pos: string | null): boolean {
   const p = (pos ?? "").toUpperCase().trim();
-  return /^(D|B|LD|RD|BACK|DEF|DEFENSE|DEFENCE|DEFENSEMAN)$/i.test(p);
+  return /^(D|B|BACK|DEF|DEFENSE|DEFENCE|DEFENSEMAN)$/.test(p);
+}
+
+function isLeftWing(pos: string | null): boolean {
+  return (pos ?? "").toUpperCase().trim() === "LW";
+}
+
+function isCenter(pos: string | null): boolean {
+  const p = (pos ?? "").toUpperCase().trim();
+  return p === "CE" || p === "C";
+}
+
+function isRightWing(pos: string | null): boolean {
+  return (pos ?? "").toUpperCase().trim() === "RW";
 }
 
 export async function scrapeTeamRoster(
