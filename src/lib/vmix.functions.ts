@@ -176,7 +176,7 @@ export const publishVmix = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        gameDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        gameDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
         homeTeam: z.string().min(1),
         awayTeam: z.string().min(1),
         homeTeamCode: z.string().default(""),
@@ -203,7 +203,7 @@ export const publishVmix = createServerFn({ method: "POST" })
     if (deactErr) throw new Error(deactErr.message);
 
     const insertPayload: Record<string, unknown> = {
-      game_date: data.gameDate,
+      game_date: data.gameDate ?? null,
       home_team: data.homeTeam,
       away_team: data.awayTeam,
       home_team_code: data.homeTeamCode,
