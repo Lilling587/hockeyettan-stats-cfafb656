@@ -184,30 +184,63 @@ export async function scrapeTeamRoster(
     }
   }
 
-  const slots = emptySlots(teamName, "");
+ const slots = emptySlots(teamName, "");
 
   // Goalies → GK1, GK2
-  const gkKeys = ["GK1", "GK2"] as const;
   goalies.slice(0, 2).forEach((p, i) => {
-    slots[gkKeys[i]] = { name: p.name, number: p.number } as SlotPlayer;
+    slots[`GK${i + 1}` as keyof VmixLineupSlots] =
+      { name: p.name, number: p.number } as SlotPlayer as never;
   });
 
-  // Defense → alternate LD/RD row by row (rows 1..5)
-  for (let row = 0; row < 5; row++) {
-    const ld = defense[row * 2];
-    const rd = defense[row * 2 + 1];
-    if (ld) slots[`LD${row + 1}` as keyof VmixLineupSlots] = { name: ld.name, number: ld.number } as SlotPlayer as never;
-    if (rd) slots[`RD${row + 1}` as keyof VmixLineupSlots] = { name: rd.name, number: rd.number } as SlotPlayer as never;
-  }
+  // Left defensemen → LD1..LD5 (in roster order)
+  leftDefense.slice(0, 5).forEach((p, i) => {
+    slots[`LD${i + 1}` as keyof VmixLineupSlots] =
+      { name: p.name, number: p.number } as SlotPlayer as never;
+  });
 
-  // Forwards → LW/C/RW across each row (rows 1..5)
-  for (let row = 0; row < 5; row++) {
-    const lw = forwards[row * 3];
-    const c = forwards[row * 3 + 1];
-    const rw = forwards[row * 3 + 2];
-    if (lw) slots[`LW${row + 1}` as keyof VmixLineupSlots] = { name: lw.name, number: lw.number } as SlotPlayer as never;
-    if (c)  slots[`C${row + 1}` as keyof VmixLineupSlots]  = { name: c.name,  number: c.number  } as SlotPlayer as never;
-    if (rw) slots[`RW${row + 1}` as keyof VmixLineupSlots] = { name: rw.name, number: rw.number } as SlotPlayer as never;
+  // Right defensemen → RD1..RD5 (in roster order)
+  rightDefense.slice(0, 5).forEach((p, i) => {
+    slots[`RD${i + 1}` as keyof VmixLineupSlots] =
+      { name: p.name, number: p.number } as SlotPlayer as never;
+  });
+
+  // Left wings → LW1..LW5 (in roster order)
+  leftWings.slice(0, 5).forEach((p, i) => {
+    slots[`LW${i + 1}` as keyof VmixLineupSlots] =
+      { name: p.name, number: p.number } as SlotPlayer as never;
+  });
+
+  // Centers → C1..C5 (in roster order)
+  centers.slice(0, 5).forEach((p, i) => {
+    slots[`C${i + 1}` as keyof VmixLineupSlots] =
+      { name: p.name, number: p.number } as SlotPlayer as never;
+  });
+
+  // Right wings → RW1..RW5 (in roster order)
+  rightWings.slice(0, 5).forEach((p, i) => {
+    slots[`RW${i + 1}` as keyof VmixLineupSlots] =
+      { name: p.name, number: p.number } as SlotPlayer as never;
+  });
+
+  // Unknown-position forwards → fill any remaining empty forward slots
+  // scanning left-to-right, top-to-bottom (LW1, C1, RW1, LW2, C2, RW2, ...)
+  const fwdSlotOrder = (["LW", "C", "RW"] as const).flatMap((col) =>
+    [1, 2, 3, 4, 5].map((row) => `${col}${row}` as keyof VmixLineupSlots),
+  );
+  // Sort so we fill row-by-row: LW1,C1,RW1, LW2,C2,RW2, ...
+  const fwdByRow = [1, 2, 3, 4, 5].flatMap((row) =>
+    (["LW", "C", "RW"] as const).map(
+      (col) => `${col}${row}` as keyof VmixLineupSlots,
+    ),
+  );
+  void fwdSlotOrder; // keep the column-order array around for reference
+  let fwdIdx = 0;
+  for (const key of fwdByRow) {
+    if (fwdIdx >= otherForwards.length) break;
+    if (!slots[key]) {
+      const p = otherForwards[fwdIdx++];
+      slots[key] = { name: p.name, number: p.number } as SlotPlayer as never;
+    }
   }
 
   return slots;
