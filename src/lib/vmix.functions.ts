@@ -55,7 +55,7 @@ const SlotsSchema = z.object({
 
 export type VmixPublicationRow = {
   id: string;
-  gameDate: string;
+  gameDate: string | null;
   homeTeam: string;
   awayTeam: string;
   homeTeamCode: string;
@@ -112,7 +112,7 @@ function mapRow(row: Record<string, unknown>): VmixPublicationRow {
   const awayCode = String(row.away_team_code ?? "");
   return {
     id: String(row.id),
-    gameDate: String(row.game_date),
+    gameDate: row.game_date == null ? null : String(row.game_date),
     homeTeam,
     awayTeam,
     homeTeamCode: homeCode,
