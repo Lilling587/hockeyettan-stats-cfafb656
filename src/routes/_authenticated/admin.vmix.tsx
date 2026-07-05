@@ -1096,8 +1096,8 @@ function DataSourceCard({
 }: {
   sourceMode: "idle" | "auto" | "manual" | "live-hydrated";
   loading: boolean;
-  todayDate: string;
-  match: { date: string; home: string; away: string } | null;
+  todayDate: string | null;
+  match: { date: string | null; home: string; away: string } | null;
   currentHome: string;
   currentAway: string;
   onResetManual: () => void;
