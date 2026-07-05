@@ -170,21 +170,21 @@ function VmixAdminPage() {
 
   const prefillHome = useMutation({
     mutationFn: () => fetchRoster({ data: { team: homeTeam } }),
-    onSuccess: ({ slots, pool }) => {
-      setHomeSlots((prev) => ({ ...slots, teamCode: prev.teamCode }));
+    onSuccess: (pool) => {
       setHomePool(pool);
-      const c = countFilledSlots(slots);
-      toast.success(`Hemmaroster hämtad: ${c.skaters} utespelare, ${c.goalies} MV`);
+      toast.success(
+        `Hemmaroster laddad – ${pool.length} spelare tillgängliga i listorna`,
+      );
     },
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
   const prefillAway = useMutation({
     mutationFn: () => fetchRoster({ data: { team: awayTeam } }),
-    onSuccess: ({ slots, pool }) => {
-      setAwaySlots((prev) => ({ ...slots, teamCode: prev.teamCode }));
+    onSuccess: (pool) => {
       setAwayPool(pool);
-      const c = countFilledSlots(slots);
-      toast.success(`Bortaroster hämtad: ${c.skaters} utespelare, ${c.goalies} MV`);
+      toast.success(
+        `Bortaroster laddad – ${pool.length} spelare tillgängliga i listorna`,
+      );
     },
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
@@ -237,19 +237,21 @@ function VmixAdminPage() {
     setHomeTeam(home);
     setAwayTeam(away);
     setSourceMode(source);
+    // Always start with empty slots for a new matchup – the producer fills
+    // each slot deliberately using the dropdown list.
+    setHomeSlots(emptySlots(home, homeSlots.teamCode));
+    setAwaySlots(emptySlots(away, awaySlots.teamCode));
     try {
-      const [homeRoster, awayRoster] = await Promise.all([
+      const [homePool, awayPool] = await Promise.all([
         fetchRoster({ data: { team: home } }),
         fetchRoster({ data: { team: away } }),
       ]);
-      setHomeSlots(homeRoster.slots);
-      setAwaySlots(awayRoster.slots);
-      setHomePool(homeRoster.pool);
-      setAwayPool(awayRoster.pool);
+      setHomePool(homePool);
+      setAwayPool(awayPool);
       toast.success(
         source === "auto"
-          ? `Dagens hemmamatch laddad: ${home} vs ${away}`
-          : `Manuell match laddad: ${home} vs ${away}`,
+          ? `Dagens hemmamatch laddad: ${home} vs ${away} – välj spelare i listorna`
+          : `Manuell match laddad: ${home} vs ${away} – välj spelare i listorna`,
       );
     } catch (e) {
       toast.error(`Kunde inte hämta roster: ${(e as Error).message}`);
@@ -780,14 +782,14 @@ function SlotLineupEditor({
               }
             />
           </div>
-          <Button
+         <Button
             size="sm"
             variant="outline"
             onClick={onPrefill}
             disabled={prefilling || disablePrefill}
           >
             {prefilling && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-            Hämta från roster
+            Ladda spelarlistan
           </Button>
         </div>
       </CardHeader>
