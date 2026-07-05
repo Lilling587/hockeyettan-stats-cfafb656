@@ -7,7 +7,11 @@ import { DEFAULT_SEASON, getSeason } from "./seasons.config";
 
 type Json = Database["public"]["Tables"]["cached_briefings"]["Row"]["payload"];
 type StandingsJson = Json;
-
+export type RosterPlayer = {
+  name: string;
+  number: number | string;
+  position: string | null;
+};
 export type SlotPlayer = {
   name: string;
   number: number | string;
