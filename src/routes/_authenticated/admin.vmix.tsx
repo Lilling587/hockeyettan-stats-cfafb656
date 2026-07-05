@@ -141,7 +141,6 @@ function VmixAdminPage() {
   useEffect(() => {
     const pub = activeQuery.data;
     if (!pub) return;
-    setGameDate(pub.gameDate);
     setHomeTeam(pub.homeTeam);
     setAwayTeam(pub.awayTeam);
     setVenue(pub.venue ?? "");
@@ -190,7 +189,6 @@ function VmixAdminPage() {
     mutationFn: () =>
       publish({
         data: {
-          gameDate,
           homeTeam,
           awayTeam,
           homeTeamCode: homeSlots.teamCode,
@@ -226,12 +224,10 @@ function VmixAdminPage() {
   });
 
   const applyMatchup = async (
-    date: string,
     home: string,
     away: string,
     source: "auto" | "manual",
   ) => {
-    setGameDate(date);
     setHomeTeam(home);
     setAwayTeam(away);
     setSourceMode(source);
@@ -247,13 +243,22 @@ function VmixAdminPage() {
       setHomePool(homePool);
       setAwayPool(awayPool);
       toast.success(
-        source === "auto"
-          ? `Dagens hemmamatch laddad: ${home} vs ${away} – välj spelare i listorna`
-          : `Manuell match laddad: ${home} vs ${away} – välj spelare i listorna`,
+        `Dagens hemmamatch laddad: ${home} vs ${away} – välj spelare i listorna`,
       );
     } catch (e) {
       toast.error(`Kunde inte hämta roster: ${(e as Error).message}`);
     }
+  };
+
+  const resetToManual = () => {
+    setHomeTeam(DEFAULT_TEAM);
+    setAwayTeam("");
+    setHomeSlots(emptySlots(DEFAULT_TEAM, ""));
+    setAwaySlots(emptySlots("", ""));
+    setHomePool([]);
+    setAwayPool([]);
+    setSourceMode("manual");
+    toast.info("Formuläret återställt – välj lag och ladda spelarlistan.");
   };
 
   useEffect(() => {
@@ -263,7 +268,7 @@ function VmixAdminPage() {
     const m = todaysQuery.data.match;
     if (m && m.home === DEFAULT_TEAM) {
       setAutoApplied(true);
-      void applyMatchup(m.date, m.home, m.away, "auto");
+      void applyMatchup(m.home, m.away, "auto");
     } else {
       setAutoApplied(true);
     }
@@ -274,7 +279,7 @@ function VmixAdminPage() {
     const res = await todaysQuery.refetch();
     const m = res.data?.match;
     if (m && m.home === DEFAULT_TEAM) {
-      await applyMatchup(m.date, m.home, m.away, "auto");
+      await applyMatchup(m.home, m.away, "auto");
     } else {
       setSourceMode("auto");
       toast.info(`Ingen hemmamatch hittad för ${DEFAULT_TEAM} idag.`);
@@ -409,11 +414,9 @@ function VmixAdminPage() {
           todaysQuery.data?.date ?? new Date().toISOString().slice(0, 10)
         }
         match={todaysQuery.data?.match ?? null}
-        currentDate={gameDate}
         currentHome={homeTeam}
         currentAway={awayTeam}
-        teams={teams}
-        onApplyManual={(d, h, a) => applyMatchup(d, h, a, "manual")}
+        onResetManual={resetToManual}
         onRerunAuto={rerunAuto}
         hasLive={!!activeQuery.data}
       />
