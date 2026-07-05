@@ -118,9 +118,7 @@ function VmixAdminPage() {
     enabled: !!adminQuery.data?.isAdmin,
   });
 
-  const today = new Date().toISOString().slice(0, 10);
-  const [gameDate, setGameDate] = useState<string>(today);
-  const [homeTeam, setHomeTeam] = useState<string>(DEFAULT_TEAM);
+ const [homeTeam, setHomeTeam] = useState<string>(DEFAULT_TEAM);
   const [awayTeam, setAwayTeam] = useState<string>("");
   const [venue, setVenue] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
