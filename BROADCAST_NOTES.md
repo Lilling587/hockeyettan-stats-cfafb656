@@ -295,8 +295,8 @@ Fixed to bottom of screen, always visible regardless of scroll position.
 1. **Page opens** → `getTodaysMatchup` scrapes the schedule page for today's Grästorp home game
 2. **Match found** → `useEffect` automatically calls `applyMatchup`
 3. **Roster prefill** → `scrapeTeamRoster` fetches both teams' general squads from swehockey.se's `TeamRoster/{competitionId}` page simultaneously
-4. **Position-aware slot assignment** → Players sorted by swehockey.se position codes (GK→GK slots, LD→LD slots, RD→RD slots, LW→LW slots, CE→C slots, RW→RW slots). Generic defense codes (D, B) split evenly between LD/RD.
-5. **Producer reviews** → Removes scratches/injuries, enters team logo codes, reorders players within columns to match actual line assignments
+4. **Pool built and dropdowns populated → scrapeTeamRoster returns a sorted RosterPlayer[] array. Players are sorted by position group (GK first, then LD, RD, LW, CE, RW, unknowns last) then by jersey number within each group. This pool populates the dropdown on every slot in the form. All slots remain empty.
+5. **Producer fills slots via dropdowns → Opens each slot's dropdown, picks the correct player from the grouped list. Enters Logotypkod for both teams. Players not in the pool are typed directly into the text inputs.
 6. **"Publicera till vMix"** → All slot data saved to `vmix_publications` in Supabase as active publication
 7. **vMix polls every 15 seconds** → `GET /api/public/vmix/lineup/0?ClubId=570`
 8. **Endpoint validates ClubId** → Checks against stored `club_id` in `vmix_settings`
@@ -363,47 +363,87 @@ Two scraping methods exist in the codebase: direct HTML fetch with regex parsing
 
 ---
 
-## 10. Code Changes Made During This Conversation
+## 10. Code Changes – Final Implemented State
 
-### ✅ COMPLETED
+All work on the vMix backup system is complete. The following describes what was built, in the order it was implemented. Everything listed here is confirmed present in the codebase as of July 2026.
 
-**Navigation button added**
-Added vMix button to the home page navigation bar (visible when logged in). Uses `Tv` icon from lucide-react. Links to `/admin/vmix`.
+---
 
-**Standings endpoint created**
-`src/routes/api/public/vmix/standings.ts` – was found to already exist when trying to create it (Lovable had created it previously). Returns league table from active publication.
+### Architecture: The Slot-Based Lineup System
 
-**Old endpoints removed from admin UI**
-The endpoints array in `admin.vmix.tsx` was reduced from 5 entries to 2. Only `standings.json` and `lineup.json` remain. `current.json`, `home-lineup.json`, and `away-lineup.json` were removed from the UI display.
+The core of the vMix backup system is a slot-based data model where every player position in the GT Designer graphic has an explicitly named slot. This was built as a coordinated change across multiple files.
 
-**Old endpoint files deleted from GitHub**
-`src/routes/api/public/vmix/home-lineup.ts` and `src/routes/api/public/vmix/away-lineup.ts` were deleted. These used the old nested format and are superseded by `lineup.$version.ts`.
+**Types defined in `src/lib/vmix.functions.ts`:**
+- `SlotPlayer` – a single player `{ name: string, number: number | string }` or `null` if the slot is empty
+- `SlotKey` – a union type of all 32 slot names per team (`GK1`, `GK2`, `LD1`–`LD5`, `RD1`–`RD5`, `XD1`–`XD5`, `LW1`–`LW5`, `C1`–`C5`, `RW1`–`RW5`)
+- `VmixLineupSlots` – the full lineup object: `{ team, teamCode }` plus one `SlotPlayer` field per `SlotKey`
+- `RosterPlayer` – `{ name, number, position }` used for the player dropdown pool
+- `SLOT_KEYS` – exported constant array of all 32 slot names, used for iteration
 
-**Matchinställningar card removed**
-The card with date, venue, home team, away team, and notes inputs was removed from the admin page as redundant. Team selection exists in the lineup editor cards; date is handled by Datakälla; venue and notes are no longer collected.
+**Server functions in `src/lib/vmix.functions.ts`:**
+- `fetchTeamRoster` – authenticated server function that scrapes swehockey.se and returns `RosterPlayer[]` (the full roster pool, sorted by position group then jersey number). Does NOT fill any slots.
+- `publishVmix` – saves a complete publication (both teams' slots + standings) to `vmix_publications` in Supabase and marks it as the active publication
+- `unpublishVmix` – clears the active publication
+- `getActivePublication` – public (no auth) server function that reads the current active publication from Supabase
+- `getVmixSettings` / `saveVmixSettings` – read and write the three vMix settings from the `vmix_settings` table
 
-**Broken venue/notes references fixed**
-After removing Matchinställningar, references to `setVenue` and `setNotes` remained in the hydration useEffect and publishMut. Lovable fixed this by re-adding the state declarations as silent no-ops (`useState<string>("")`) so the variables exist but always stay empty, always publishing as `null`.
+**Scraping in `src/lib/vmix.server.ts`:**
+- `scrapeTeamRoster(teamName, season)` – fetches the `TeamRoster/{competitionId}` page from swehockey.se, parses all player rows, detects position codes by scanning all cells with a regex (`GK|MV|LD|RD|LW|CE|RW`) rather than relying on a fixed column index, formats names as `LASTNAME, FIRSTNAME` uppercase, sorts the result by position group then jersey number, and returns a flat `RosterPlayer[]` array. Does not perform any slot assignment.
 
-### ⏳ PENDING (code written, not yet committed to GitHub)
+---
 
-**Position-aware roster slot assignment**
-`src/lib/vmix.server.ts` needs three targeted replacements to use swehockey.se's specific position codes (GK, LD, RD, LW, CE, RW) for direct slot placement instead of generic grouping and alternating. The new logic:
-- `GK` → GK1, GK2
-- `LD` → LD1, LD2, LD3, LD4, LD5 (in order)
-- `RD` → RD1, RD2, RD3, RD4, RD5 (in order)
-- `LW` → LW1, LW2, LW3, LW4, LW5 (in order)
-- `CE` → C1, C2, C3, C4, C5 (in order)
-- `RW` → RW1, RW2, RW3, RW4, RW5 (in order)
-- Generic `D`/`B` → split evenly between LD and RD
-- Unknown position → fill remaining empty forward slots row-by-row
+### The vMix Endpoints
 
-The exact replacement code blocks were written out in detail in the conversation.
+**`src/routes/api/public/vmix/lineup.$version.ts`** – The primary backup endpoint. Fully public (no auth). Accepts `?ClubId=` query parameter, validates it against `club_id` in `vmix_settings`, reads the active publication from Supabase, reads `asset_base_url` from `vmix_settings`, and builds the full flat JSON payload in the exact same structure as the real Swehockey API. Returns a JSON array `[{...}]` containing one flat object with all 64 named slot fields (32 per team) plus team names, logos, and shared resource URLs. When nothing is published returns `["Ingen aktiv publicering – publicera via admin-sidan"]` mirroring the real API's error format.
 
-### 🔲 NOT YET DONE (identified but not yet actioned)
+**`src/routes/api/public/vmix/standings.ts`** – Public endpoint. Returns the full HockeyEttan Södra league table from the active publication as structured JSON. The standings are scraped from swehockey.se at publish time, not on demand.
 
-**The Lovable MCP `send_message` prompt**
-A comprehensive prompt was written to rebuild the entire vMix lineup system with slot-based types, database migration, new admin form grid, and the new combined lineup endpoint. The prompt was attempted via Lovable MCP but failed twice (approval issues then API error). The prompt text was provided in full detail. This was the major architectural rebuild – based on subsequent conversation it appears Lovable has already partially implemented parts of this (the SlotLineupEditor, SlotPlayer types, VmixLineupSlots type, the lineup.$version.ts endpoint, and vmix_settings all appear to be in the codebase already). Verification of what was actually implemented vs what still needs to be done would be wise at the start of the next session.
+**`src/routes/api/public/vmix/current.ts`** – Public endpoint. Returns game metadata (home team, away team, date, venue, notes) from the active publication. Not currently shown in the admin UI endpoints list or tester, but the file is kept for potential future use.
+
+**Deleted files:** `home-lineup.ts` and `away-lineup.ts` were deleted from this directory. They used an old nested format incompatible with GT Designer's data binding and are fully superseded by `lineup.$version.ts`.
+
+---
+
+### The Admin Page (`src/routes/_authenticated/admin.vmix.tsx`)
+
+**Removed:** The `Matchinställningar` card (date, venue, home/away team dropdowns, notes textarea) was removed as redundant. Team selection is handled by the lineup editor cards. Date is set by Datakälla. Venue and notes are always saved as `null`. The state variables `venue` and `notes` remain in the file as silent no-ops (always empty strings, always publishing as `null`) to avoid broken references.
+
+**vMix-inställningar card:** Three configurable fields saved to the `vmix_settings` Supabase table: `asset_base_url` (the vMix computer's local web server IP and port), `club_id` (Grästorp IK's ClubId in the Swehockey system, currently `570`), and `lineup_version` (the path parameter in the API URL, currently `0`).
+
+**vMix-endpoints card:** Shows two endpoints only – `standings.json` and `lineup.json`. The `lineup.json` URL is constructed from the stored settings values and deliberately mirrors the real API URL structure so switching vMix between primary and backup only requires changing the domain name.
+
+**Testa endpoints card:** Live endpoint tester for both endpoints. Shows status (idle / loading / OK / error), response time in ms, HTTP status code, last tested timestamp, and a scrollable preview of the actual JSON body. Has "Testa alla" for on-demand testing and "Auto 10s" for continuous monitoring during broadcast preparation.
+
+**Datakälla card:** Handles matchup detection. Auto-detects Grästorp IK home games from the swehockey.se schedule. When a home game is found, it fetches the player pool for both teams automatically and populates the dropdowns. Supports manual override for away games, past matches, or testing. When an active publication already exists, the form hydrates from that publication instead.
+
+**SlotLineupEditor component:** The lineup editor for each team. Contains:
+- Team name dropdown (synchronized with the other team to prevent duplicates)
+- Logotypkod text field (the short code for logo filenames, e.g. `GRÄ` for Grästorp – must be entered manually, not fetched from roster)
+- "Ladda spelarlistan" button – fetches the full roster from swehockey.se and stores it as a pool. Does NOT fill any slots. All slots remain empty after pressing this button.
+- A filled slot counter in the card header ("X MV · Y utespelare") that updates live as the producer fills slots
+- Three sections: MÅLVAKTER (2 slots side by side), BACKPAR (5 rows × 3 columns: LD, RD, XD), FORWARDS (5 rows × 3 columns: LW, C, RW)
+
+**SlotInputs component:** Each individual slot in the grid. When a roster pool is loaded, shows a native `<select>` dropdown above the text inputs. The dropdown lists all players from the pool grouped into Målvakter, Backar, and Forwards optgroups with their position code shown. Selecting a player from the dropdown fills both the number and name text inputs automatically. Text inputs remain editable for manual entry of players not in the pool (call-ups, loan players from other clubs, etc.). When no pool is loaded (before pressing "Ladda spelarlistan"), only the text inputs are shown.
+
+**Workflow:** All slots start empty. The producer presses "Ladda spelarlistan" to populate the dropdowns. They then open each slot's dropdown and pick the correct player from the list. Every selection is a deliberate conscious choice matching the actual game lineup sheet received from the teams before puck drop. This design was chosen over auto-filling because auto-fill created a messy starting state that required cleanup rather than clean deliberate selection.
+
+---
+
+### The Supabase Tables
+
+**`vmix_settings`** – Key-value table with three rows: `asset_base_url`, `club_id`, `lineup_version`. Public read (SELECT), authenticated write. Defaults: `http://192.168.1.235:8765`, `570`, `0`.
+
+**`vmix_publications`** – Stores active and historical publications. Key columns: `home_slots JSONB`, `away_slots JSONB`, `home_team_code TEXT`, `away_team_code TEXT`, `home_team TEXT`, `away_team TEXT`, `game_date TEXT`, `is_active BOOLEAN`, `published_at TIMESTAMPTZ`. Only one row has `is_active = true` at any time. Publishing deactivates all existing rows before inserting the new one.
+
+---
+
+### Known Minor Issues (Cosmetic Only, No Functional Impact)
+
+**Dead code in `vmix.server.ts`:** The old position helper functions (`isGoalie`, `isLeftDefense`, `isRightDefense`, `isGenericDefense`, `isLeftWing`, `isCenter`, `isRightWing`) were not removed when the slot auto-fill logic was deleted. They are never called and have no effect, but they add noise to the file. Can be safely deleted in a future cleanup commit.
+
+**Outdated comment in `vmix.server.ts`:** The top-of-file comment still says "packs it into the slot-based VmixLineupSlots shape the vMix GT Designer graphic expects." This is no longer accurate since the function now only returns a `RosterPlayer[]` pool. Can be updated in the same cleanup commit.
+
+
 
 ---
 
@@ -456,10 +496,12 @@ src/
 1. **Open `/admin/vmix`** – Check LIVE badge in top right
 2. **Datakälla card** – Verify correct matchup was auto-detected (or use manual override for away games)
 3. **vMix-inställningar card** – Verify Asset Base URL matches today's broadcast computer IP
-4. **Hemmalag card** – Enter Logotypkod (e.g. `GRÄ`), press "Hämta från roster", then:
-   - Remove injured/suspended/scratched players
-   - Reorder players within each column to match actual line assignments
-   - Verify goalie order (MV1 = starter)
+4. **Hemmalag card – Enter Logotypkod (e.g. GRÄ), press "Ladda spelarlistan" to fetch the player pool and populate the dropdowns, then:
+
+Open each slot's dropdown and select the correct player from the grouped list
+For players not in the roster (call-ups, loan players), type their number and name directly into the text inputs below the dropdown
+Verify the "X MV · Y utespelare" counter at the top of the card to confirm expected numbers of filled slots
+The card header counter is your running tally of completeness before publishing
 5. **Bortalag card** – Same process as home team, enter opponent's Logotypkod
 6. **Press "Publicera till vMix"** – Wait for "Publicerat till vMix" toast
 7. **Testa endpoints card** – Press "Testa alla", verify both show green OK
