@@ -116,8 +116,12 @@ export async function scrapeTeamRoster(
   }
 
   const goalies: RawPlayer[] = [];
-  const defense: RawPlayer[] = [];
-  const forwards: RawPlayer[] = [];
+  const leftDefense: RawPlayer[] = [];
+  const rightDefense: RawPlayer[] = [];
+  const leftWings: RawPlayer[] = [];
+  const centers: RawPlayer[] = [];
+  const rightWings: RawPlayer[] = [];
+  const otherForwards: RawPlayer[] = [];
 
   const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
   let rm: RegExpExecArray | null;
@@ -158,9 +162,26 @@ export async function scrapeTeamRoster(
       name: formatted,
       position: position ? position.trim() : null,
     };
-    if (isGoalie(position)) goalies.push(player);
-    else if (isDefense(position)) defense.push(player);
-    else forwards.push(player);
+    if (isGoalie(position)) {
+      goalies.push(player);
+    } else if (isLeftDefense(position)) {
+      leftDefense.push(player);
+    } else if (isRightDefense(position)) {
+      rightDefense.push(player);
+    } else if (isGenericDefense(position)) {
+      // Generic defense code (D, B, etc.) – split evenly between LD and RD
+      if (leftDefense.length <= rightDefense.length) leftDefense.push(player);
+      else rightDefense.push(player);
+    } else if (isLeftWing(position)) {
+      leftWings.push(player);
+    } else if (isCenter(position)) {
+      centers.push(player);
+    } else if (isRightWing(position)) {
+      rightWings.push(player);
+    } else {
+      // Unknown position – treat as forward, fill remaining slots later
+      otherForwards.push(player);
+    }
   }
 
   const slots = emptySlots(teamName, "");
