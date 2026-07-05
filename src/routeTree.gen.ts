@@ -29,9 +29,7 @@ import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenti
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicVmixStandingsRouteImport } from './routes/api/public/vmix/standings'
-import { Route as ApiPublicVmixHomeLineupRouteImport } from './routes/api/public/vmix/home-lineup'
 import { Route as ApiPublicVmixCurrentRouteImport } from './routes/api/public/vmix/current'
-import { Route as ApiPublicVmixAwayLineupRouteImport } from './routes/api/public/vmix/away-lineup'
 import { Route as ApiPublicHooksPregameEmailsRouteImport } from './routes/api/public/hooks/pregame-emails'
 import { Route as ApiPublicHooksPostgameEmailsRouteImport } from './routes/api/public/hooks/postgame-emails'
 import { Route as ApiPublicVmixLineupVersionRouteImport } from './routes/api/public/vmix/lineup.$version'
@@ -141,19 +139,9 @@ const ApiPublicVmixStandingsRoute = ApiPublicVmixStandingsRouteImport.update({
   path: '/api/public/vmix/standings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicVmixHomeLineupRoute = ApiPublicVmixHomeLineupRouteImport.update({
-  id: '/api/public/vmix/home-lineup',
-  path: '/api/public/vmix/home-lineup',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicVmixCurrentRoute = ApiPublicVmixCurrentRouteImport.update({
   id: '/api/public/vmix/current',
   path: '/api/public/vmix/current',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicVmixAwayLineupRoute = ApiPublicVmixAwayLineupRouteImport.update({
-  id: '/api/public/vmix/away-lineup',
-  path: '/api/public/vmix/away-lineup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHooksPregameEmailsRoute =
@@ -195,9 +183,7 @@ export interface FileRoutesByFullPath {
   '/tv/$home/$away': typeof TvHomeAwayRoute
   '/api/public/hooks/postgame-emails': typeof ApiPublicHooksPostgameEmailsRoute
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
-  '/api/public/vmix/away-lineup': typeof ApiPublicVmixAwayLineupRoute
   '/api/public/vmix/current': typeof ApiPublicVmixCurrentRoute
-  '/api/public/vmix/home-lineup': typeof ApiPublicVmixHomeLineupRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
@@ -222,9 +208,7 @@ export interface FileRoutesByTo {
   '/tv/$home/$away': typeof TvHomeAwayRoute
   '/api/public/hooks/postgame-emails': typeof ApiPublicHooksPostgameEmailsRoute
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
-  '/api/public/vmix/away-lineup': typeof ApiPublicVmixAwayLineupRoute
   '/api/public/vmix/current': typeof ApiPublicVmixCurrentRoute
-  '/api/public/vmix/home-lineup': typeof ApiPublicVmixHomeLineupRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
@@ -251,9 +235,7 @@ export interface FileRoutesById {
   '/tv/$home/$away': typeof TvHomeAwayRoute
   '/api/public/hooks/postgame-emails': typeof ApiPublicHooksPostgameEmailsRoute
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
-  '/api/public/vmix/away-lineup': typeof ApiPublicVmixAwayLineupRoute
   '/api/public/vmix/current': typeof ApiPublicVmixCurrentRoute
-  '/api/public/vmix/home-lineup': typeof ApiPublicVmixHomeLineupRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
@@ -280,9 +262,7 @@ export interface FileRouteTypes {
     | '/tv/$home/$away'
     | '/api/public/hooks/postgame-emails'
     | '/api/public/hooks/pregame-emails'
-    | '/api/public/vmix/away-lineup'
     | '/api/public/vmix/current'
-    | '/api/public/vmix/home-lineup'
     | '/api/public/vmix/standings'
     | '/lovable/email/queue/process'
     | '/api/public/vmix/lineup/$version'
@@ -307,9 +287,7 @@ export interface FileRouteTypes {
     | '/tv/$home/$away'
     | '/api/public/hooks/postgame-emails'
     | '/api/public/hooks/pregame-emails'
-    | '/api/public/vmix/away-lineup'
     | '/api/public/vmix/current'
-    | '/api/public/vmix/home-lineup'
     | '/api/public/vmix/standings'
     | '/lovable/email/queue/process'
     | '/api/public/vmix/lineup/$version'
@@ -335,9 +313,7 @@ export interface FileRouteTypes {
     | '/tv/$home/$away'
     | '/api/public/hooks/postgame-emails'
     | '/api/public/hooks/pregame-emails'
-    | '/api/public/vmix/away-lineup'
     | '/api/public/vmix/current'
-    | '/api/public/vmix/home-lineup'
     | '/api/public/vmix/standings'
     | '/lovable/email/queue/process'
     | '/api/public/vmix/lineup/$version'
@@ -359,9 +335,7 @@ export interface RootRouteChildren {
   TvHomeAwayRoute: typeof TvHomeAwayRoute
   ApiPublicHooksPostgameEmailsRoute: typeof ApiPublicHooksPostgameEmailsRoute
   ApiPublicHooksPregameEmailsRoute: typeof ApiPublicHooksPregameEmailsRoute
-  ApiPublicVmixAwayLineupRoute: typeof ApiPublicVmixAwayLineupRoute
   ApiPublicVmixCurrentRoute: typeof ApiPublicVmixCurrentRoute
-  ApiPublicVmixHomeLineupRoute: typeof ApiPublicVmixHomeLineupRoute
   ApiPublicVmixStandingsRoute: typeof ApiPublicVmixStandingsRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   ApiPublicVmixLineupVersionRoute: typeof ApiPublicVmixLineupVersionRoute
@@ -509,25 +483,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicVmixStandingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/vmix/home-lineup': {
-      id: '/api/public/vmix/home-lineup'
-      path: '/api/public/vmix/home-lineup'
-      fullPath: '/api/public/vmix/home-lineup'
-      preLoaderRoute: typeof ApiPublicVmixHomeLineupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/vmix/current': {
       id: '/api/public/vmix/current'
       path: '/api/public/vmix/current'
       fullPath: '/api/public/vmix/current'
       preLoaderRoute: typeof ApiPublicVmixCurrentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/vmix/away-lineup': {
-      id: '/api/public/vmix/away-lineup'
-      path: '/api/public/vmix/away-lineup'
-      fullPath: '/api/public/vmix/away-lineup'
-      preLoaderRoute: typeof ApiPublicVmixAwayLineupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/pregame-emails': {
@@ -590,9 +550,7 @@ const rootRouteChildren: RootRouteChildren = {
   TvHomeAwayRoute: TvHomeAwayRoute,
   ApiPublicHooksPostgameEmailsRoute: ApiPublicHooksPostgameEmailsRoute,
   ApiPublicHooksPregameEmailsRoute: ApiPublicHooksPregameEmailsRoute,
-  ApiPublicVmixAwayLineupRoute: ApiPublicVmixAwayLineupRoute,
   ApiPublicVmixCurrentRoute: ApiPublicVmixCurrentRoute,
-  ApiPublicVmixHomeLineupRoute: ApiPublicVmixHomeLineupRoute,
   ApiPublicVmixStandingsRoute: ApiPublicVmixStandingsRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   ApiPublicVmixLineupVersionRoute: ApiPublicVmixLineupVersionRoute,
