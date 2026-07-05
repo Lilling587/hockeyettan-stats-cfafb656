@@ -3,12 +3,7 @@
 // VmixLineupSlots shape the vMix GT Designer graphic expects.
 
 import type { Season } from "./seasons.config";
-import {
-  emptySlots,
-  type RosterPlayer,
-  type VmixLineupSlots,
-  type SlotPlayer,
-} from "./vmix.functions";
+import type { RosterPlayer } from "./vmix.functions";
 
 const STATS_BASE_URL = "https://stats.swehockey.se";
 
@@ -86,7 +81,7 @@ function isRightWing(pos: string | null): boolean {
 export async function scrapeTeamRoster(
   teamName: string,
   season: Season,
-): Promise<{ slots: VmixLineupSlots; pool: RosterPlayer[] }> {
+): Promise<RosterPlayer[]> {
   const url = `${STATS_BASE_URL}/Teams/Info/TeamRoster/${season.competitionId}`;
   const res = await fetch(url, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
@@ -94,6 +89,8 @@ export async function scrapeTeamRoster(
   if (!res.ok) throw new Error(`Roster fetch failed: ${res.status}`);
   const html = await res.text();
 
+  // Locate the HTML block that belongs to this team. Try finding a heading
+  // with the team name first; fall back to a broad anchor search if not found.
   const escapedName = teamName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const headingRe = new RegExp(
     `<h[1-6][^>]*>\\s*(?:<[^>]+>\\s*)*${escapedName}\\s*(?:<[^>]+>\\s*)*<\\/h[1-6]>`,
@@ -112,29 +109,24 @@ export async function scrapeTeamRoster(
       "i",
     );
     const m = anchorRe.exec(html);
-    if (!m) return { slots: emptySlots(teamName, ""), pool: [] };
+    if (!m) return [];
     block = m[0];
   }
 
-  const goalies: RawPlayer[] = [];
-  const leftDefense: RawPlayer[] = [];
-  const rightDefense: RawPlayer[] = [];
-  const leftWings: RawPlayer[] = [];
-  const centers: RawPlayer[] = [];
-  const rightWings: RawPlayer[] = [];
-  const otherForwards: RawPlayer[] = [];
-
+  // Parse every <tr> in the team block and collect player rows.
+  const players: RosterPlayer[] = [];
   const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
-  let rm: RegExpExecArray | null;
   const seen = new Set<string>();
+  let rm: RegExpExecArray | null;
+
   while ((rm = rowRe.exec(block)) !== null) {
     const cells = extractTds(rm[1]);
     if (cells.length < 2) continue;
 
     let number: number | string = "";
     let name = "";
-    let position: string | null = null;
 
+    // Determine if the first cell is a jersey number (1–99, max 3 chars).
     const firstNum = Number(cells[0].replace(/\D/g, ""));
     if (
       Number.isFinite(firstNum) &&
@@ -148,137 +140,46 @@ export async function scrapeTeamRoster(
       name = cells[0];
     }
 
-    // Scan ALL cells for a known hockey position code rather than relying
-    // on a fixed column index. The swehockey.se table can have extra columns
-    // (nationality flag image, birthdate, handedness L/R) at varying positions
-    // depending on the page and season, making a fixed index unreliable.
-    // Position codes GK/MV/LD/RD/LW/CE/RW cannot appear in any other column
-    // (names have spaces/commas, dates have dashes, numbers are digits-only,
-    // nationality codes like SWE/FIN/CAN don't overlap with position codes).
-    const knownPositionPat = /^(GK|MV|LD|RD|LW|CE|RW)$/i;
-    position = cells.find((c) => knownPositionPat.test(c.trim())) ?? null;
-
     if (!name || name.length < 2) continue;
     if (/^(nr|name|namn|pos|position|player|spelare)$/i.test(name)) continue;
 
+    // Deduplicate by number+name combination.
     const key = `${number}:${name.toLowerCase()}`;
     if (seen.has(key)) continue;
     seen.add(key);
 
-    const formatted = toLastnameFirstname(name);
-    const player: RawPlayer = {
+    // Detect position by scanning all cells for a known hockey position code.
+    // More robust than relying on a fixed column index since the table can
+    // have extra columns (birthdate, nationality flag, handedness) at varying
+    // positions depending on the page and season.
+    const knownPositionPat = /^(GK|MV|LD|RD|LW|CE|RW)$/i;
+    const position =
+      cells.find((c) => knownPositionPat.test(c.trim())) ?? null;
+
+    players.push({
       number,
-      name: formatted,
-      position: position ? position.trim() : null,
-    };
-    if (isGoalie(position)) {
-      goalies.push(player);
-    } else if (isLeftDefense(position)) {
-      leftDefense.push(player);
-    } else if (isRightDefense(position)) {
-      rightDefense.push(player);
-    } else if (isGenericDefense(position)) {
-      // Generic defense code (D, B, etc.) – split evenly between LD and RD
-      if (leftDefense.length <= rightDefense.length) leftDefense.push(player);
-      else rightDefense.push(player);
-    } else if (isLeftWing(position)) {
-      leftWings.push(player);
-    } else if (isCenter(position)) {
-      centers.push(player);
-    } else if (isRightWing(position)) {
-      rightWings.push(player);
-    } else {
-      // Unknown position – treat as forward, fill remaining slots later
-      otherForwards.push(player);
-    }
+      name: toLastnameFirstname(name),
+      position: position ? position.trim().toUpperCase() : null,
+    });
   }
 
- const slots = emptySlots(teamName, "");
-
-  // Goalies → GK1, GK2
-  goalies.slice(0, 2).forEach((p, i) => {
-    slots[`GK${i + 1}` as keyof VmixLineupSlots] =
-      { name: p.name, number: p.number } as SlotPlayer as never;
-  });
-
-  // Left defensemen → LD1..LD5 (in roster order)
-  leftDefense.slice(0, 5).forEach((p, i) => {
-    slots[`LD${i + 1}` as keyof VmixLineupSlots] =
-      { name: p.name, number: p.number } as SlotPlayer as never;
-  });
-
-  // Right defensemen → RD1..RD5 (in roster order)
-  rightDefense.slice(0, 5).forEach((p, i) => {
-    slots[`RD${i + 1}` as keyof VmixLineupSlots] =
-      { name: p.name, number: p.number } as SlotPlayer as never;
-  });
-
-  // Left wings → LW1..LW5 (in roster order)
-  leftWings.slice(0, 5).forEach((p, i) => {
-    slots[`LW${i + 1}` as keyof VmixLineupSlots] =
-      { name: p.name, number: p.number } as SlotPlayer as never;
-  });
-
-  // Centers → C1..C5 (in roster order)
-  centers.slice(0, 5).forEach((p, i) => {
-    slots[`C${i + 1}` as keyof VmixLineupSlots] =
-      { name: p.name, number: p.number } as SlotPlayer as never;
-  });
-
-  // Right wings → RW1..RW5 (in roster order)
-  rightWings.slice(0, 5).forEach((p, i) => {
-    slots[`RW${i + 1}` as keyof VmixLineupSlots] =
-      { name: p.name, number: p.number } as SlotPlayer as never;
-  });
-
-  // Unknown-position forwards → fill any remaining empty forward slots
-  // scanning left-to-right, top-to-bottom (LW1, C1, RW1, LW2, C2, RW2, ...)
-  const fwdSlotOrder = (["LW", "C", "RW"] as const).flatMap((col) =>
-    [1, 2, 3, 4, 5].map((row) => `${col}${row}` as keyof VmixLineupSlots),
-  );
-  // Sort so we fill row-by-row: LW1,C1,RW1, LW2,C2,RW2, ...
-  const fwdByRow = [1, 2, 3, 4, 5].flatMap((row) =>
-    (["LW", "C", "RW"] as const).map(
-      (col) => `${col}${row}` as keyof VmixLineupSlots,
-    ),
-  );
-  void fwdSlotOrder; // keep the column-order array around for reference
-  let fwdIdx = 0;
-  for (const key of fwdByRow) {
-    if (fwdIdx >= otherForwards.length) break;
-    if (!slots[key]) {
-      const p = otherForwards[fwdIdx++];
-      slots[key] = { name: p.name, number: p.number } as SlotPlayer as never;
-    }
-  }
-
-  // Build the full roster pool – all players sorted by position then jersey number.
-  // This pool is passed to the admin form so every slot shows a dropdown of all
-  // available players rather than requiring manual typing.
+  // Sort the pool: GK first, then LD, RD, LW, CE, RW, unknowns last.
+  // Within each position group, sort by jersey number ascending.
   const positionOrder = (pos: string | null): number => {
-    const p = (pos ?? "").toUpperCase();
-    if (p === "GK" || p === "MV") return 0;
-    if (p === "LD") return 1;
-    if (p === "RD") return 2;
-    if (p === "LW") return 3;
-    if (p === "CE") return 4;
-    if (p === "RW") return 5;
-    return 6;
+    switch ((pos ?? "").toUpperCase()) {
+      case "GK": case "MV": return 0;
+      case "LD": return 1;
+      case "RD": return 2;
+      case "LW": return 3;
+      case "CE": return 4;
+      case "RW": return 5;
+      default: return 6;
+    }
   };
 
-  const pool: RosterPlayer[] = [
-    ...goalies,
-    ...leftDefense,
-    ...rightDefense,
-    ...leftWings,
-    ...centers,
-    ...rightWings,
-    ...otherForwards,
-  ].sort((a, b) => {
+  return players.sort((a, b) => {
     const po = positionOrder(a.position) - positionOrder(b.position);
     if (po !== 0) return po;
     return Number(a.number) - Number(b.number);
   });
-
-  return { slots, pool };
 }
