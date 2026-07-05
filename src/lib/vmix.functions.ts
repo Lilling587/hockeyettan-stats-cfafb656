@@ -256,13 +256,8 @@ const SETTING_DEFAULTS: VmixSettings = {
 };
 
 export async function readVmixSettings(): Promise<VmixSettings> {
-  const { createClient } = await import("@supabase/supabase-js");
-  const client = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
-  );
-  const { data, error } = await client
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
     .from("vmix_settings")
     .select("key,value")
     .in("key", SETTING_KEYS as unknown as string[]);
@@ -275,6 +270,7 @@ export async function readVmixSettings(): Promise<VmixSettings> {
   }
   return out;
 }
+
 
 export const getVmixSettings = createServerFn({ method: "GET" }).handler(
   async (): Promise<VmixSettings> => readVmixSettings(),
