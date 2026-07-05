@@ -1143,7 +1143,7 @@ function DataSourceCard({
     badge = <Badge variant="outline">AUTO</Badge>;
     message = (
       <>
-        Ingen hemmamatch hittad för {DEFAULT_TEAM} idag ({todayDate}).
+        Ingen hemmamatch hittad för {DEFAULT_TEAM} idag ({todayDate ?? "TBD"}).
         {match
           ? ` (Dagens match är ${match.home} vs ${match.away}, inte hemma.)`
           : ""}
