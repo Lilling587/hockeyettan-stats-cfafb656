@@ -143,7 +143,7 @@ export async function scrapeTeamRoster(
     ) {
       number = firstNum;
       name = cells[1];
-      position = cells[2] ?? null;
+      position = cells[3] ?? null;
     } else {
       name = cells[0];
       position = cells[1] ?? null;
