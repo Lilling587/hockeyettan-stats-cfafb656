@@ -410,9 +410,7 @@ function VmixAdminPage() {
       <DataSourceCard
         sourceMode={sourceMode}
         loading={todaysQuery.isLoading}
-        todayDate={
-          todaysQuery.data?.date ?? new Date().toISOString().slice(0, 10)
-        }
+        todayDate={todaysQuery.data?.date ?? null}
         match={todaysQuery.data?.match ?? null}
         currentHome={homeTeam}
         currentAway={awayTeam}
