@@ -5,6 +5,7 @@
 import type { Season } from "./seasons.config";
 import {
   emptySlots,
+  type RosterPlayer,
   type VmixLineupSlots,
   type SlotPlayer,
 } from "./vmix.functions";
@@ -85,7 +86,7 @@ function isRightWing(pos: string | null): boolean {
 export async function scrapeTeamRoster(
   teamName: string,
   season: Season,
-): Promise<VmixLineupSlots> {
+): Promise<{ slots: VmixLineupSlots; pool: RosterPlayer[] }> {
   const url = `${STATS_BASE_URL}/Teams/Info/TeamRoster/${season.competitionId}`;
   const res = await fetch(url, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
