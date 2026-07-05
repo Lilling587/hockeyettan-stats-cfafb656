@@ -161,17 +161,12 @@ export const fetchTeamRoster = createServerFn({ method: "POST" })
       .object({ team: z.string().min(1), season: z.string().optional() })
       .parse(input),
   )
-  .handler(
-    async ({
-      data,
-      context,
-    }): Promise<{ slots: VmixLineupSlots; pool: RosterPlayer[] }> => {
-      await assertAdmin(context);
-      const season = getSeason(data.season) ?? DEFAULT_SEASON;
-      const { scrapeTeamRoster } = await import("./vmix.server");
-      return scrapeTeamRoster(data.team, season);
-    },
-  );
+  .handler(async ({ data, context }): Promise<RosterPlayer[]> => {
+    await assertAdmin(context);
+    const season = getSeason(data.season) ?? DEFAULT_SEASON;
+    const { scrapeTeamRoster } = await import("./vmix.server");
+    return scrapeTeamRoster(data.team, season);
+  });
 
 /**
  * Publish (or re-publish) a slot-based lineup snapshot.
