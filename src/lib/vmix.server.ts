@@ -112,7 +112,7 @@ export async function scrapeTeamRoster(
       "i",
     );
     const m = anchorRe.exec(html);
-    if (!m) return emptySlots(teamName, "");
+    if (!m) return { slots: emptySlots(teamName, ""), pool: [] };
     block = m[0];
   }
 
@@ -252,5 +252,33 @@ export async function scrapeTeamRoster(
     }
   }
 
-  return slots;
+  // Build the full roster pool – all players sorted by position then jersey number.
+  // This pool is passed to the admin form so every slot shows a dropdown of all
+  // available players rather than requiring manual typing.
+  const positionOrder = (pos: string | null): number => {
+    const p = (pos ?? "").toUpperCase();
+    if (p === "GK" || p === "MV") return 0;
+    if (p === "LD") return 1;
+    if (p === "RD") return 2;
+    if (p === "LW") return 3;
+    if (p === "CE") return 4;
+    if (p === "RW") return 5;
+    return 6;
+  };
+
+  const pool: RosterPlayer[] = [
+    ...goalies,
+    ...leftDefense,
+    ...rightDefense,
+    ...leftWings,
+    ...centers,
+    ...rightWings,
+    ...otherForwards,
+  ].sort((a, b) => {
+    const po = positionOrder(a.position) - positionOrder(b.position);
+    if (po !== 0) return po;
+    return Number(a.number) - Number(b.number);
+  });
+
+  return { slots, pool };
 }
