@@ -242,8 +242,10 @@ function VmixAdminPage() {
         fetchRoster({ data: { team: home } }),
         fetchRoster({ data: { team: away } }),
       ]);
-      setHomeSlots(homeRoster);
-      setAwaySlots(awayRoster);
+      setHomeSlots(homeRoster.slots);
+      setAwaySlots(awayRoster.slots);
+      setHomePool(homeRoster.pool);
+      setAwayPool(awayRoster.pool);
       toast.success(
         source === "auto"
           ? `Dagens hemmamatch laddad: ${home} vs ${away}`
@@ -426,6 +428,7 @@ function VmixAdminPage() {
         setSlots={setHomeSlots}
         onPrefill={() => prefillHome.mutate()}
         prefilling={prefillHome.isPending}
+        pool={homePool}
       />
 
       <SlotLineupEditor
@@ -439,6 +442,7 @@ function VmixAdminPage() {
         onPrefill={() => awayTeam && prefillAway.mutate()}
         prefilling={prefillAway.isPending}
         disablePrefill={!awayTeam}
+        pool={awayPool}
       />
 
       <div className="flex flex-wrap items-center gap-2 sticky bottom-2 bg-background/95 backdrop-blur border rounded-lg p-3">
@@ -574,13 +578,16 @@ function SlotInputs({
   slot,
   value,
   onChange,
+  pool = [],
 }: {
   slot: string;
   value: SlotPlayer;
   onChange: (v: SlotPlayer) => void;
+  pool?: RosterPlayer[];
 }) {
   const number = value?.number ?? "";
   const name = value?.name ?? "";
+
   const commit = (patch: { number?: number | string; name?: string }) => {
     const next = {
       number: patch.number !== undefined ? patch.number : number,
@@ -595,29 +602,110 @@ function SlotInputs({
       });
     }
   };
+
+  // Find the pool index of the currently assigned player so the dropdown
+  // shows the right selected option. Returns -1 if the player is not in
+  // the pool (i.e. was entered manually or slot is empty).
+  const selectedIdx = pool.findIndex(
+    (p) =>
+      String(p.number) === String(number) &&
+      p.name.toUpperCase() === String(name).toUpperCase(),
+  );
+
+  const handleDropdown = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (val === "") {
+      onChange(null);
+      return;
+    }
+    const idx = parseInt(val, 10);
+    if (!Number.isNaN(idx) && pool[idx]) {
+      const p = pool[idx];
+      onChange({ name: p.name, number: p.number });
+    }
+  };
+
+  // Split pool into display groups for <optgroup> labels.
+  const goalies = pool.filter((p) => /^(GK|MV)$/i.test(p.position ?? ""));
+  const defenders = pool.filter((p) => /^(LD|RD|D|B)$/i.test(p.position ?? ""));
+  const forwards = pool.filter(
+    (p) => p.position && !/^(GK|MV|LD|RD|D|B)$/i.test(p.position),
+  );
+  const other = pool.filter((p) => !p.position);
+
   return (
-    <div className="flex items-center gap-1">
-      <div className="text-[10px] font-mono w-8 shrink-0 text-muted-foreground">
-        {slot}
+    <div className="space-y-1">
+      {/* Dropdown – only visible once a roster pool has been loaded */}
+      {pool.length > 0 && (
+        <select
+          className="h-7 w-full rounded-md border border-input bg-background px-2 text-xs text-foreground"
+          value={selectedIdx >= 0 ? String(selectedIdx) : ""}
+          onChange={handleDropdown}
+        >
+          <option value="">– Välj spelare –</option>
+          {goalies.length > 0 && (
+            <optgroup label="Målvakter">
+              {goalies.map((p) => (
+                <option key={pool.indexOf(p)} value={String(pool.indexOf(p))}>
+                  #{p.number} – {p.name}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {defenders.length > 0 && (
+            <optgroup label="Backar">
+              {defenders.map((p) => (
+                <option key={pool.indexOf(p)} value={String(pool.indexOf(p))}>
+                  #{p.number} – {p.name} ({p.position})
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {forwards.length > 0 && (
+            <optgroup label="Forwards">
+              {forwards.map((p) => (
+                <option key={pool.indexOf(p)} value={String(pool.indexOf(p))}>
+                  #{p.number} – {p.name} ({p.position})
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {other.length > 0 && (
+            <optgroup label="Övrigt">
+              {other.map((p) => (
+                <option key={pool.indexOf(p)} value={String(pool.indexOf(p))}>
+                  #{p.number} – {p.name}
+                </option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+      )}
+      {/* Text inputs – always shown as fallback for manual entry of players
+          not in the roster pool (call-ups, loan players, etc.) */}
+      <div className="flex items-center gap-1">
+        <div className="text-[10px] font-mono w-8 shrink-0 text-muted-foreground">
+          {slot}
+        </div>
+        <Input
+          className="h-7 w-12 px-1 text-xs"
+          placeholder="#"
+          inputMode="numeric"
+          value={String(number)}
+          onChange={(e) => {
+            const raw = e.target.value.trim();
+            if (!raw) return commit({ number: "" });
+            const n = Number(raw);
+            commit({ number: Number.isFinite(n) ? n : raw });
+          }}
+        />
+        <Input
+          className="h-7 flex-1 text-xs"
+          placeholder="EFTERNAMN, FÖRNAMN"
+          value={name}
+          onChange={(e) => commit({ name: e.target.value })}
+        />
       </div>
-      <Input
-        className="h-7 w-12 px-1 text-xs"
-        placeholder="#"
-        inputMode="numeric"
-        value={String(number)}
-        onChange={(e) => {
-          const raw = e.target.value.trim();
-          if (!raw) return commit({ number: "" });
-          const n = Number(raw);
-          commit({ number: Number.isFinite(n) ? n : raw });
-        }}
-      />
-      <Input
-        className="h-7 flex-1 text-xs"
-        placeholder="EFTERNAMN, FÖRNAMN"
-        value={name}
-        onChange={(e) => commit({ name: e.target.value })}
-      />
     </div>
   );
 }
@@ -633,6 +721,7 @@ function SlotLineupEditor({
   onPrefill,
   prefilling,
   disablePrefill,
+  pool = [],
 }: {
   title: string;
   teamName: string;
@@ -644,6 +733,7 @@ function SlotLineupEditor({
   onPrefill: () => void;
   prefilling: boolean;
   disablePrefill?: boolean;
+  pool?: RosterPlayer[];
 }) {
   const setSlot = (key: keyof VmixLineupSlots, v: SlotPlayer) => {
     setSlots((prev) => ({ ...prev, [key]: v }));
@@ -712,11 +802,13 @@ function SlotLineupEditor({
               slot="MV1"
               value={slots.GK1}
               onChange={(v) => setSlot("GK1", v)}
+              pool={pool}
             />
             <SlotInputs
               slot="MV2"
               value={slots.GK2}
               onChange={(v) => setSlot("GK2", v)}
+              pool={pool}
             />
           </div>
         </section>
@@ -740,6 +832,7 @@ function SlotLineupEditor({
                   onChange={(v) =>
                     setSlot(`LD${row}` as keyof VmixLineupSlots, v)
                   }
+                  pool={pool}
                 />
                 <SlotInputs
                   slot={`RD${row}`}
@@ -747,6 +840,7 @@ function SlotLineupEditor({
                   onChange={(v) =>
                     setSlot(`RD${row}` as keyof VmixLineupSlots, v)
                   }
+                  pool={pool}
                 />
                 <SlotInputs
                   slot={`XD${row}`}
@@ -754,6 +848,7 @@ function SlotLineupEditor({
                   onChange={(v) =>
                     setSlot(`XD${row}` as keyof VmixLineupSlots, v)
                   }
+                  pool={pool}
                 />
               </div>
             ))}
@@ -779,6 +874,7 @@ function SlotLineupEditor({
                   onChange={(v) =>
                     setSlot(`LW${row}` as keyof VmixLineupSlots, v)
                   }
+                  pool={pool}
                 />
                 <SlotInputs
                   slot={`C${row}`}
@@ -786,6 +882,7 @@ function SlotLineupEditor({
                   onChange={(v) =>
                     setSlot(`C${row}` as keyof VmixLineupSlots, v)
                   }
+                  pool={pool}
                 />
                 <SlotInputs
                   slot={`RW${row}`}
@@ -793,6 +890,7 @@ function SlotLineupEditor({
                   onChange={(v) =>
                     setSlot(`RW${row}` as keyof VmixLineupSlots, v)
                   }
+                  pool={pool}
                 />
               </div>
             ))}
