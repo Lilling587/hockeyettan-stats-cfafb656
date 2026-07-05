@@ -143,11 +143,19 @@ export async function scrapeTeamRoster(
     ) {
       number = firstNum;
       name = cells[1];
-      position = cells[3] ?? null;
     } else {
       name = cells[0];
-      position = cells[1] ?? null;
     }
+
+    // Scan ALL cells for a known hockey position code rather than relying
+    // on a fixed column index. The swehockey.se table can have extra columns
+    // (nationality flag image, birthdate, handedness L/R) at varying positions
+    // depending on the page and season, making a fixed index unreliable.
+    // Position codes GK/MV/LD/RD/LW/CE/RW cannot appear in any other column
+    // (names have spaces/commas, dates have dashes, numbers are digits-only,
+    // nationality codes like SWE/FIN/CAN don't overlap with position codes).
+    const knownPositionPat = /^(GK|MV|LD|RD|LW|CE|RW)$/i;
+    position = cells.find((c) => knownPositionPat.test(c.trim())) ?? null;
 
     if (!name || name.length < 2) continue;
     if (/^(nr|name|namn|pos|position|player|spelare)$/i.test(name)) continue;
