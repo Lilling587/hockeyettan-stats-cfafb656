@@ -410,9 +410,7 @@ function VmixAdminPage() {
       <DataSourceCard
         sourceMode={sourceMode}
         loading={todaysQuery.isLoading}
-        todayDate={
-          todaysQuery.data?.date ?? new Date().toISOString().slice(0, 10)
-        }
+        todayDate={todaysQuery.data?.date ?? null}
         match={todaysQuery.data?.match ?? null}
         currentHome={homeTeam}
         currentAway={awayTeam}
@@ -1098,8 +1096,8 @@ function DataSourceCard({
 }: {
   sourceMode: "idle" | "auto" | "manual" | "live-hydrated";
   loading: boolean;
-  todayDate: string;
-  match: { date: string; home: string; away: string } | null;
+  todayDate: string | null;
+  match: { date: string | null; home: string; away: string } | null;
   currentHome: string;
   currentAway: string;
   onResetManual: () => void;
@@ -1138,14 +1136,14 @@ function DataSourceCard({
     message = (
       <>
         Hemmamatch hittad för {DEFAULT_TEAM}: <strong>{match!.home}</strong> vs{" "}
-        <strong>{match!.away}</strong> ({match!.date}).
+        <strong>{match!.away}</strong> ({match!.date ?? "TBD"}).
       </>
     );
   } else {
     badge = <Badge variant="outline">AUTO</Badge>;
     message = (
       <>
-        Ingen hemmamatch hittad för {DEFAULT_TEAM} idag ({todayDate}).
+        Ingen hemmamatch hittad för {DEFAULT_TEAM} idag ({todayDate ?? "TBD"}).
         {match
           ? ` (Dagens match är ${match.home} vs ${match.away}, inte hemma.)`
           : ""}
