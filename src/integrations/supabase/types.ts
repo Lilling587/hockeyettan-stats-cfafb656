@@ -403,7 +403,7 @@ export type Database = {
           away_slots: Json
           away_team: string
           away_team_code: string
-          game_date: string
+          game_date: string | null
           home_slots: Json
           home_team: string
           home_team_code: string
@@ -420,7 +420,7 @@ export type Database = {
           away_slots?: Json
           away_team: string
           away_team_code?: string
-          game_date: string
+          game_date?: string | null
           home_slots?: Json
           home_team: string
           home_team_code?: string
@@ -437,7 +437,7 @@ export type Database = {
           away_slots?: Json
           away_team?: string
           away_team_code?: string
-          game_date?: string
+          game_date?: string | null
           home_slots?: Json
           home_team?: string
           home_team_code?: string
