@@ -281,15 +281,12 @@ function VmixAdminPage() {
   const clubId = settings?.club_id ?? "570";
   const lineupVersion = settings?.lineup_version ?? "0";
   const endpoints = [
-    { label: "current.json", url: `${baseUrl}/api/public/vmix/current` },
-    { label: "standings.json", url: `${baseUrl}/api/public/vmix/standings` },
-    { label: "home-lineup.json", url: `${baseUrl}/api/public/vmix/home-lineup` },
-    { label: "away-lineup.json", url: `${baseUrl}/api/public/vmix/away-lineup` },
-    {
-      label: "lineup.json",
-      url: `${baseUrl}/api/public/vmix/lineup/${lineupVersion}?ClubId=${clubId}`,
-    },
-  ];
+  { label: "standings.json", url: `${baseUrl}/api/public/vmix/standings` },
+  {
+    label: "lineup.json",
+    url: `${baseUrl}/api/public/vmix/lineup/${lineupVersion}?ClubId=${clubId}`,
+  },
+];
 
   if (!adminQuery.data?.isAdmin) {
     return (
