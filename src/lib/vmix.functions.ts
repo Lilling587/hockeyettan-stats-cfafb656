@@ -176,7 +176,13 @@ export const publishVmix = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        gameDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        gameDate: z
+          .union([z.string(), z.null()])
+          .optional()
+          .transform((v) => (v == null || v === "" ? null : v))
+          .refine((v) => v == null || /^\d{4}-\d{2}-\d{2}$/.test(v), {
+            message: "gameDate must be YYYY-MM-DD or null",
+          }),
         homeTeam: z.string().min(1),
         awayTeam: z.string().min(1),
         homeTeamCode: z.string().default(""),
