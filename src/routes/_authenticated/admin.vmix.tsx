@@ -1090,11 +1090,9 @@ function DataSourceCard({
   loading,
   todayDate,
   match,
-  currentDate,
   currentHome,
   currentAway,
-  teams,
-  onApplyManual,
+  onResetManual,
   onRerunAuto,
   hasLive,
 }: {
@@ -1102,29 +1100,13 @@ function DataSourceCard({
   loading: boolean;
   todayDate: string;
   match: { date: string; home: string; away: string } | null;
-  currentDate: string;
   currentHome: string;
   currentAway: string;
-  teams: string[];
-  onApplyManual: (date: string, home: string, away: string) => void;
+  onResetManual: () => void;
   onRerunAuto: () => void;
   hasLive: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const [mDate, setMDate] = useState<string>(currentDate);
-  const [mHome, setMHome] = useState<string>(currentHome || DEFAULT_TEAM);
-  const [mAway, setMAway] = useState<string>(currentAway);
-
-  useEffect(() => {
-    if (open) {
-      setMDate(currentDate);
-      setMHome(currentHome || DEFAULT_TEAM);
-      setMAway(currentAway);
-    }
-  }, [open, currentDate, currentHome, currentAway]);
-
   const isHomeGame = !!match && match.home === DEFAULT_TEAM;
-  const opponents = teams.filter((t) => t !== mHome);
 
   let badge: React.ReactNode;
   let message: React.ReactNode;
@@ -1133,19 +1115,20 @@ function DataSourceCard({
     message = "Hämtar dagens schema…";
   } else if (sourceMode === "manual") {
     badge = <Badge className="bg-amber-500 hover:bg-amber-500">MANUELL</Badge>;
-    message = (
+    message = currentAway ? (
       <>
-        Manuell override aktiv – <strong>{currentHome}</strong> vs{" "}
-        <strong>{currentAway}</strong> ({currentDate}).
+        Manuellt läge – <strong>{currentHome}</strong> vs{" "}
+        <strong>{currentAway}</strong>.
       </>
+    ) : (
+      <>Manuellt läge – välj lag i lineup-korten nedan.</>
     );
   } else if (sourceMode === "live-hydrated") {
     badge = <Badge variant="default">LIVE</Badge>;
     message = (
       <>
         Formuläret återspeglar den nuvarande LIVE-publiceringen (
-        <strong>{currentHome}</strong> vs <strong>{currentAway}</strong>,{" "}
-        {currentDate}).
+        <strong>{currentHome}</strong> vs <strong>{currentAway}</strong>).
       </>
     );
   } else if (isHomeGame) {
@@ -1189,83 +1172,15 @@ function DataSourceCard({
           </p>
         )}
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            variant={open ? "secondary" : "outline"}
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? "Stäng manuell override" : "Manuell override"}
+          <Button size="sm" variant="outline" onClick={onResetManual}>
+            Byt lag
           </Button>
           {(sourceMode === "manual" || sourceMode === "live-hydrated") && (
             <Button size="sm" variant="outline" onClick={onRerunAuto}>
-              <RefreshCw className="h-3 w-3 mr-1" /> Uppdatera från schemat
+              <RefreshCw className="h-3 w-3 mr-1" /> Använd dagens hittade match
             </Button>
           )}
         </div>
-
-        {open && (
-          <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
-            <p className="text-xs text-muted-foreground">
-              Välj vilken match som helst (även spelade matcher) för att testa
-              vMix-feeden.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div>
-                <Label>Datum</Label>
-                <Input
-                  type="date"
-                  value={mDate}
-                  onChange={(e) => setMDate(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label>Hemmalag</Label>
-                <Select value={mHome} onValueChange={setMHome}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Välj hemmalag" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {teams.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Bortalag</Label>
-                <Select value={mAway} onValueChange={setMAway}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Välj bortalag" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {opponents.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                disabled={!mDate || !mHome || !mAway || mHome === mAway}
-                onClick={() => {
-                  onApplyManual(mDate, mHome, mAway);
-                  setOpen(false);
-                }}
-              >
-                Använd denna match
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
-                Avbryt
-              </Button>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
