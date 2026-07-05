@@ -1136,7 +1136,7 @@ function DataSourceCard({
     message = (
       <>
         Hemmamatch hittad för {DEFAULT_TEAM}: <strong>{match!.home}</strong> vs{" "}
-        <strong>{match!.away}</strong> ({match!.date}).
+        <strong>{match!.away}</strong> ({match!.date ?? "TBD"}).
       </>
     );
   } else {
