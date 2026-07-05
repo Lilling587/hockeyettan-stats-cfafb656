@@ -26,6 +26,7 @@ import {
   saveVmixSettings,
   SLOT_KEYS,
   unpublishVmix,
+  type RosterPlayer,
   type SlotPlayer,
   type VmixLineupSlots,
   type VmixSettings,
@@ -131,6 +132,8 @@ function VmixAdminPage() {
   const [awaySlots, setAwaySlots] = useState<VmixLineupSlots>(() =>
     emptySlots("", ""),
   );
+  const [homePool, setHomePool] = useState<RosterPlayer[]>([]);
+  const [awayPool, setAwayPool] = useState<RosterPlayer[]>([]);
   const [sourceMode, setSourceMode] = useState<
     "idle" | "auto" | "manual" | "live-hydrated"
   >("idle");
@@ -167,9 +170,9 @@ function VmixAdminPage() {
 
   const prefillHome = useMutation({
     mutationFn: () => fetchRoster({ data: { team: homeTeam } }),
-    onSuccess: (slots) => {
-      // Preserve the producer-entered teamCode when refetching roster.
+    onSuccess: ({ slots, pool }) => {
       setHomeSlots((prev) => ({ ...slots, teamCode: prev.teamCode }));
+      setHomePool(pool);
       const c = countFilledSlots(slots);
       toast.success(`Hemmaroster hämtad: ${c.skaters} utespelare, ${c.goalies} MV`);
     },
@@ -177,14 +180,14 @@ function VmixAdminPage() {
   });
   const prefillAway = useMutation({
     mutationFn: () => fetchRoster({ data: { team: awayTeam } }),
-    onSuccess: (slots) => {
+    onSuccess: ({ slots, pool }) => {
       setAwaySlots((prev) => ({ ...slots, teamCode: prev.teamCode }));
+      setAwayPool(pool);
       const c = countFilledSlots(slots);
       toast.success(`Bortaroster hämtad: ${c.skaters} utespelare, ${c.goalies} MV`);
     },
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
-
   const publishMut = useMutation({
     mutationFn: () =>
       publish({
