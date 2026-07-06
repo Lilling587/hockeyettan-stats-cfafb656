@@ -1038,7 +1038,7 @@ function EndpointTester({
               </div>
               {r?.error && <p className="mt-1 text-destructive">{r.error}</p>}
               {r?.body !== undefined && (
-                <pre className="mt-2 max-h-64 overflow-auto rounded bg-background/60 p-2 font-mono text-[11px] leading-relaxed">
+                <pre className="mt-2 max-h-96 overflow-auto rounded bg-background/60 p-2 font-mono text-[11px] leading-relaxed">
                   {typeof r.body === "string"
                     ? r.body
                     : JSON.stringify(r.body, null, 2)}
