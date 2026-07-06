@@ -122,10 +122,7 @@ export async function ensureLogoForTeam(team: string): Promise<string | null> {
   }
 
   try {
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    await supabaseAdmin.from("team_logos").upsert({
+    await supabase.from("team_logos").upsert({
       team_name: team,
       logo_url: url,
       status: url ? "ok" : "missing",
@@ -137,6 +134,7 @@ export async function ensureLogoForTeam(team: string): Promise<string | null> {
   }
   return url;
 }
+
 
 // ---------- Admin helpers ----------
 
