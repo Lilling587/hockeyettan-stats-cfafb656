@@ -21,13 +21,17 @@ import {
   emptySlots,
   fetchTeamRoster,
   getActivePublication,
+  getTeamLogoCodes,
   getVmixSettings,
   publishVmix,
   saveVmixSettings,
   SLOT_KEYS,
+  syncTeamLogoCodes,
   unpublishVmix,
+  updateTeamLogoCode,
   type RosterPlayer,
   type SlotPlayer,
+  type TeamLogoCode,
   type VmixLineupSlots,
   type VmixSettings,
 } from "@/lib/vmix.functions";
@@ -86,6 +90,9 @@ function VmixAdminPage() {
   const saveSettings = useServerFn(saveVmixSettings);
   const publish = useServerFn(publishVmix);
   const unpublish = useServerFn(unpublishVmix);
+  const fetchCodes = useServerFn(getTeamLogoCodes);
+  const syncCodes = useServerFn(syncTeamLogoCodes);
+  const updateCode = useServerFn(updateTeamLogoCode);
 
   const adminQuery = useQuery({
     queryKey: ["is-admin"],
@@ -106,9 +113,15 @@ function VmixAdminPage() {
     enabled: !!adminQuery.data?.isAdmin,
   });
 
-  const activeQuery = useQuery({
-    queryKey: ["vmix-active"],
-    queryFn: () => fetchActive(),
+  const settingsQuery = useQuery({
+    queryKey: ["vmix-settings"],
+    queryFn: () => fetchSettings(),
+    enabled: !!adminQuery.data?.isAdmin,
+  });
+
+  const codesQuery = useQuery({
+    queryKey: ["vmix-codes"],
+    queryFn: () => fetchCodes(),
     enabled: !!adminQuery.data?.isAdmin,
   });
 
@@ -159,11 +172,48 @@ function VmixAdminPage() {
     setAwaySlots((prev) => ({ ...prev, team: awayTeam }));
   }, [awayTeam]);
 
-  const teams = teamsQuery.data?.teams ?? [];
   const opponents = useMemo(
     () => teams.filter((t) => t !== homeTeam),
     [teams, homeTeam],
   );
+
+  // Build a team-name → logo-code lookup from the database cache.
+  const codesMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const c of codesQuery.data ?? []) m[c.teamName] = c.logoCode;
+    return m;
+  }, [codesQuery.data]);
+
+  // Auto-fill teamCode when the team changes and a code exists in the
+  // database. Only fills if the current teamCode is empty or was
+  // previously auto-filled (i.e. matches the database value for the
+  // previous team). If the producer has typed a custom code that
+  // doesn't match any database value, we leave it alone.
+  useEffect(() => {
+    const code = codesMap[homeTeam];
+    if (code) {
+      setHomeSlots((prev) => {
+        // Auto-fill if empty or if current code matches the DB value for
+        // the previous team name (meaning it was auto-filled before).
+        if (!prev.teamCode || prev.teamCode === codesMap[prev.team]) {
+          return { ...prev, teamCode: code };
+        }
+        return prev;
+      });
+    }
+  }, [homeTeam, codesMap]);
+
+  useEffect(() => {
+    const code = codesMap[awayTeam];
+    if (code) {
+      setAwaySlots((prev) => {
+        if (!prev.teamCode || prev.teamCode === codesMap[prev.team]) {
+          return { ...prev, teamCode: code };
+        }
+        return prev;
+      });
+    }
+  }, [awayTeam, codesMap]);
 
   const prefillHome = useMutation({
     mutationFn: () => fetchRoster({ data: { team: homeTeam } }),
@@ -343,6 +393,26 @@ function VmixAdminPage() {
           await saveSettings({ data: v });
           await queryClient.invalidateQueries({ queryKey: ["vmix-settings"] });
           toast.success("Inställningar sparade");
+        }}
+      />
+
+      <TeamCodesCard
+        codes={codesQuery.data ?? []}
+        loading={codesQuery.isLoading}
+        onSync={async () => {
+          const result = await syncCodes({ data: {} });
+          await queryClient.invalidateQueries({ queryKey: ["vmix-codes"] });
+          toast.success(
+            `Synkat ${result.synced} koder från Swehockey` +
+              (result.skippedManual > 0
+                ? ` (${result.skippedManual} manuella overrides bevarade)`
+                : ""),
+          );
+        }}
+        onUpdate={async (teamName, logoCode) => {
+          await updateCode({ data: { teamName, logoCode } });
+          await queryClient.invalidateQueries({ queryKey: ["vmix-codes"] });
+          toast.success(`Kod uppdaterad: ${teamName} → ${logoCode}`);
         }}
       />
 
@@ -574,7 +644,168 @@ function SettingsCard({
     </Card>
   );
 }
+// ---------- Team logo codes ----------
 
+function TeamCodesCard({
+  codes,
+  loading,
+  onSync,
+  onUpdate,
+}: {
+  codes: TeamLogoCode[];
+  loading: boolean;
+  onSync: () => Promise<void>;
+  onUpdate: (teamName: string, logoCode: string) => Promise<void>;
+}) {
+  const [syncing, setSyncing] = useState(false);
+  const [editTeam, setEditTeam] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const startEdit = (teamName: string, currentCode: string) => {
+    setEditTeam(teamName);
+    setEditValue(currentCode);
+  };
+
+  const cancelEdit = () => {
+    setEditTeam(null);
+    setEditValue("");
+  };
+
+  const saveEdit = async () => {
+    if (!editTeam || !editValue.trim()) return;
+    setSaving(true);
+    try {
+      await onUpdate(editTeam, editValue.trim().toUpperCase());
+      setEditTeam(null);
+      setEditValue("");
+    } catch (e) {
+      toast.error(`Kunde inte spara: ${(e as Error).message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <div>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Settings2 className="h-4 w-4" /> Logotypkoder
+          </CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Kopplar lagnamn till filnamn för logotyper (t.ex. GRÄ →
+            GRÄ_small.png). Synka från Swehockey eller skriv in manuellt.
+          </p>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={syncing}
+          onClick={async () => {
+            setSyncing(true);
+            try {
+              await onSync();
+            } catch (e) {
+              toast.error(`Synk misslyckades: ${(e as Error).message}`);
+            } finally {
+              setSyncing(false);
+            }
+          }}
+        >
+          {syncing ? (
+            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+          ) : (
+            <RefreshCw className="mr-1 h-3 w-3" />
+          )}
+          Synka från Swehockey
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Laddar koder…
+          </div>
+        ) : codes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Inga logotypkoder laddade. Klicka <em>Synka från Swehockey</em> för
+            att hämta koderna automatiskt.
+          </p>
+        ) : (
+          <div className="grid gap-1">
+            {codes.map((c) => (
+              <div
+                key={c.teamName}
+                className="flex items-center gap-2 rounded px-2 py-1 text-xs hover:bg-muted/40"
+              >
+                <span className="w-48 truncate">{c.teamName}</span>
+                {editTeam === c.teamName ? (
+                  <>
+                    <Input
+                      className="h-6 w-20 px-1 text-xs uppercase"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveEdit();
+                        if (e.key === "Escape") cancelEdit();
+                      }}
+                      autoFocus
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-2 text-xs"
+                      disabled={saving || !editValue.trim()}
+                      onClick={saveEdit}
+                    >
+                      {saving ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        "Spara"
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-2 text-xs"
+                      onClick={cancelEdit}
+                    >
+                      Avbryt
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-mono font-medium w-12">
+                      {c.logoCode}
+                    </span>
+                    {c.source === "manual" && (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] px-1 py-0"
+                      >
+                        manuell
+                      </Badge>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-2 text-xs ml-auto"
+                      onClick={() => startEdit(c.teamName, c.logoCode)}
+                    >
+                      Ändra
+                    </Button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------- Slot-based lineup editor ----------
 // ---------- Slot-based lineup editor ----------
 
 const DEF_ROWS = [1, 2, 3, 4, 5] as const;
