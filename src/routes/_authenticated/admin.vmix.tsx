@@ -410,7 +410,7 @@ function VmixAdminPage() {
         </CardContent>
       </Card>
 
-      <EndpointTester endpoints={endpoints} />
+      <EndpointTester endpoints={endpoints} autoFetchTrigger={autoFetchTrigger} />
 
       <DataSourceCard
         sourceMode={sourceMode}
