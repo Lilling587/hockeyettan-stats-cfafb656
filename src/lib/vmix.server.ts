@@ -218,3 +218,35 @@ export async function scrapeTeamRoster(
     return Number(a.number) - Number(b.number);
   });
 }
+/**
+ * Scrape the team-code mapping from the roster page navigation links.
+ * The page has links like <a href="#GRÄ">Grästorps IK</a> for every
+ * team in the competition. Returns a Record mapping team names to codes.
+ */
+export async function scrapeTeamCodes(
+  season: Season,
+): Promise<Record<string, string>> {
+  const url = `${STATS_BASE_URL}/Teams/Info/TeamRoster/${season.competitionId}`;
+  const res = await fetch(url, {
+    headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
+  });
+  if (!res.ok) throw new Error(`Team codes fetch failed: ${res.status}`);
+  const html = await res.text();
+
+  const codes: Record<string, string> = {};
+  // Match fragment-only links: <a href="#GRÄ">Grästorps IK</a>
+  // These are the navigation anchors at the top of the roster page.
+  // Regular player/page links use full URLs, not fragment-only hrefs,
+  // so this pattern uniquely identifies team navigation links.
+  const linkRe = /<a\s[^>]*href="#([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = linkRe.exec(html)) !== null) {
+    const code = m[1].trim();
+    const name = stripTags(m[2]).trim();
+    // Skip empty matches and the "Top" / "Topp" back-to-top link.
+    if (!code || !name || name.length < 2) continue;
+    if (/^(top|topp|upp)$/i.test(code)) continue;
+    codes[name] = code;
+  }
+  return codes;
+}
