@@ -353,6 +353,33 @@ export type Database = {
         }
         Relationships: []
       }
+      team_logo_codes: {
+        Row: {
+          created_at: string
+          id: number
+          logo_code: string
+          source: string
+          team_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          logo_code: string
+          source?: string
+          team_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          logo_code?: string
+          source?: string
+          team_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       team_logos: {
         Row: {
           fetched_at: string
