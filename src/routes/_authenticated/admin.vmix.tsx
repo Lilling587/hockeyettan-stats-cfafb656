@@ -125,11 +125,6 @@ function VmixAdminPage() {
     enabled: !!adminQuery.data?.isAdmin,
   });
 
-  const settingsQuery = useQuery({
-    queryKey: ["vmix-settings"],
-    queryFn: () => fetchSettings(),
-    enabled: !!adminQuery.data?.isAdmin,
-  });
 
  const [homeTeam, setHomeTeam] = useState<string>(DEFAULT_TEAM);
   const [awayTeam, setAwayTeam] = useState<string>("");
