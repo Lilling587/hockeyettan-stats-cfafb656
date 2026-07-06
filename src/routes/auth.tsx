@@ -8,18 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const ALLOWED_NEXT = new Set(["/notifications", "/admin/logos"]);
-const DEFAULT_NEXT = "/notifications";
+const ALLOWED_NEXT = new Set(["/", "/notifications", "/admin/logos", "/admin/vmix", "/admin/health", "/admin/logs"]);
+const DEFAULT_NEXT = "/";
 
 const authSearchSchema = z.object({
   message: z.string().optional(),
   next: z.string().optional(),
 });
 
-function safeNext(next: string | undefined): "/notifications" | "/admin/logos" {
-  return next && ALLOWED_NEXT.has(next)
-    ? (next as "/notifications" | "/admin/logos")
-    : DEFAULT_NEXT;
+function safeNext(next: string | undefined): string {
+  return next && ALLOWED_NEXT.has(next) ? next : DEFAULT_NEXT;
 }
 
 export const Route = createFileRoute("/auth")({
