@@ -212,5 +212,3 @@ export async function deleteTeamLogoRow(
   if (error) throw error;
 }
 
-  if (error) throw error;
-}
