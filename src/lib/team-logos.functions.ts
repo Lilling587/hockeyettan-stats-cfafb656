@@ -54,9 +54,9 @@ export const setTeamLogoOverride = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }): Promise<{ ok: true }> => {
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const { upsertTeamLogoOverride } = await import("./team-logos.server");
-    await upsertTeamLogoOverride(data.team, data.url);
+    await upsertTeamLogoOverride(context.supabase, data.team, data.url);
     return { ok: true };
   });
 
@@ -65,8 +65,9 @@ export const clearTeamLogoCache = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z.object({ team: z.string().min(1) }).parse(input),
   )
-  .handler(async ({ data }): Promise<{ ok: true }> => {
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const { deleteTeamLogoRow } = await import("./team-logos.server");
-    await deleteTeamLogoRow(data.team);
+    await deleteTeamLogoRow(context.supabase, data.team);
     return { ok: true };
   });
+
