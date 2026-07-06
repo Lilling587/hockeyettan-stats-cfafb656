@@ -184,11 +184,14 @@ export async function listAllTeamLogoStatus(): Promise<TeamLogoStatus[]> {
   );
 }
 
-export async function upsertTeamLogoOverride(team: string, url: string) {
-  const { supabaseAdmin } = await import(
-    "@/integrations/supabase/client.server"
-  );
-  const { error } = await supabaseAdmin.from("team_logos").upsert({
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export async function upsertTeamLogoOverride(
+  client: SupabaseClient<Database>,
+  team: string,
+  url: string,
+) {
+  const { error } = await client.from("team_logos").upsert({
     team_name: team,
     logo_url: url,
     status: "ok",
@@ -198,13 +201,16 @@ export async function upsertTeamLogoOverride(team: string, url: string) {
   if (error) throw error;
 }
 
-export async function deleteTeamLogoRow(team: string) {
-  const { supabaseAdmin } = await import(
-    "@/integrations/supabase/client.server"
-  );
-  const { error } = await supabaseAdmin
+export async function deleteTeamLogoRow(
+  client: SupabaseClient<Database>,
+  team: string,
+) {
+  const { error } = await client
     .from("team_logos")
     .delete()
     .eq("team_name", team);
+  if (error) throw error;
+}
+
   if (error) throw error;
 }
