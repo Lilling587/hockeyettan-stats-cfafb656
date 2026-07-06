@@ -983,6 +983,14 @@ function EndpointTester({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh, endpoints]);
 
+  // Automatically fetch all endpoints when parent signals a home game was detected.
+  useEffect(() => {
+    if (!autoFetchTrigger) return;
+    runAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFetchTrigger]);
+
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
