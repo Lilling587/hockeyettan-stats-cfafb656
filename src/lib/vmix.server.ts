@@ -89,13 +89,12 @@ export async function scrapeTeamRoster(
   if (!res.ok) throw new Error(`Roster fetch failed: ${res.status}`);
   const html = await res.text();
 
-  // Locate the HTML block that belongs to this team.
-  // Strategy: find a heading (<h1>–<h6>) containing the team name, then
-  // grab everything from that heading to the next heading. If no heading
-  // matches, try an anchor-based search (the page uses <a id="CODE">
-  // fragments near team sections). Never fall back to matching the team
-  // name in arbitrary data cells — that picks up Youth Club columns from
-  // wrong teams.
+ // Locate the HTML block that belongs to this team.
+  // Strategy: find a heading (<h1>–<h6>) or an anchor-id fragment
+  // containing the team name, then grab everything from there to the
+  // next team boundary. Never fall back to matching the team name in
+  // arbitrary data cells — that picks up Youth Club columns from wrong
+  // teams.
   const escapedName = teamName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
   // Primary: exact heading match
@@ -105,12 +104,12 @@ export async function scrapeTeamRoster(
   );
   let startMatch = headingRe.exec(html);
 
-  // Secondary: team name immediately preceded by an anchor with an id
-  // attribute (swehockey uses <a id="GRÄ"></a> fragments before each
-  // team section).
+  // Secondary: anchor with id attribute near the team name (swehockey
+  // uses <a id="GRÄ"></a> fragments at each team section). The anchor
+  // can be before or inside the element containing the team name.
   if (!startMatch) {
     const anchorIdRe = new RegExp(
-      `<a\\s[^>]*id="[^"]*"[^>]*>[^<]*</a>\\s*(?:<[^>]+>\\s*)*${escapedName}`,
+      `<a\\s[^>]*id="[^"]*"[^>]*>[^<]*</a>[\\s\\S]{0,200}?${escapedName}`,
       "i",
     );
     startMatch = anchorIdRe.exec(html);
@@ -118,10 +117,28 @@ export async function scrapeTeamRoster(
 
   if (!startMatch) return [];
 
-  const startIdx = startMatch.index;
-  const rest = html.slice(startIdx + startMatch[0].length);
+  const rest = html.slice(startMatch.index + startMatch[0].length);
+
+  // Find the end of this team's section. The page may use <h> headings
+  // between teams, or <a id="..."> anchor fragments, or both. Use
+  // whichever boundary comes first. Anchor-id tags are the most reliable
+  // signal since every team section has one for fragment navigation
+  // (#GRÄ, #KAR, etc.), and they never appear inside player data rows.
   const nextHeading = rest.search(/<h[1-6][^>]*>/i);
-  const block = nextHeading === -1 ? rest : rest.slice(0, nextHeading);
+  const nextAnchorId = rest.search(/<a\s[^>]*\bid\s*=/i);
+
+  let endIdx: number;
+  if (nextHeading >= 0 && nextAnchorId >= 0) {
+    endIdx = Math.min(nextHeading, nextAnchorId);
+  } else if (nextHeading >= 0) {
+    endIdx = nextHeading;
+  } else if (nextAnchorId >= 0) {
+    endIdx = nextAnchorId;
+  } else {
+    endIdx = -1;
+  }
+
+  const block = endIdx === -1 ? rest : rest.slice(0, endIdx);
 
   // Parse every <tr> in the team block and collect player rows.
   const players: RosterPlayer[] = [];
