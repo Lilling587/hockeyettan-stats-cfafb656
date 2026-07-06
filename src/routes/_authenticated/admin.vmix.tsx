@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   CalendarDays,
@@ -170,12 +170,8 @@ function VmixAdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeQuery.data?.id]);
 
-  useEffect(() => {
-    setHomeSlots((prev) => ({ ...prev, team: homeTeam }));
-  }, [homeTeam]);
-  useEffect(() => {
-    setAwaySlots((prev) => ({ ...prev, team: awayTeam }));
-  }, [awayTeam]);
+  const prevHomeTeamRef = useRef(homeTeam);
+  const prevAwayTeamRef = useRef(awayTeam);
 
   const opponents = useMemo(
     () => teams.filter((t) => t !== homeTeam),
@@ -189,35 +185,38 @@ function VmixAdminPage() {
     return m;
   }, [codesQuery.data]);
 
-  // Auto-fill teamCode when the team changes and a code exists in the
-  // database. Only fills if the current teamCode is empty or was
-  // previously auto-filled (i.e. matches the database value for the
-  // previous team). If the producer has typed a custom code that
-  // doesn't match any database value, we leave it alone.
+  // Combined team-sync + auto-fill effect. Merging these into one effect
+  // is critical: if team-sync ran as a separate earlier effect, its
+  // setState callback would update prev.team BEFORE the auto-fill
+  // callback runs, making codesMap[prev.team] return the NEW team's code
+  // instead of the OLD team's code. With one combined callback, prev.team
+  // still holds the old value when we check the auto-fill condition.
   useEffect(() => {
+    const teamChanged = homeTeam !== prevHomeTeamRef.current;
+    prevHomeTeamRef.current = homeTeam;
     const code = codesMap[homeTeam];
-    if (code) {
-      setHomeSlots((prev) => {
-        // Auto-fill if empty or if current code matches the DB value for
-        // the previous team name (meaning it was auto-filled before).
-        if (!prev.teamCode || prev.teamCode === codesMap[prev.team]) {
-          return { ...prev, teamCode: code };
-        }
-        return prev;
-      });
-    }
+    setHomeSlots((prev) => {
+      const updates: Partial<VmixLineupSlots> & { team: string } = { team: homeTeam };
+      // Auto-fill when the team changes (the old code belongs to the old
+      // team), or when the code field is still empty (first load / reset).
+      if (code && (teamChanged || !prev.teamCode)) {
+        updates.teamCode = code;
+      }
+      return { ...prev, ...updates };
+    });
   }, [homeTeam, codesMap]);
 
   useEffect(() => {
+    const teamChanged = awayTeam !== prevAwayTeamRef.current;
+    prevAwayTeamRef.current = awayTeam;
     const code = codesMap[awayTeam];
-    if (code) {
-      setAwaySlots((prev) => {
-        if (!prev.teamCode || prev.teamCode === codesMap[prev.team]) {
-          return { ...prev, teamCode: code };
-        }
-        return prev;
-      });
-    }
+    setAwaySlots((prev) => {
+      const updates: Partial<VmixLineupSlots> & { team: string } = { team: awayTeam };
+      if (code && (teamChanged || !prev.teamCode)) {
+        updates.teamCode = code;
+      }
+      return { ...prev, ...updates };
+    });
   }, [awayTeam, codesMap]);
 
   const prefillHome = useMutation({
@@ -288,8 +287,8 @@ function VmixAdminPage() {
     setSourceMode(source);
     // Always start with empty slots for a new matchup – the producer fills
     // each slot deliberately using the dropdown list.
-    setHomeSlots(emptySlots(home, homeSlots.teamCode));
-    setAwaySlots(emptySlots(away, awaySlots.teamCode));
+    setHomeSlots(emptySlots(home, codesMap[home] ?? ""));
+    setAwaySlots(emptySlots(away, codesMap[away] ?? ""));
     try {
       const [homePool, awayPool] = await Promise.all([
         fetchRoster({ data: { team: home } }),
@@ -308,7 +307,7 @@ function VmixAdminPage() {
   const resetToManual = () => {
     setHomeTeam(DEFAULT_TEAM);
     setAwayTeam("");
-    setHomeSlots(emptySlots(DEFAULT_TEAM, ""));
+    setHomeSlots(emptySlots(DEFAULT_TEAM, codesMap[DEFAULT_TEAM] ?? ""));
     setAwaySlots(emptySlots("", ""));
     setHomePool([]);
     setAwayPool([]);
