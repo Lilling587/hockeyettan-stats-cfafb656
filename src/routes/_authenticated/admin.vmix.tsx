@@ -929,8 +929,10 @@ type EndpointResult = {
 
 function EndpointTester({
   endpoints,
+  autoFetchTrigger,
 }: {
   endpoints: { label: string; url: string }[];
+  autoFetchTrigger?: number;
 }) {
   const [results, setResults] = useState<Record<string, EndpointResult>>({});
   const [autoRefresh, setAutoRefresh] = useState(false);
