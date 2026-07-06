@@ -141,7 +141,9 @@ export async function scrapeTeamRoster(
     }
 
     if (!name || name.length < 2) continue;
-    if (/^(nr|name|namn|pos|position|player|spelare)$/i.test(name)) continue;
+    if (/^(nr|name|namn|pos|position|player|spelare|avg\.?)$/i.test(name)) continue;
+    // Skip summary rows (averages at the bottom of the roster table)
+    if (/^\d+([.,]\d+)?$/.test(name.trim())) continue;
 
     // Deduplicate by number+name combination.
     const key = `${number}:${name.toLowerCase()}`;
