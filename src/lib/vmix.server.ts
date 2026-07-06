@@ -89,29 +89,50 @@ export async function scrapeTeamRoster(
   if (!res.ok) throw new Error(`Roster fetch failed: ${res.status}`);
   const html = await res.text();
 
-  // Locate the HTML block that belongs to this team. Try finding a heading
-  // with the team name first; fall back to a broad anchor search if not found.
+  // Locate the HTML block that belongs to this team.
+  // Strategy: find a heading (<h1>–<h6>) containing the team name, then
+  // grab everything from that heading to the next heading. If no heading
+  // matches, try a looser anchor-based search (the page uses <a id="CODE">
+  // fragments near team sections). Never fall back to matching the team
+  // name in arbitrary data cells — that picks up Youth Club columns from
+  // wrong teams.
   const escapedName = teamName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  // Primary: exact heading match
   const headingRe = new RegExp(
     `<h[1-6][^>]*>\\s*(?:<[^>]+>\\s*)*${escapedName}\\s*(?:<[^>]+>\\s*)*<\\/h[1-6]>`,
     "i",
   );
-  const startMatch = headingRe.exec(html);
-  let block: string;
-  if (startMatch) {
-    const startIdx = startMatch.index;
-    const rest = html.slice(startIdx + startMatch[0].length);
-    const nextHeading = rest.search(/<h[1-6][^>]*>/i);
-    block = nextHeading === -1 ? rest : rest.slice(0, nextHeading);
-  } else {
-    const anchorRe = new RegExp(
-      `${escapedName}[\\s\\S]{0,20000}?<\\/table>`,
+  let startMatch = headingRe.exec(html);
+
+  // Secondary: team name in bold inside a table cell with colspan (some
+  // competitions use <td colspan="..." class="tdTeamHeader"><b>Team</b></td>
+  // instead of a proper heading tag).
+  if (!startMatch) {
+    const boldHeaderRe = new RegExp(
+      `<td[^>]*>\\s*(?:<[^>]+>\\s*)*<b[^>]*>\\s*${escapedName}\\s*<\\/b>`,
       "i",
     );
-    const m = anchorRe.exec(html);
-    if (!m) return [];
-    block = m[0];
+    startMatch = boldHeaderRe.exec(html);
   }
+
+  if (!startMatch) return [];
+
+  const startIdx = startMatch.index;
+  const rest = html.slice(startIdx + startMatch[0].length);
+  // The next team section starts at the next heading or the next bold
+  // team header. Use whichever comes first.
+  const nextHeading = rest.search(/<h[1-6][^>]*>/i);
+  const nextBoldHeader = rest.search(/<td[^>]*>\s*(?:<[^>]+>\s*)*<b[^>]*>/i);
+  let endIdx = -1;
+  if (nextHeading >= 0 && nextBoldHeader >= 0) {
+    endIdx = Math.min(nextHeading, nextBoldHeader);
+  } else if (nextHeading >= 0) {
+    endIdx = nextHeading;
+  } else if (nextBoldHeader >= 0) {
+    endIdx = nextBoldHeader;
+  }
+  const block = endIdx === -1 ? rest : rest.slice(0, endIdx);
 
   // Parse every <tr> in the team block and collect player rows.
   const players: RosterPlayer[] = [];
@@ -141,9 +162,15 @@ export async function scrapeTeamRoster(
     }
 
     if (!name || name.length < 2) continue;
-    if (/^(nr|name|namn|pos|position|player|spelare|avg\.?)$/i.test(name)) continue;
-    // Skip summary rows (averages at the bottom of the roster table)
+    if (/^(nr|name|namn|pos|position|player|spelare|avg\.?|genomsnitt|snitt|total)$/i.test(name)) continue;
+    // Skip summary rows (averages at the bottom of the roster table).
+    // These show up as rows with purely numeric "names" like "22.6".
     if (/^\d+([.,]\d+)?$/.test(name.trim())) continue;
+    // Skip rows with too few meaningful cells — a real player row has
+    // at minimum a name and usually number, position, birthdate, etc.
+    // Summary/separator rows typically have ≤3 non-empty cells.
+    const filledCells = cells.filter((c) => c.trim().length > 0).length;
+    if (filledCells < 4) continue;
 
     // Deduplicate by number+name combination.
     const key = `${number}:${name.toLowerCase()}`;
