@@ -1040,8 +1040,8 @@ function EndpointTester({
               {r?.body !== undefined && (
                 <pre className="mt-2 max-h-64 overflow-auto rounded bg-background/60 p-2 font-mono text-[11px] leading-relaxed">
                   {typeof r.body === "string"
-                    ? r.body.slice(0, 4000)
-                    : JSON.stringify(r.body, null, 2).slice(0, 4000)}
+                    ? r.body
+                    : JSON.stringify(r.body, null, 2)}
                 </pre>
               )}
               {!r && (
