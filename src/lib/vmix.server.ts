@@ -92,7 +92,7 @@ export async function scrapeTeamRoster(
   // Locate the HTML block that belongs to this team.
   // Strategy: find a heading (<h1>–<h6>) containing the team name, then
   // grab everything from that heading to the next heading. If no heading
-  // matches, try a looser anchor-based search (the page uses <a id="CODE">
+  // matches, try an anchor-based search (the page uses <a id="CODE">
   // fragments near team sections). Never fall back to matching the team
   // name in arbitrary data cells — that picks up Youth Club columns from
   // wrong teams.
@@ -105,34 +105,23 @@ export async function scrapeTeamRoster(
   );
   let startMatch = headingRe.exec(html);
 
-  // Secondary: team name in bold inside a table cell with colspan (some
-  // competitions use <td colspan="..." class="tdTeamHeader"><b>Team</b></td>
-  // instead of a proper heading tag).
+  // Secondary: team name immediately preceded by an anchor with an id
+  // attribute (swehockey uses <a id="GRÄ"></a> fragments before each
+  // team section).
   if (!startMatch) {
-    const boldHeaderRe = new RegExp(
-      `<td[^>]*>\\s*(?:<[^>]+>\\s*)*<b[^>]*>\\s*${escapedName}\\s*<\\/b>`,
+    const anchorIdRe = new RegExp(
+      `<a\\s[^>]*id="[^"]*"[^>]*>[^<]*</a>\\s*(?:<[^>]+>\\s*)*${escapedName}`,
       "i",
     );
-    startMatch = boldHeaderRe.exec(html);
+    startMatch = anchorIdRe.exec(html);
   }
 
   if (!startMatch) return [];
 
   const startIdx = startMatch.index;
   const rest = html.slice(startIdx + startMatch[0].length);
-  // The next team section starts at the next heading or the next bold
-  // team header. Use whichever comes first.
   const nextHeading = rest.search(/<h[1-6][^>]*>/i);
-  const nextBoldHeader = rest.search(/<td[^>]*>\s*(?:<[^>]+>\s*)*<b[^>]*>/i);
-  let endIdx = -1;
-  if (nextHeading >= 0 && nextBoldHeader >= 0) {
-    endIdx = Math.min(nextHeading, nextBoldHeader);
-  } else if (nextHeading >= 0) {
-    endIdx = nextHeading;
-  } else if (nextBoldHeader >= 0) {
-    endIdx = nextBoldHeader;
-  }
-  const block = endIdx === -1 ? rest : rest.slice(0, endIdx);
+  const block = nextHeading === -1 ? rest : rest.slice(0, nextHeading);
 
   // Parse every <tr> in the team block and collect player rows.
   const players: RosterPlayer[] = [];
