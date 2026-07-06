@@ -1422,7 +1422,7 @@ function DataSourceCard({
         )}
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" onClick={onResetManual}>
-            Byt lag
+            Använd manuell inmatning
           </Button>
           {(sourceMode === "manual" || sourceMode === "live-hydrated") && (
             <Button size="sm" variant="outline" onClick={onRerunAuto}>
