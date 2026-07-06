@@ -261,6 +261,8 @@ function VmixAdminPage() {
     toast.info("Formuläret återställt – välj lag och ladda spelarlistan.");
   };
 
+  const [autoFetchTrigger, setAutoFetchTrigger] = useState(0);
+
   useEffect(() => {
     if (autoApplied) return;
     if (!todaysQuery.data) return;
@@ -269,6 +271,8 @@ function VmixAdminPage() {
     if (m && m.home === DEFAULT_TEAM) {
       setAutoApplied(true);
       void applyMatchup(m.home, m.away, "auto");
+      setAutoFetchTrigger((n) => n + 1);
+      toast.info("Hemmamatch idag – hämtar JSON-endpoints automatiskt…");
     } else {
       setAutoApplied(true);
     }
@@ -280,6 +284,7 @@ function VmixAdminPage() {
     const m = res.data?.match;
     if (m && m.home === DEFAULT_TEAM) {
       await applyMatchup(m.home, m.away, "auto");
+      setAutoFetchTrigger((n) => n + 1);
     } else {
       setSourceMode("auto");
       toast.info(`Ingen hemmamatch hittad för ${DEFAULT_TEAM} idag.`);
@@ -405,7 +410,7 @@ function VmixAdminPage() {
         </CardContent>
       </Card>
 
-      <EndpointTester endpoints={endpoints} />
+      <EndpointTester endpoints={endpoints} autoFetchTrigger={autoFetchTrigger} />
 
       <DataSourceCard
         sourceMode={sourceMode}
@@ -924,8 +929,10 @@ type EndpointResult = {
 
 function EndpointTester({
   endpoints,
+  autoFetchTrigger,
 }: {
   endpoints: { label: string; url: string }[];
+  autoFetchTrigger?: number;
 }) {
   const [results, setResults] = useState<Record<string, EndpointResult>>({});
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -975,6 +982,14 @@ function EndpointTester({
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh, endpoints]);
+
+  // Automatically fetch all endpoints when parent signals a home game was detected.
+  useEffect(() => {
+    if (!autoFetchTrigger) return;
+    runAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFetchTrigger]);
+
 
   return (
     <Card>
