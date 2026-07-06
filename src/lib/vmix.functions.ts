@@ -315,3 +315,104 @@ export const saveVmixSettings = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+// ---------- Team logo codes (auto-fill from swehockey, manual overrides) ----------
+
+export type TeamLogoCode = {
+  id: number;
+  teamName: string;
+  logoCode: string;
+  source: "scraped" | "manual";
+  updatedAt: string;
+};
+
+export const getTeamLogoCodes = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<TeamLogoCode[]> => {
+    await assertAdmin(context);
+    const { data, error } = await context.supabase
+      .from("team_logo_codes")
+      .select("*")
+      .order("team_name");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(
+      (r: Record<string, unknown>): TeamLogoCode => ({
+        id: Number(r.id),
+        teamName: String(r.team_name),
+        logoCode: String(r.logo_code),
+        source: r.source === "manual" ? "manual" : "scraped",
+        updatedAt: String(r.updated_at),
+      }),
+    );
+  });
+
+export const updateTeamLogoCode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        teamName: z.string().min(1),
+        logoCode: z.string().min(1),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("team_logo_codes")
+      .upsert(
+        {
+          team_name: data.teamName,
+          logo_code: data.logoCode,
+          source: "manual",
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "team_name" },
+      );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const syncTeamLogoCodes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ season: z.string().optional() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const season = getSeason(data.season) ?? DEFAULT_SEASON;
+    const { scrapeTeamCodes } = await import("./vmix.server");
+    const codes = await scrapeTeamCodes(season);
+
+    // Read existing manual overrides so we don't overwrite them.
+    const { data: existing } = await context.supabase
+      .from("team_logo_codes")
+      .select("team_name, source");
+
+    const manualTeams = new Set(
+      (existing ?? [])
+        .filter((r: Record<string, unknown>) => r.source === "manual")
+        .map((r: Record<string, unknown>) => String(r.team_name)),
+    );
+
+    const rows = Object.entries(codes)
+      .filter(([name]) => !manualTeams.has(name))
+      .map(([name, code]) => ({
+        team_name: name,
+        logo_code: code,
+        source: "scraped" as const,
+        updated_at: new Date().toISOString(),
+      }));
+
+    if (rows.length > 0) {
+      const { error } = await context.supabase
+        .from("team_logo_codes")
+        .upsert(rows, { onConflict: "team_name" });
+      if (error) throw new Error(error.message);
+    }
+
+    return {
+      synced: rows.length,
+      skippedManual: manualTeams.size,
+      total: Object.keys(codes).length,
+    };
+  });
