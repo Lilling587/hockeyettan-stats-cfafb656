@@ -131,7 +131,7 @@ function VmixAdminPage() {
     enabled: !!adminQuery.data?.isAdmin,
   });
 
-  const teams = teamsQuery.data ?? [];
+  const teams: string[] = teamsQuery.data?.teams ?? [];
 
 
 
