@@ -1,8 +1,8 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, RefreshCw, Trash2, Upload } from "lucide-react";
+import { RefreshCw, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { checkIsAdmin } from "@/lib/roles.functions";
@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { AdminNav } from "@/components/admin-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -119,22 +120,17 @@ function LogoAdminPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-6 py-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Logotyp-admin
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Granska cache, trigga omhämtning och lägg in manuella overrides.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm">
-              <Link to="/">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Tillbaka
-              </Link>
-            </Button>
+        <div className="mx-auto flex max-w-4xl flex-col gap-4 px-6 py-6">
+          <AdminNav />
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                Logotyp-admin
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Granska cache, trigga omhämtning och lägg in manuella overrides.
+              </p>
+            </div>
           </div>
         </div>
       </header>
