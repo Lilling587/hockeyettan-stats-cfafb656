@@ -1,9 +1,8 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft,
   CalendarDays,
   CheckCircle2,
   Copy,
@@ -45,6 +44,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { AdminNav } from "@/components/admin-nav";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -367,21 +367,16 @@ function VmixAdminPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Link
-            to="/"
-            className="text-xs text-muted-foreground inline-flex items-center gap-1 hover:text-foreground"
-          >
-            <ArrowLeft className="h-3 w-3" /> Hem
-          </Link>
-          <h1 className="text-2xl font-semibold">vMix broadcast data</h1>
-          <p className="text-sm text-muted-foreground">
-            Publicera dagens Grästorps IK-match som JSON-feeds för vMix GT
-            Designer.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+      <header className="space-y-4">
+        <AdminNav />
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">vMix broadcast data</h1>
+            <p className="text-sm text-muted-foreground">
+              Publicera dagens Grästorps IK-match som JSON-feeds för vMix GT
+              Designer.
+            </p>
+          </div>
           <div className="text-right text-xs text-muted-foreground">
             {activeQuery.data ? (
               <Badge variant="default">LIVE</Badge>
@@ -390,7 +385,7 @@ function VmixAdminPage() {
             )}
           </div>
         </div>
-      </div>
+      </header>
 
       <SettingsCard
         settings={settings ?? null}
