@@ -65,16 +65,7 @@ function AuthPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin + next },
-        });
-        if (error) throw error;
-        toast.success("Account created");
-        navigate({ to: next, replace: true });
-      } else if (mode === "forgot") {
+      if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: window.location.origin + "/reset-password",
         });
@@ -101,11 +92,8 @@ function AuthPage() {
       ? isAdminFlow
         ? "Admin sign in"
         : "Logga in för notiser"
-      : mode === "signup"
-        ? isAdminFlow
-          ? "Create admin account"
-          : "Skapa konto för notiser"
-        : "Reset password";
+      : "Reset password";
+
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -156,11 +144,9 @@ function AuthPage() {
                 ? "Please wait…"
                 : mode === "signin"
                   ? "Sign in"
-                  : mode === "signup"
-                    ? "Sign up"
-                    : "Send reset link"}
+                  : "Send reset link"}
             </Button>
-            {mode === "forgot" ? (
+            {mode === "forgot" && (
               <button
                 type="button"
                 className="text-xs text-muted-foreground hover:underline w-full"
@@ -168,17 +154,8 @@ function AuthPage() {
               >
                 ← Back to sign in
               </button>
-            ) : (
-              <button
-                type="button"
-                className="text-xs text-muted-foreground hover:underline w-full"
-                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-              >
-                {mode === "signin"
-                  ? "No account? Create one"
-                  : "Have an account? Sign in"}
-              </button>
             )}
+
             <div className="text-center">
               <Link to="/" className="text-xs text-muted-foreground hover:underline">
                 ← Back to briefing
