@@ -1,8 +1,8 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { AdminNav } from "@/components/admin-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,19 +92,16 @@ function AdminUsersPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-6 py-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Admin-användare</h1>
-            <p className="text-sm text-muted-foreground">
-              Bjud in nya administratörer och hantera behörigheter.
-            </p>
+        <div className="mx-auto flex max-w-3xl flex-col gap-4 px-6 py-6">
+          <AdminNav />
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Admin-användare</h1>
+              <p className="text-sm text-muted-foreground">
+                Bjud in nya administratörer och hantera behörigheter.
+              </p>
+            </div>
           </div>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Tillbaka
-            </Link>
-          </Button>
         </div>
       </header>
 
