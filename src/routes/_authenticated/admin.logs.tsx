@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowLeft, RefreshCw, Users } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
@@ -73,12 +73,6 @@ function LogsPage() {
                 className={`mr-2 h-4 w-4 ${logsQuery.isFetching ? "animate-spin" : ""}`}
               />
               Uppdatera
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/admin/users">
-                <Users className="mr-2 h-4 w-4" />
-                Användare
-              </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
               <Link to="/">
