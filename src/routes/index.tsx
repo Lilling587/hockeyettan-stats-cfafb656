@@ -542,6 +542,12 @@ function Dashboard() {
                     vMix
                   </Link>
                 </Button>
+                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+                  <Link to="/admin/users">
+                    <Users className="mr-2 h-4 w-4 shrink-0" />
+                    Användare
+                  </Link>
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
