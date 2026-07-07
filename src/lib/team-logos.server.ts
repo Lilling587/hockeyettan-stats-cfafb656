@@ -122,12 +122,10 @@ export async function ensureLogoForTeam(team: string): Promise<string | null> {
   }
 
   try {
-    await supabase.from("team_logos").upsert({
-      team_name: team,
-      logo_url: url,
-      status: url ? "ok" : "missing",
-      source: "hockeyettan.se",
-      fetched_at: new Date().toISOString(),
+    await supabase.rpc("cache_team_logo", {
+      _team: team,
+      _url: url,
+      _status: url ? "ok" : "missing",
     });
   } catch {
     // best-effort cache write
