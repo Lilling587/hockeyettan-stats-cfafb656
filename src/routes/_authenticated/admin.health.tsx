@@ -1,13 +1,14 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
 import { getScrapeHealth } from "@/lib/scrape-metrics.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminNav } from "@/components/admin-nav";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -59,14 +60,15 @@ function HealthPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Scraper health</h1>
-            <p className="text-sm text-muted-foreground">
-              Senaste 24 timmarna · uppdateras varje minut
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
+          <AdminNav />
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Scraper health</h1>
+              <p className="text-sm text-muted-foreground">
+                Senaste 24 timmarna · uppdateras varje minut
+              </p>
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -77,12 +79,6 @@ function HealthPage() {
                 className={`mr-2 h-4 w-4 ${healthQuery.isFetching ? "animate-spin" : ""}`}
               />
               Uppdatera
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Tillbaka
-              </Link>
             </Button>
           </div>
         </div>
