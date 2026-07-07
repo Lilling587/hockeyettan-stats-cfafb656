@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const ALLOWED_NEXT = new Set(["/", "/notifications", "/admin/logos", "/admin/vmix", "/admin/health", "/admin/logs"]);
+const ALLOWED_NEXT = new Set(["/", "/notifications", "/admin/logos", "/admin/vmix", "/admin/health", "/admin/logs", "/admin/users"]);
 const DEFAULT_NEXT = "/";
 
 const authSearchSchema = z.object({
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type Mode = "signin" | "signup" | "forgot";
+type Mode = "signin" | "forgot";
 
 function AuthPage() {
   const navigate = useNavigate();
