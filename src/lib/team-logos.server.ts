@@ -124,7 +124,7 @@ export async function ensureLogoForTeam(team: string): Promise<string | null> {
   try {
     await supabase.rpc("cache_team_logo", {
       _team: team,
-      _url: url,
+      _url: url ?? "",
       _status: url ? "ok" : "missing",
     });
   } catch {
