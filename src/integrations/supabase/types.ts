@@ -502,6 +502,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cache_team_logo: {
+        Args: { _status: string; _team: string; _url: string }
+        Returns: undefined
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
