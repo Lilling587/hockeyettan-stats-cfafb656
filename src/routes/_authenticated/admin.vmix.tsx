@@ -11,6 +11,7 @@ import {
   Loader2,
   RefreshCw,
   Settings2,
+  Users,
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -381,12 +382,20 @@ function VmixAdminPage() {
             Designer.
           </p>
         </div>
-        <div className="text-right text-xs text-muted-foreground">
-          {activeQuery.data ? (
-            <Badge variant="default">LIVE</Badge>
-          ) : (
-            <Badge variant="outline">Ingen aktiv publicering</Badge>
-          )}
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/admin/users">
+              <Users className="mr-2 h-4 w-4" />
+              Användare
+            </Link>
+          </Button>
+          <div className="text-right text-xs text-muted-foreground">
+            {activeQuery.data ? (
+              <Badge variant="default">LIVE</Badge>
+            ) : (
+              <Badge variant="outline">Ingen aktiv publicering</Badge>
+            )}
+          </div>
         </div>
       </div>
 
