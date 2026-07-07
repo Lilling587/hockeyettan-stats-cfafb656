@@ -75,6 +75,12 @@ function LogsPage() {
               Uppdatera
             </Button>
             <Button asChild variant="outline" size="sm">
+              <Link to="/admin/users">
+                <Users className="mr-2 h-4 w-4" />
+                Användare
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
               <Link to="/">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Tillbaka

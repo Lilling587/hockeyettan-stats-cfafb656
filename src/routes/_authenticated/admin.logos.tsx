@@ -128,12 +128,20 @@ function LogoAdminPage() {
               Granska cache, trigga omhämtning och lägg in manuella overrides.
             </p>
           </div>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Tillbaka
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/admin/users">
+                <Users className="mr-2 h-4 w-4" />
+                Användare
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Tillbaka
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 
