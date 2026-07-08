@@ -61,7 +61,7 @@ export type VmixPublicationRow = {
   homeTeamCode: string;
   awayTeamCode: string;
   venue: string | null;
-  standings: enrichedStandings,
+  standings: StandingsJson;
   homeSlots: VmixLineupSlots;
   awaySlots: VmixLineupSlots;
   notes: string | null;
