@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/_authenticated/admin/logs")({
   head: () => ({
     meta: [
-      { title: "Loggor · admin" },
+      { title: "Log · admin" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -60,7 +60,7 @@ function LogsPage() {
           <AdminNav />
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Loggor</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">Log</h1>
               <p className="text-sm text-muted-foreground">
                 Senaste fel och varningar · uppdateras var 30:e sekund
               </p>
