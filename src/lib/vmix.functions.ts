@@ -229,7 +229,7 @@ export const publishVmix = createServerFn({ method: "POST" })
       away_team_code: data.awayTeamCode,
       venue: data.venue ?? null,
       notes: data.notes ?? null,
-      standings_json: standings as unknown as Json,
+     standings_json: enrichedStandings as unknown as Json,
       home_slots: data.homeSlots as unknown as Json,
       away_slots: data.awaySlots as unknown as Json,
       published_by: context.userId,
