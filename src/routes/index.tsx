@@ -125,7 +125,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Matchstatistik för HockeyEttan Södra-sändningar. Välj två lag och få form, inbördes möten, poängliga och special teams på sekunder.",
+          "Matchstatistik för HockeyEttan Södra-sändningar. Välj två lag och få statistik på sekunder.",
       },
     ],
   }),
