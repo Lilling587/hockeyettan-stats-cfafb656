@@ -29,7 +29,7 @@ import { TeamLogo } from "@/components/team-logo";
 export const Route = createFileRoute("/_authenticated/admin/logos")({
   head: () => ({
     meta: [
-      { title: "Logo admin · HockeyEttan Södra" },
+      { title: "Logotyper · HockeyEttan Södra" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -125,7 +125,7 @@ function LogoAdminPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">
-                Logotyp-admin
+                Logotyper
               </h1>
               <p className="text-sm text-muted-foreground">
                 Granska cache, trigga omhämtning och lägg in manuella overrides.
