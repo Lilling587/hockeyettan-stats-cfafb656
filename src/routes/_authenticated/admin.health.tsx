@@ -94,6 +94,12 @@ function HealthPage() {
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+        <SupabaseHealthCard
+          data={supabaseHealthQuery.data}
+          isLoading={supabaseHealthQuery.isLoading}
+          error={supabaseHealthQuery.error}
+        />
+
         {!data ? (
           <p className="text-sm text-muted-foreground">Laddar…</p>
         ) : (
