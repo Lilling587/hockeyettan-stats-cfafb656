@@ -257,3 +257,121 @@ function KpiCard({
     </Card>
   );
 }
+
+function SupabaseHealthCard({
+  data,
+  isLoading,
+  error,
+}: {
+  data: import("@/lib/supabase-health.functions").SupabaseHealthReport | undefined;
+  isLoading: boolean;
+  error: unknown;
+}) {
+  const toneBadge = (ok: boolean) =>
+    ok ? (
+      <Badge variant="secondary" className="text-[10px]">OK</Badge>
+    ) : (
+      <Badge variant="destructive" className="text-[10px]">FEL</Badge>
+    );
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-base">Supabase health</CardTitle>
+        {data ? (
+          <Badge
+            variant={
+              data.overall === "ok"
+                ? "secondary"
+                : data.overall === "degraded"
+                  ? "outline"
+                  : "destructive"
+            }
+            className="text-[10px] uppercase"
+          >
+            {data.overall}
+          </Badge>
+        ) : null}
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Kontrollerar…</p>
+        ) : error ? (
+          <p className="text-sm text-rose-600">
+            {error instanceof Error ? error.message : "Kunde inte hämta status."}
+          </p>
+        ) : data ? (
+          <>
+            <div>
+              <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Miljövariabler
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Namn</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Längd</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.env.map((e) => (
+                    <TableRow key={e.name}>
+                      <TableCell className="font-mono text-xs">{e.name}</TableCell>
+                      <TableCell>{toneBadge(e.present)}</TableCell>
+                      <TableCell className="text-right tabular-nums text-xs text-muted-foreground">
+                        {e.length ?? "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div>
+              <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Anslutning
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Klient</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Latens</TableHead>
+                    <TableHead>Fel</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-mono text-xs">publishable</TableCell>
+                    <TableCell>{toneBadge(data.connectivity.publishable.ok)}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {data.connectivity.publishable.latencyMs} ms
+                    </TableCell>
+                    <TableCell className="text-xs text-rose-600 max-w-xs truncate">
+                      {data.connectivity.publishable.error ?? ""}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-mono text-xs">service_role</TableCell>
+                    <TableCell>{toneBadge(data.connectivity.serviceRole.ok)}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {data.connectivity.serviceRole.latencyMs} ms
+                    </TableCell>
+                    <TableCell className="text-xs text-rose-600 max-w-xs truncate">
+                      {data.connectivity.serviceRole.error ?? ""}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+
+            <p className="text-[11px] text-muted-foreground">
+              Kontrollerad {new Date(data.checkedAt).toLocaleString("sv-SE")}
+            </p>
+          </>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
