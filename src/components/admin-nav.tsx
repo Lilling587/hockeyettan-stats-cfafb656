@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, Home, Image, ScrollText, Tv } from "lucide-react";
+import { Activity, Home, Image, ScrollText, Tv, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +9,7 @@ const items = [
   { label: "Loggbok", to: "/admin/logs", icon: ScrollText },
   { label: "Logotyper", to: "/admin/logos", icon: Image },
   { label: "vMix", to: "/admin/vmix", icon: Tv },
+  { label: "Användare", to: "/admin/users", icon: Users },
 ];
 
 export function AdminNav() {
