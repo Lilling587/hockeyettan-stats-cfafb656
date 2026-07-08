@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
 import { getScrapeHealth } from "@/lib/scrape-metrics.functions";
+import { checkSupabaseHealth } from "@/lib/supabase-health.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminNav } from "@/components/admin-nav";
 import { Button } from "@/components/ui/button";
