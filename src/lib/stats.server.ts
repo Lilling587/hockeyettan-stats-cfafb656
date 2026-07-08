@@ -1559,6 +1559,7 @@ export type StandingRow = {
   points: number;
   otWins: number;
   otLosses: number;
+  logoCode?: string;
 };
 
 export async function fetchFullStandings(season: Season): Promise<StandingRow[]> {
