@@ -202,6 +202,19 @@ export const publishVmix = createServerFn({ method: "POST" })
     const { fetchFullStandings } = await import("./stats.server");
     const standings = await fetchFullStandings(season).catch(() => []);
 
+    // Enrich standings with logo codes for the standings vMix endpoint.
+    const { data: codeRows } = await context.supabase
+      .from("team_logo_codes")
+      .select("team_name, logo_code");
+    const codesLookup: Record<string, string> = {};
+    for (const c of codeRows ?? []) {
+      codesLookup[String(c.team_name)] = String(c.logo_code);
+    }
+    const enrichedStandings = standings.map((row) => ({
+      ...row,
+      logoCode: codesLookup[row.team] ?? "",
+    }));
+
     const { error: deactErr } = await context.supabase
       .from("vmix_publications")
       .update({ is_active: false })
