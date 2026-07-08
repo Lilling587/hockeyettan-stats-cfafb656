@@ -57,6 +57,13 @@ function HealthPage() {
     refetchInterval: 60_000,
   });
 
+  const supabaseHealthQuery = useQuery({
+    queryKey: ["supabase-health"],
+    queryFn: () => fetchSupabaseHealth(),
+    enabled: adminQuery.data?.isAdmin === true,
+    refetchInterval: 60_000,
+  });
+
   const data = healthQuery.data;
 
   return (
