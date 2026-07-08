@@ -34,6 +34,7 @@ export const Route = createFileRoute("/_authenticated/admin/health")({
 function HealthPage() {
   const fetchIsAdmin = useServerFn(checkIsAdmin);
   const fetchHealth = useServerFn(getScrapeHealth);
+  const fetchSupabaseHealth = useServerFn(checkSupabaseHealth);
   const navigate = useNavigate();
 
   const adminQuery = useQuery({
