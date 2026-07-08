@@ -3,7 +3,13 @@
   "sdk_version": "0.20.0",
   "path": "/mcp",
   "auth": {
-    "type": "none"
+    "type": "oauth",
+    "issuer": "https://thzytrtjhsaqwtbqlwyi.supabase.co/auth/v1",
+    "resource_name": "Grästorps IK HockeyEttan MCP",
+    "accepted_audiences": [
+      "authenticated"
+    ],
+    "jwks_uri": "https://thzytrtjhsaqwtbqlwyi.supabase.co/auth/v1/.well-known/jwks.json"
   },
   "mcp": {
     "server": {

@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.cache_team_logo(text, text, text) FROM anon, PUBLIC;
