@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, ArrowLeft } from "lucide-react";
+import { Check, Copy, ArrowLeft, Loader2 } from "lucide-react";
+import { checkIsAdmin } from "@/lib/roles.functions";
 
-export const Route = createFileRoute("/connect")({
+export const Route = createFileRoute("/_authenticated/connect")({
   head: () => ({
     meta: [
       { title: "Anslut AI-assistent — Grästorps IK" },
@@ -13,12 +16,19 @@ export const Route = createFileRoute("/connect")({
         content:
           "Anslut ChatGPT eller Claude till Grästorps IK-statistiken via MCP.",
       },
+      { name: "robots", content: "noindex" },
     ],
   }),
   component: ConnectPage,
 });
 
 function ConnectPage() {
+  const adminFn = useServerFn(checkIsAdmin);
+  const adminQuery = useQuery({
+    queryKey: ["admin-check"],
+    queryFn: () => adminFn(),
+  });
+
   const [mcpUrl, setMcpUrl] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -31,6 +41,30 @@ function ConnectPage() {
     await navigator.clipboard.writeText(mcpUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  }
+
+  if (adminQuery.isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!adminQuery.data?.isAdmin) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
+          <Link
+            to="/"
+            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" /> Tillbaka
+          </Link>
+          <p className="text-sm text-muted-foreground">Endast administratörer.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
