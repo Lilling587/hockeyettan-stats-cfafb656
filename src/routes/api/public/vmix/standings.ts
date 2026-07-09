@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getActivePublication, readVmixSettings } from "@/lib/vmix.functions";
+import { resolveVmixAssetBaseUrl } from "@/lib/vmix-assets";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
