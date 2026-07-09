@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getActivePublication, readVmixSettings } from "@/lib/vmix.functions";
+import { resolveVmixAssetBaseUrl } from "@/lib/vmix-assets";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -58,7 +59,10 @@ export const Route = createFileRoute("/api/public/vmix/standings")({
           logoCode?: string;
         }>) ?? []).sort((a, b) => a.position - b.position);
 
-        const assetBaseUrl = settings.asset_base_url.replace(/\/+$/, "");
+        const assetBaseUrl = resolveVmixAssetBaseUrl(
+          settings.asset_base_url,
+          process.env.SUPABASE_URL!,
+        );
 
         const payload: Record<string, string | number> = {};
 
