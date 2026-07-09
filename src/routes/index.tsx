@@ -251,6 +251,12 @@ function Dashboard() {
     };
   }, []);
 
+  const adminQuery = useQuery({
+    queryKey: ["admin-check"],
+    queryFn: () => adminFn(),
+    enabled: !!user,
+  });
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
