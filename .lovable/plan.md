@@ -1,46 +1,44 @@
 ## Goal
+Move all PNG assets used by the app (vMix broadcast files + app icons) into Lovable Cloud Storage so they can be managed from any device via an admin UI, and auto-derive the vMix asset URLs from Storage.
 
-Only people you approve can become admins. Public signup gets removed; you invite admins from a new admin page.
+## Buckets
+- `vmix-assets` (new, public) — holds:
+  - `logos/<CODE>_small.png`, `logos/<CODE>_large.png`
+  - `resources/lineup-PLATE.png`, `resources/transparent.png`, `resources/lineupBG.png`, `resources/lineup-DIVISION.png`
+- `logos` (existing public) — repurposed for PWA icons: `icon-192.png`, `icon-512.png`.
+- `team-logos` (existing) — already used for app UI team-logo overrides; unchanged.
 
-## Changes
+Public read policies added on `storage.objects` for `vmix-assets`. Write/delete restricted to admins (via `has_role(auth.uid(),'admin')`).
 
-### 1. Disable public signup in Supabase Auth
-Turn off open sign-ups at the auth provider level so no one can create an account from anywhere — not the UI, not a direct API call.
+## vMix URL resolution
+- Compute `assetBaseUrl` from Storage: `${SUPABASE_URL}/storage/v1/object/public/vmix-assets` inside `src/lib/vmix.server.ts` / the two vMix public routes.
+- `vmix_settings.asset_base_url` becomes optional override — empty falls back to the Storage URL. Existing endpoint code (`api/public/vmix/lineup.$version.ts`, `api/public/vmix/standings.ts`) needs no shape change, just the resolver.
 
-### 2. Remove signup UI from `/auth`
-In `src/routes/auth.tsx`:
-- Remove the "No account? Create one" toggle and the `signup` mode entirely.
-- Keep only `signin` and `forgot` modes.
-- Simplify the title to just "Sign in" / "Reset password".
+## Admin upload UI
+New route `src/routes/_authenticated/admin.assets.tsx` (linked from `AdminNav`):
+- **Broadcast templates** section: 4 fixed slots (PLATE / transparent / lineupBG / lineup-DIVISION), each with current preview + "Ladda upp ny".
+- **Team logos** section: table of team codes (from `team_logo_codes`), each row has small + large preview and upload buttons.
+- Uses `supabase.storage.from('vmix-assets').upload(path, file, { upsert: true })` directly from the admin browser session (RLS on `storage.objects` gates it to admins).
+- Cache-buster query param (`?v=<updated_at>`) appended so vMix picks up new versions.
 
-### 3. New admin invite page: `/admin/users`
-A new route `src/routes/_authenticated/admin.users.tsx` where you can:
-- See the list of current admins (email + granted date).
-- Invite a new admin by entering their email → sends a Supabase invite email (they set their own password via the link) and grants them the `admin` role on acceptance.
-- Revoke admin from an existing user.
+## PWA icons
+- Upload `public/icon-192.png` + `icon-512.png` to `logos/icons/` in the existing `logos` bucket via `supabase--storage_upload`.
+- Update `public/manifest.webmanifest` to reference the Storage public URLs. Keep the local files as fallback (or delete — user's call).
 
-Add a link to it from the existing admin nav.
-
-### 4. Server functions (admin-gated)
-New file `src/lib/admin-users.functions.ts` with three functions, all using `requireAdmin` middleware:
-- `listAdmins()` — reads `user_roles` joined with auth user emails.
-- `inviteAdmin({ email })` — calls Supabase Auth Admin `inviteUserByEmail`, then inserts `(user_id, 'admin')` into `user_roles`. Loads `supabaseAdmin` inside the handler.
-- `revokeAdmin({ userId })` — deletes the admin row from `user_roles`. Prevents self-revoke.
-
-The invite email redirects to `/reset-password` so the invitee sets a password on first use.
-
-### 5. Grant admin role on invite acceptance
-Since `inviteUserByEmail` creates the auth user immediately, the `user_roles` insert happens right after invite in the same server function — the role is ready before they even click the email link.
-
-## Technical notes
-
-- Auth config: `disable_signup: true` via `supabase--configure_auth`.
-- `requireAdmin` middleware already exists at `src/integrations/supabase/admin-middleware.ts`.
-- `/admin/users` lives under `_authenticated/`, so route access is gated by session; the server functions additionally enforce the admin role — UI hiding is not the security boundary.
-- No schema migration needed; `user_roles` and `has_role()` already exist.
-- The transient Supabase 522 in the runtime error is unrelated network flake, not something to fix in code.
+## Migration steps (in build mode)
+1. `supabase--storage_create_bucket` → `vmix-assets` (public).
+2. `supabase--migration` → RLS policies on `storage.objects` for `vmix-assets` (public SELECT; INSERT/UPDATE/DELETE gated by `has_role`).
+3. `supabase--storage_upload` for the 2 PWA icons into `logos/icons/`.
+4. Add `src/lib/vmix-assets.ts` helper that resolves the base URL (Storage default, settings override optional).
+5. Update `src/lib/vmix.server.ts` + both `api/public/vmix/*.ts` routes to use resolver.
+6. Add `src/routes/_authenticated/admin.assets.tsx` + link in `AdminNav`.
+7. Update `public/manifest.webmanifest` icon URLs.
 
 ## Out of scope
+- No changes to the app-side team logo scraping/`team-logos` bucket (already works).
+- No bulk seed of existing vMix PNGs — you'll upload them once through the new admin UI (that's the whole point of "from any device").
 
-- No email-domain allowlist (you picked manual invite).
-- No changes to how existing admins sign in.
+## Notes
+- The `logos` bucket is public — safe to serve PWA icons from it.
+- `vmix-assets` must be public so vMix (external, unauthenticated) can fetch by URL.
+- If workspace policy blocks public buckets, we fall back to signed URLs regenerated by a server fn.
