@@ -45,7 +45,10 @@ export const Route = createFileRoute("/api/public/vmix/lineup/$version")({
         const clubId = url.searchParams.get("ClubId") ?? "";
 
         const settings = await readVmixSettings();
-        const assetBaseUrl = settings.asset_base_url.replace(/\/$/, "");
+        const assetBaseUrl = resolveVmixAssetBaseUrl(
+          settings.asset_base_url,
+          process.env.SUPABASE_URL!,
+        );
 
         if (clubId !== settings.club_id) {
           return new Response(
