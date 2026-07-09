@@ -163,6 +163,7 @@ function Dashboard() {
   const fetchPending = useServerFn(listPendingSeasons);
   const fetchTodaysMatchup = useServerFn(getTodaysMatchup);
   const runScan = useServerFn(scanForNewSeasons);
+  const adminFn = useServerFn(checkIsAdmin);
   const qc = useQueryClient();
 
   const seasonsQuery = useQuery({
