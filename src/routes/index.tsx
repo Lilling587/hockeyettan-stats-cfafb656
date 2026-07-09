@@ -565,6 +565,14 @@ function Dashboard() {
                     </Link>
                   </Button>
                 ) : null}
+                {adminQuery.data?.isAdmin ? (
+                  <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+                    <Link to="/connect">
+                      <Info className="mr-2 h-4 w-4 shrink-0" />
+                      Anslut AI
+                    </Link>
+                  </Button>
+                ) : null}
                 <Button
                   variant="outline"
                   size="sm"
