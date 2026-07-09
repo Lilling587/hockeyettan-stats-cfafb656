@@ -15,6 +15,7 @@ import {
   listPendingSeasons,
   getTodaysMatchup,
 } from "@/lib/stats.functions";
+import { checkIsAdmin } from "@/lib/roles.functions";
 import type { Briefing } from "@/lib/stats.functions";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
