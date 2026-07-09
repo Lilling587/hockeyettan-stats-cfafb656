@@ -313,7 +313,7 @@ export const saveVmixSettings = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        asset_base_url: z.string().min(1),
+        asset_base_url: z.string(),
         club_id: z.string().min(1),
         lineup_version: z.string().min(1),
       })
