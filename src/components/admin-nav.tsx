@@ -8,7 +8,7 @@ const items = [
   { label: "Hälsa", to: "/admin/health", icon: Activity },
   { label: "Loggbok", to: "/admin/logs", icon: ScrollText },
   { label: "Logotyper", to: "/admin/logos", icon: Image },
-  { label: "Assets", to: "/admin/assets", icon: FolderUp },
+  { label: "Lagring", to: "/admin/assets", icon: FolderUp },
   { label: "vMix", to: "/admin/vmix", icon: Tv },
   { label: "Användare", to: "/admin/users", icon: Users },
 ];

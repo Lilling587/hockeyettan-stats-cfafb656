@@ -15,6 +15,7 @@ import {
   listPendingSeasons,
   getTodaysMatchup,
 } from "@/lib/stats.functions";
+import { checkIsAdmin } from "@/lib/roles.functions";
 import type { Briefing } from "@/lib/stats.functions";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ import {
   AlertCircle,
   CalendarDays,
   Check,
+  FolderUp,
   Info,
   Loader2,
   LogOut,
@@ -161,6 +163,7 @@ function Dashboard() {
   const fetchPending = useServerFn(listPendingSeasons);
   const fetchTodaysMatchup = useServerFn(getTodaysMatchup);
   const runScan = useServerFn(scanForNewSeasons);
+  const adminFn = useServerFn(checkIsAdmin);
   const qc = useQueryClient();
 
   const seasonsQuery = useQuery({
@@ -247,6 +250,12 @@ function Dashboard() {
       listener.subscription.unsubscribe();
     };
   }, []);
+
+  const adminQuery = useQuery({
+    queryKey: ["admin-check"],
+    queryFn: () => adminFn(),
+    enabled: !!user,
+  });
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -548,6 +557,14 @@ function Dashboard() {
                     Användare
                   </Link>
                 </Button>
+                {adminQuery.data?.isAdmin ? (
+                  <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+                    <Link to="/admin/assets">
+                      <FolderUp className="mr-2 h-4 w-4 shrink-0" />
+                      Lagring
+                    </Link>
+                  </Button>
+                ) : null}
                 <Button
                   variant="outline"
                   size="sm"
