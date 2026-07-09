@@ -273,7 +273,10 @@ export type VmixSettings = {
 const SETTING_KEYS = ["asset_base_url", "club_id", "lineup_version"] as const;
 
 const SETTING_DEFAULTS: VmixSettings = {
-  asset_base_url: "http://192.168.1.235:8765",
+  // Empty string = fall back to the Lovable Cloud Storage public URL for the
+  // vmix-assets bucket. Set a full https URL here only to override with a
+  // publicly reachable CDN.
+  asset_base_url: "",
   club_id: "570",
   lineup_version: "0",
 };
