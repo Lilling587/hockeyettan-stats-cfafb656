@@ -557,6 +557,14 @@ function Dashboard() {
                     Användare
                   </Link>
                 </Button>
+                {adminQuery.data?.isAdmin ? (
+                  <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+                    <Link to="/admin/assets">
+                      <FolderUp className="mr-2 h-4 w-4 shrink-0" />
+                      Lagring
+                    </Link>
+                  </Button>
+                ) : null}
                 <Button
                   variant="outline"
                   size="sm"
