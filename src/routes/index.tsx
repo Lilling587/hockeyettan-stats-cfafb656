@@ -24,6 +24,7 @@ import {
   AlertCircle,
   CalendarDays,
   Check,
+  FolderUp,
   Info,
   Loader2,
   LogOut,
