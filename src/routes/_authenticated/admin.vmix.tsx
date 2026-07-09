@@ -696,7 +696,7 @@ function TeamCodesCard({
           </CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
             Kopplar lagnamn till filnamn för logotyper (t.ex. GRÄ →
-            GRÄ_small.png). Synka från Swehockey eller skriv in manuellt.
+            GRA_small.png). Synka från Swehockey eller skriv in manuellt.
           </p>
         </div>
         <Button

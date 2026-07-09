@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getActivePublication, readVmixSettings } from "@/lib/vmix.functions";
-import { resolveVmixAssetBaseUrl } from "@/lib/vmix-assets";
+import { getVmixLogoUrl, resolveVmixAssetBaseUrl } from "@/lib/vmix-assets";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -31,11 +31,6 @@ const DOTTED_LINE =
 /** Zero-pad a number to two digits: 1 → "01", 10 → "10". */
 function pad(n: number): string {
   return n < 10 ? `0${n}` : `${n}`;
-}
-
-/** URL-encode a logo code for use in file paths (GRÄ → GR%C3%84). */
-function encodeCode(code: string): string {
-  return encodeURIComponent(code);
 }
 
 export const Route = createFileRoute("/api/public/vmix/standings")({
@@ -81,7 +76,7 @@ export const Route = createFileRoute("/api/public/vmix/standings")({
           if (row) {
             const logoCode = row.logoCode ?? "";
             const logoUrl = logoCode
-              ? `${assetBaseUrl}/logos/${encodeCode(logoCode)}_small.png`
+              ? getVmixLogoUrl(assetBaseUrl, logoCode, "small")
               : "";
 
             payload[`Pos${nn}.Text`] = row.position;

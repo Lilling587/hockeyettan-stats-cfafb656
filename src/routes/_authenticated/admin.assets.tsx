@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   VMIX_BUCKET,
   VMIX_RESOURCE_FILES,
+  getVmixLogoPath,
   getVmixAssetBaseUrl,
   type VmixResourceFile,
 } from "@/lib/vmix-assets";
@@ -130,8 +131,8 @@ function AdminAssetsPage() {
             <CardTitle>Lagslogotyper (vMix)</CardTitle>
             <CardDescription>
               Ladda upp små (list) och stora (helskärm) logotyper per lagkod.
-              Filnamn: <code>&lt;KOD&gt;_small.png</code> och{" "}
-              <code>&lt;KOD&gt;_large.png</code>.
+              Filnamn normaliseras för lagring, t.ex. <code>GRÄ</code> →{" "}
+              <code>GRA_small.png</code>.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -162,18 +163,18 @@ function AdminAssetsPage() {
                     </div>
                     <LogoUploader
                       label="Small"
-                      path={`logos/${c.logoCode}_small.png`}
+                      path={getVmixLogoPath(c.logoCode, "small")}
                       bump={bump}
                       onUpload={(file) =>
-                        uploadTo(`logos/${c.logoCode}_small.png`, file)
+                        uploadTo(getVmixLogoPath(c.logoCode, "small"), file)
                       }
                     />
                     <LogoUploader
                       label="Large"
-                      path={`logos/${c.logoCode}_large.png`}
+                      path={getVmixLogoPath(c.logoCode, "large")}
                       bump={bump}
                       onUpload={(file) =>
-                        uploadTo(`logos/${c.logoCode}_large.png`, file)
+                        uploadTo(getVmixLogoPath(c.logoCode, "large"), file)
                       }
                     />
                   </div>
