@@ -6,6 +6,7 @@ import {
   type SlotPlayer,
   type VmixLineupSlots,
 } from "@/lib/vmix.functions";
+import { resolveVmixAssetBaseUrl } from "@/lib/vmix-assets";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
