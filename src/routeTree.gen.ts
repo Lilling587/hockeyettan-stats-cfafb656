@@ -27,6 +27,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin.logs'
 import { Route as AuthenticatedAdminLogosRouteImport } from './routes/_authenticated/admin.logos'
 import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
+import { Route as AuthenticatedAdminAssetsRouteImport } from './routes/_authenticated/admin.assets'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicVmixStandingsRouteImport } from './routes/api/public/vmix/standings'
@@ -128,6 +129,12 @@ const AuthenticatedAdminHealthRoute =
     path: '/admin/health',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminAssetsRoute =
+  AuthenticatedAdminAssetsRouteImport.update({
+    id: '/admin/assets',
+    path: '/admin/assets',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -182,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/index/': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/logos': typeof AuthenticatedAdminLogosRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
@@ -208,6 +216,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/index': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/logos': typeof AuthenticatedAdminLogosRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
@@ -236,6 +245,7 @@ export interface FileRoutesById {
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/index/': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
   '/_authenticated/admin/logos': typeof AuthenticatedAdminLogosRoute
   '/_authenticated/admin/logs': typeof AuthenticatedAdminLogsRoute
@@ -264,6 +274,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/index/'
     | '/.mcp/invoke-tool/$tool'
+    | '/admin/assets'
     | '/admin/health'
     | '/admin/logos'
     | '/admin/logs'
@@ -290,6 +301,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/index'
     | '/.mcp/invoke-tool/$tool'
+    | '/admin/assets'
     | '/admin/health'
     | '/admin/logos'
     | '/admin/logs'
@@ -317,6 +329,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notifications'
     | '/index/'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/admin/assets'
     | '/_authenticated/admin/health'
     | '/_authenticated/admin/logos'
     | '/_authenticated/admin/logs'
@@ -481,6 +494,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminHealthRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/assets': {
+      id: '/_authenticated/admin/assets'
+      path: '/admin/assets'
+      fullPath: '/admin/assets'
+      preLoaderRoute: typeof AuthenticatedAdminAssetsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -535,6 +555,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedAdminAssetsRoute: typeof AuthenticatedAdminAssetsRoute
   AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
   AuthenticatedAdminLogosRoute: typeof AuthenticatedAdminLogosRoute
   AuthenticatedAdminLogsRoute: typeof AuthenticatedAdminLogsRoute
@@ -544,6 +565,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedAdminAssetsRoute: AuthenticatedAdminAssetsRoute,
   AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
   AuthenticatedAdminLogosRoute: AuthenticatedAdminLogosRoute,
   AuthenticatedAdminLogsRoute: AuthenticatedAdminLogsRoute,
