@@ -1,7 +1,7 @@
 // Resolves the base URL for vMix broadcast assets served from Lovable Cloud
 // Storage (the `vmix-assets` public bucket). Layout inside the bucket:
-//   logos/<CODE>_small.png
-//   logos/<CODE>_large.png
+//   logos/<ASCII_CODE>_small.png
+//   logos/<ASCII_CODE>_large.png
 //   resources/lineup-PLATE.png
 //   resources/transparent.png
 //   resources/lineupBG.png
@@ -17,6 +17,32 @@ export const VMIX_RESOURCE_FILES = [
 ] as const;
 
 export type VmixResourceFile = (typeof VMIX_RESOURCE_FILES)[number];
+
+export type VmixLogoSize = "small" | "large";
+
+export function toVmixLogoFileCode(code: string): string {
+  const safe = code
+    .trim()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9_-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toUpperCase();
+  return safe || "UNKNOWN";
+}
+
+export function getVmixLogoPath(code: string, size: VmixLogoSize): string {
+  return `logos/${toVmixLogoFileCode(code)}_${size}.png`;
+}
+
+export function getVmixLogoUrl(
+  assetBaseUrl: string,
+  code: string,
+  size: VmixLogoSize,
+): string {
+  return `${assetBaseUrl}/${getVmixLogoPath(code, size)}`;
+}
 
 /** Public base URL for the vmix-assets bucket, without trailing slash. */
 export function getVmixAssetBaseUrl(supabaseUrl: string): string {

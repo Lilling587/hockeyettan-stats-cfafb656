@@ -6,7 +6,7 @@ import {
   type SlotPlayer,
   type VmixLineupSlots,
 } from "@/lib/vmix.functions";
-import { resolveVmixAssetBaseUrl } from "@/lib/vmix-assets";
+import { getVmixLogoUrl, resolveVmixAssetBaseUrl } from "@/lib/vmix-assets";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -69,14 +69,13 @@ export const Route = createFileRoute("/api/public/vmix/lineup/$version")({
           );
         }
 
-        const encodeCode = (c: string) => encodeURIComponent(c);
         const away = pub.awaySlots;
         const home = pub.homeSlots;
 
         const payload = {
           "A_TeamName.Text": (away.team || pub.awayTeam).toUpperCase(),
-          "A_TeamLogo.Source": `${assetBaseUrl}/logos/${encodeCode(away.teamCode)}_small.png`,
-          "A_LogoTeam.Source": `${assetBaseUrl}/logos/${encodeCode(away.teamCode)}_large.png`,
+          "A_TeamLogo.Source": getVmixLogoUrl(assetBaseUrl, away.teamCode, "small"),
+          "A_LogoTeam.Source": getVmixLogoUrl(assetBaseUrl, away.teamCode, "large"),
           "HeadlineGoalies.Text": "MÅLVAKTER",
           "HeadlineDef.Text": "BACKPAR",
           "HeadlineForw.Text": "FORWARDS",
@@ -86,8 +85,8 @@ export const Route = createFileRoute("/api/public/vmix/lineup/$version")({
           "Divider3.Source": `${assetBaseUrl}/resources/lineup-DIVISION.png`,
           ...buildSlotFields("A", away, assetBaseUrl),
           "H_TeamName.Text": (home.team || pub.homeTeam).toUpperCase(),
-          "H_TeamLogo.Source": `${assetBaseUrl}/logos/${encodeCode(home.teamCode)}_small.png`,
-          "H_LogoTeam.Source": `${assetBaseUrl}/logos/${encodeCode(home.teamCode)}_large.png`,
+          "H_TeamLogo.Source": getVmixLogoUrl(assetBaseUrl, home.teamCode, "small"),
+          "H_LogoTeam.Source": getVmixLogoUrl(assetBaseUrl, home.teamCode, "large"),
           ...buildSlotFields("H", home, assetBaseUrl),
         };
 
