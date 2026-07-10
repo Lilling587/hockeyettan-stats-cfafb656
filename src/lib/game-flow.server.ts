@@ -355,6 +355,22 @@ export type GameFlowGamePoint = {
   teamPpPct: number | null;
 };
 
+export type LineupPlayerStatus =
+  | "regular_missing"
+  | "occasional_missing"
+  | "roster_never_played"
+  | "new_callup"
+  | "returning";
+
+export type LineupPlayerChange = {
+  name: string;
+  status: LineupPlayerStatus;
+  gamesPlayedOfLastN: number;
+  lastPlayedDate: string | null;
+  lastPlayedOpponent: string | null;
+  onRoster: boolean;
+};
+
 export type GameFlowResult = {
   team: string;
   seasonLabel: string;
@@ -363,12 +379,18 @@ export type GameFlowResult = {
     gameId: string | null;
     date: string | null;
     opponent: string | null;
-    // Names on the current roster who did NOT play the last game
+    previousGameId: string | null;
+    previousDate: string | null;
+    previousOpponent: string | null;
     missingFromLastGame: string[];
-    // Names who played the last game but are not on the current roster listing
     playedButNotOnRoster: string[];
+    likelyInjured: LineupPlayerChange[];
+    healthyScratches: LineupPlayerChange[];
+    newInLineup: LineupPlayerChange[];
+    outOfLineup: LineupPlayerChange[];
     rosterSize: number;
     playedCount: number;
+    lineupSampleSize: number;
     lineupAvailable: boolean;
   };
 };
