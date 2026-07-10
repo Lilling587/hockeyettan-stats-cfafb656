@@ -62,6 +62,17 @@ export function BriefingView({
   const [exporting, setExporting] = useState(false);
   const [copied, setCopied] = useState<null | "text" | "markdown">(null);
 
+  const fetchGameFlow = useServerFn(getGameFlowForMatchup);
+  const gameFlowQuery = useQuery({
+    queryKey: ["gameFlow", data.home.name, data.away.name],
+    queryFn: () =>
+      fetchGameFlow({ data: { home: data.home.name, away: data.away.name, n: 10 } }),
+    staleTime: 30 * 60 * 1000,
+    retry: 1,
+  });
+  const homeFlow = gameFlowQuery.data?.home;
+  const awayFlow = gameFlowQuery.data?.away;
+
   const handleCopy = async (kind: "text" | "markdown") => {
     const payload =
       kind === "text" ? briefingToTvText(data) : briefingToMarkdown(data);
