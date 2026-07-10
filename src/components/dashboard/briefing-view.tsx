@@ -296,8 +296,18 @@ export function BriefingView({
       <ShotVolumeCard home={data.home} away={data.away} />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <SpecialTeamsCard team={data.home} opponent={data.away} />
-        <SpecialTeamsCard team={data.away} opponent={data.home} />
+        <ShotTimelineCard teamName={data.home.name} data={homeFlow} />
+        <ShotTimelineCard teamName={data.away.name} data={awayFlow} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <SpecialTeamsTimelineCard team={data.home} opponent={data.away} flow={homeFlow} />
+        <SpecialTeamsTimelineCard team={data.away} opponent={data.home} flow={awayFlow} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <LineupDiffCard teamName={data.home.name} data={homeFlow} />
+        <LineupDiffCard teamName={data.away.name} data={awayFlow} />
       </div>
 
       <WinProbabilityCard home={data.home} away={data.away} />
