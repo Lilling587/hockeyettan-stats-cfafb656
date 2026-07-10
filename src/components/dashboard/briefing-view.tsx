@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { Check, ClipboardCopy, FileText, ImageDown, Loader2, Printer, RefreshCw, Tv } from "lucide-react";
 import {
   DropdownMenu,
@@ -13,6 +15,7 @@ import {
   copyToClipboard,
 } from "@/lib/briefing-export";
 import type { Briefing } from "@/lib/stats.functions";
+import { getGameFlowForMatchup } from "@/lib/game-flow.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +34,9 @@ import { PeriodGoalsCard } from "./cards/period-goals-card";
 import { ScorersCard } from "./cards/scorers-card";
 import { GoaliesCard } from "./cards/goalies-card";
 import { ShotVolumeCard } from "./cards/shot-volume-card";
-import { SpecialTeamsCard } from "./cards/special-teams-card";
+import { ShotTimelineCard } from "./cards/shot-timeline-card";
+import { SpecialTeamsTimelineCard } from "./cards/special-teams-timeline-card";
+import { LineupDiffCard } from "./cards/lineup-diff-card";
 import { WinProbabilityCard } from "./cards/win-probability-card";
 import { HottestPlayerCard } from "./cards/hottest-player-card";
 import { StreakAlertsCard } from "./cards/streak-alerts-card";
