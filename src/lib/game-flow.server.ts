@@ -355,6 +355,22 @@ export type GameFlowGamePoint = {
   teamPpPct: number | null;
 };
 
+export type LineupPlayerStatus =
+  | "regular_missing"
+  | "occasional_missing"
+  | "roster_never_played"
+  | "new_callup"
+  | "returning";
+
+export type LineupPlayerChange = {
+  name: string;
+  status: LineupPlayerStatus;
+  gamesPlayedOfLastN: number;
+  lastPlayedDate: string | null;
+  lastPlayedOpponent: string | null;
+  onRoster: boolean;
+};
+
 export type GameFlowResult = {
   team: string;
   seasonLabel: string;
@@ -363,12 +379,18 @@ export type GameFlowResult = {
     gameId: string | null;
     date: string | null;
     opponent: string | null;
-    // Names on the current roster who did NOT play the last game
+    previousGameId: string | null;
+    previousDate: string | null;
+    previousOpponent: string | null;
     missingFromLastGame: string[];
-    // Names who played the last game but are not on the current roster listing
     playedButNotOnRoster: string[];
+    likelyInjured: LineupPlayerChange[];
+    healthyScratches: LineupPlayerChange[];
+    newInLineup: LineupPlayerChange[];
+    outOfLineup: LineupPlayerChange[];
     rosterSize: number;
     playedCount: number;
+    lineupSampleSize: number;
     lineupAvailable: boolean;
   };
 };
@@ -501,52 +523,183 @@ async function doComputeGameFlow(
     };
   });
 
-  // Lineup diff for the most recent played game
+  // Build lineup diff with historical context: fetch lineups for the last few
+  // played games so we can classify who is normally in the lineup.
+  const LINEUP_SAMPLE = 5;
   const lastGame = teamGames[0];
+  const previousGame = teamGames[1];
+  const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+
   const emptyDiff: GameFlowResult["lineupDiff"] = {
     gameId: null,
     date: null,
     opponent: null,
+    previousGameId: null,
+    previousDate: null,
+    previousOpponent: null,
     missingFromLastGame: [],
     playedButNotOnRoster: [],
+    likelyInjured: [],
+    healthyScratches: [],
+    newInLineup: [],
+    outOfLineup: [],
     rosterSize: rosterNames.length,
     playedCount: 0,
+    lineupSampleSize: 0,
     lineupAvailable: false,
   };
 
   let lineupDiff = emptyDiff;
   if (lastGame && lastGame.id) {
-    const lineup = await fetchLineupPage(lastGame.id);
-    if (lineup) {
-      // Find the team section by matching team name (case-insensitive)
-      const key = Object.keys(lineup.byTeam).find(
+    const sampleGames = teamGames.slice(0, LINEUP_SAMPLE);
+    const lineups = await Promise.all(
+      sampleGames.map(async (g) => ({
+        g,
+        lineup: g.id ? await fetchLineupPage(g.id) : null,
+      })),
+    );
+
+    const teamLineupFor = (byTeam: Record<string, string[]> | undefined) => {
+      if (!byTeam) return [];
+      const key = Object.keys(byTeam).find(
         (k) => k.toLowerCase() === team.toLowerCase(),
       );
-      const playedNames = key ? lineup.byTeam[key] : [];
-      if (playedNames.length > 0) {
-        const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
-        const rosterSet = new Set(rosterNames.map(norm));
-        const playedSet = new Set(playedNames.map(norm));
-        const missing = rosterNames.filter((n) => !playedSet.has(norm(n)));
-        const extra = playedNames.filter((n) => !rosterSet.has(norm(n)));
-        lineupDiff = {
-          gameId: lastGame.id,
-          date: lastGame.date,
-          opponent: lastGame.homeTeam === team ? lastGame.awayTeam : lastGame.homeTeam,
-          missingFromLastGame: missing,
-          playedButNotOnRoster: extra,
-          rosterSize: rosterNames.length,
-          playedCount: playedNames.length,
-          lineupAvailable: true,
-        };
-      } else {
-        lineupDiff = {
-          ...emptyDiff,
-          gameId: lastGame.id,
-          date: lastGame.date,
-          opponent: lastGame.homeTeam === team ? lastGame.awayTeam : lastGame.homeTeam,
-        };
+      return key ? byTeam[key] : [];
+    };
+
+    const lastPlayed = teamLineupFor(lineups[0]?.lineup?.byTeam);
+    const prevPlayed = teamLineupFor(lineups[1]?.lineup?.byTeam);
+
+    if (lastPlayed.length > 0) {
+      const rosterSet = new Set(rosterNames.map(norm));
+      const lastPlayedSet = new Set(lastPlayed.map(norm));
+      const prevPlayedSet = new Set(prevPlayed.map(norm));
+
+      // Attendance rate across the sampled played games (excluding tonight so
+      // we don't circularly count it against itself). Track most recent
+      // appearance so we can display "senast med den DATE mot OPP".
+      const attendance = new Map<
+        string,
+        { count: number; lastDate: string | null; lastOpp: string | null }
+      >();
+      const validSamples = lineups.filter((l) => l.lineup);
+      const sampleSize = validSamples.length;
+
+      for (const { g, lineup } of validSamples) {
+        const names = teamLineupFor(lineup?.byTeam);
+        const opp = g.homeTeam === team ? g.awayTeam : g.homeTeam;
+        for (const raw of names) {
+          const key = norm(raw);
+          const cur = attendance.get(key) ?? {
+            count: 0,
+            lastDate: null,
+            lastOpp: null,
+          };
+          cur.count += 1;
+          if (!cur.lastDate || g.date > cur.lastDate) {
+            cur.lastDate = g.date;
+            cur.lastOpp = opp;
+          }
+          attendance.set(key, cur);
+        }
       }
+
+      const missing = rosterNames.filter((n) => !lastPlayedSet.has(norm(n)));
+      const extra = lastPlayed.filter((n) => !rosterSet.has(norm(n)));
+
+      const buildChange = (
+        name: string,
+        onRoster: boolean,
+        status: LineupPlayerStatus,
+      ): LineupPlayerChange => {
+        const att = attendance.get(norm(name));
+        return {
+          name,
+          status,
+          gamesPlayedOfLastN: att?.count ?? 0,
+          lastPlayedDate: att?.lastDate ?? null,
+          lastPlayedOpponent: att?.lastOpp ?? null,
+          onRoster,
+        };
+      };
+
+      // Threshold: played in >=60% of the sampled games (excluding tonight)
+      const priorSamples = Math.max(0, sampleSize - 1);
+      const regularThreshold = Math.max(2, Math.ceil(priorSamples * 0.6));
+
+      const likelyInjured: LineupPlayerChange[] = [];
+      const healthyScratches: LineupPlayerChange[] = [];
+      for (const name of missing) {
+        const priorCount = (attendance.get(norm(name))?.count ?? 0) -
+          (lastPlayedSet.has(norm(name)) ? 1 : 0);
+        if (priorSamples > 0 && priorCount >= regularThreshold) {
+          likelyInjured.push(buildChange(name, true, "regular_missing"));
+        } else if (priorSamples > 0 && priorCount === 0) {
+          healthyScratches.push(buildChange(name, true, "roster_never_played"));
+        } else {
+          likelyInjured.push(buildChange(name, true, "occasional_missing"));
+        }
+      }
+      likelyInjured.sort((a, b) => b.gamesPlayedOfLastN - a.gamesPlayedOfLastN);
+
+      // Diff vs previous game
+      const newInLineup: LineupPlayerChange[] = [];
+      const outOfLineup: LineupPlayerChange[] = [];
+      if (prevPlayed.length > 0) {
+        for (const raw of lastPlayed) {
+          if (!prevPlayedSet.has(norm(raw))) {
+            const onRoster = rosterSet.has(norm(raw));
+            const priorCount = (attendance.get(norm(raw))?.count ?? 0) - 1;
+            const status: LineupPlayerStatus = !onRoster
+              ? "new_callup"
+              : priorCount === 0
+                ? "new_callup"
+                : "returning";
+            newInLineup.push(buildChange(raw, onRoster, status));
+          }
+        }
+        for (const raw of prevPlayed) {
+          if (!lastPlayedSet.has(norm(raw))) {
+            const onRoster = rosterSet.has(norm(raw));
+            // Prior count relative to games before tonight
+            const priorCount = attendance.get(norm(raw))?.count ?? 0;
+            const status: LineupPlayerStatus = priorCount >= regularThreshold
+              ? "regular_missing"
+              : "occasional_missing";
+            outOfLineup.push(buildChange(raw, onRoster, status));
+          }
+        }
+      }
+
+      lineupDiff = {
+        gameId: lastGame.id,
+        date: lastGame.date,
+        opponent: lastGame.homeTeam === team ? lastGame.awayTeam : lastGame.homeTeam,
+        previousGameId: previousGame?.id ?? null,
+        previousDate: previousGame?.date ?? null,
+        previousOpponent: previousGame
+          ? previousGame.homeTeam === team
+            ? previousGame.awayTeam
+            : previousGame.homeTeam
+          : null,
+        missingFromLastGame: missing,
+        playedButNotOnRoster: extra,
+        likelyInjured,
+        healthyScratches,
+        newInLineup,
+        outOfLineup,
+        rosterSize: rosterNames.length,
+        playedCount: lastPlayed.length,
+        lineupSampleSize: sampleSize,
+        lineupAvailable: true,
+      };
+    } else {
+      lineupDiff = {
+        ...emptyDiff,
+        gameId: lastGame.id,
+        date: lastGame.date,
+        opponent: lastGame.homeTeam === team ? lastGame.awayTeam : lastGame.homeTeam,
+      };
     }
   }
 
