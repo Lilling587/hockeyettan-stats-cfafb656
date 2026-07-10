@@ -87,7 +87,10 @@ function VmixAdminPage() {
   
   const publish = useServerFn(publishVmix);
   const unpublish = useServerFn(unpublishVmix);
-  
+  const fetchCodes = useServerFn(getTeamLogoCodes);
+const syncCodes = useServerFn(syncTeamLogoCodes);
+const updateCode = useServerFn(updateTeamLogoCode);
+
   const adminQuery = useQuery({
     queryKey: ["is-admin"],
     queryFn: () => fetchIsAdmin(),
