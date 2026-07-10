@@ -197,6 +197,27 @@ export type Database = {
         }
         Relationships: []
       }
+      game_events_cache: {
+        Row: {
+          fetched_at: string
+          game_id: string
+          parsed: Json
+          season: string
+        }
+        Insert: {
+          fetched_at?: string
+          game_id: string
+          parsed: Json
+          season: string
+        }
+        Update: {
+          fetched_at?: string
+          game_id?: string
+          parsed?: Json
+          season?: string
+        }
+        Relationships: []
+      }
       notification_prefs: {
         Row: {
           created_at: string
