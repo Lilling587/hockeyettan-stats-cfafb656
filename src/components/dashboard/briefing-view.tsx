@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { Check, ClipboardCopy, FileText, ImageDown, Loader2, Printer, RefreshCw, Tv } from "lucide-react";
 import {
   DropdownMenu,
@@ -13,6 +15,7 @@ import {
   copyToClipboard,
 } from "@/lib/briefing-export";
 import type { Briefing } from "@/lib/stats.functions";
+import { getGameFlowForMatchup } from "@/lib/game-flow.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +34,9 @@ import { PeriodGoalsCard } from "./cards/period-goals-card";
 import { ScorersCard } from "./cards/scorers-card";
 import { GoaliesCard } from "./cards/goalies-card";
 import { ShotVolumeCard } from "./cards/shot-volume-card";
-import { SpecialTeamsCard } from "./cards/special-teams-card";
+import { ShotTimelineCard } from "./cards/shot-timeline-card";
+import { SpecialTeamsTimelineCard } from "./cards/special-teams-timeline-card";
+import { LineupDiffCard } from "./cards/lineup-diff-card";
 import { WinProbabilityCard } from "./cards/win-probability-card";
 import { HottestPlayerCard } from "./cards/hottest-player-card";
 import { StreakAlertsCard } from "./cards/streak-alerts-card";
@@ -56,6 +61,17 @@ export function BriefingView({
 }) {
   const [exporting, setExporting] = useState(false);
   const [copied, setCopied] = useState<null | "text" | "markdown">(null);
+
+  const fetchGameFlow = useServerFn(getGameFlowForMatchup);
+  const gameFlowQuery = useQuery({
+    queryKey: ["gameFlow", data.home.name, data.away.name],
+    queryFn: () =>
+      fetchGameFlow({ data: { home: data.home.name, away: data.away.name, n: 10 } }),
+    staleTime: 30 * 60 * 1000,
+    retry: 1,
+  });
+  const homeFlow = gameFlowQuery.data?.home;
+  const awayFlow = gameFlowQuery.data?.away;
 
   const handleCopy = async (kind: "text" | "markdown") => {
     const payload =
@@ -280,8 +296,18 @@ export function BriefingView({
       <ShotVolumeCard home={data.home} away={data.away} />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <SpecialTeamsCard team={data.home} opponent={data.away} />
-        <SpecialTeamsCard team={data.away} opponent={data.home} />
+        <ShotTimelineCard teamName={data.home.name} data={homeFlow} />
+        <ShotTimelineCard teamName={data.away.name} data={awayFlow} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <SpecialTeamsTimelineCard team={data.home} opponent={data.away} flow={homeFlow} />
+        <SpecialTeamsTimelineCard team={data.away} opponent={data.home} flow={awayFlow} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <LineupDiffCard teamName={data.home.name} data={homeFlow} />
+        <LineupDiffCard teamName={data.away.name} data={awayFlow} />
       </div>
 
       <WinProbabilityCard home={data.home} away={data.away} />
