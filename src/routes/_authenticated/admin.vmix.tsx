@@ -21,9 +21,7 @@ import {
   fetchTeamRoster,
   getActivePublication,
   getTeamLogoCodes,
-  getVmixSettings,
   publishVmix,
-  saveVmixSettings,
   SLOT_KEYS,
   syncTeamLogoCodes,
   unpublishVmix,
@@ -32,8 +30,8 @@ import {
   type SlotPlayer,
   type TeamLogoCode,
   type VmixLineupSlots,
-  type VmixSettings,
 } from "@/lib/vmix.functions";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,14 +84,10 @@ function VmixAdminPage() {
   const fetchTodays = useServerFn(getTodaysMatchup);
   const fetchActive = useServerFn(getActivePublication);
   const fetchRoster = useServerFn(fetchTeamRoster);
-  const fetchSettings = useServerFn(getVmixSettings);
-  const saveSettings = useServerFn(saveVmixSettings);
+  
   const publish = useServerFn(publishVmix);
   const unpublish = useServerFn(unpublishVmix);
-  const fetchCodes = useServerFn(getTeamLogoCodes);
-  const syncCodes = useServerFn(syncTeamLogoCodes);
-  const updateCode = useServerFn(updateTeamLogoCode);
-
+  
   const adminQuery = useQuery({
     queryKey: ["is-admin"],
     queryFn: () => fetchIsAdmin(),
@@ -113,11 +107,7 @@ function VmixAdminPage() {
     enabled: !!adminQuery.data?.isAdmin,
   });
 
-  const settingsQuery = useQuery({
-    queryKey: ["vmix-settings"],
-    queryFn: () => fetchSettings(),
-    enabled: !!adminQuery.data?.isAdmin,
-  });
+  
 
   const codesQuery = useQuery({
     queryKey: ["vmix-codes"],
@@ -345,10 +335,10 @@ function VmixAdminPage() {
     }
   };
 
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-  const settings = settingsQuery.data;
-  const clubId = settings?.club_id ?? "570";
-  const lineupVersion = settings?.lineup_version ?? "0";
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const clubId = "570";
+  const lineupVersion = "0";
+
   const endpoints = [
   { label: "standings.json", url: `${baseUrl}/api/public/vmix/standings` },
   {
@@ -387,15 +377,7 @@ function VmixAdminPage() {
         </div>
       </header>
 
-      <SettingsCard
-        settings={settings ?? null}
-        loading={settingsQuery.isLoading}
-        onSave={async (v) => {
-          await saveSettings({ data: v });
-          await queryClient.invalidateQueries({ queryKey: ["vmix-settings"] });
-          toast.success("Inställningar sparade");
-        }}
-      />
+
 
       <TeamCodesCard
         codes={codesQuery.data ?? []}
@@ -551,100 +533,9 @@ function VmixAdminPage() {
   );
 }
 
-// ---------- Settings card ----------
 
-function SettingsCard({
-  settings,
-  loading,
-  onSave,
-}: {
-  settings: VmixSettings | null;
-  loading: boolean;
-  onSave: (v: VmixSettings) => Promise<void>;
-}) {
-  const [assetBaseUrl, setAssetBaseUrl] = useState("");
-  const [clubId, setClubId] = useState("");
-  const [lineupVersion, setLineupVersion] = useState("");
-  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!settings) return;
-    setAssetBaseUrl(settings.asset_base_url);
-    setClubId(settings.club_id);
-    setLineupVersion(settings.lineup_version);
-  }, [settings]);
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <Settings2 className="h-4 w-4" /> vMix-inställningar
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-3 sm:grid-cols-3">
-        <div>
-          <Label>Asset Base URL</Label>
-          <Input
-            value={assetBaseUrl}
-            onChange={(e) => setAssetBaseUrl(e.target.value)}
-            placeholder="http://192.168.1.235:8765"
-            disabled={loading}
-          />
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            IP-adress och port för vMix-datorns webbserver.
-          </p>
-        </div>
-        <div>
-          <Label>Club ID</Label>
-          <Input
-            value={clubId}
-            onChange={(e) => setClubId(e.target.value)}
-            placeholder="570"
-            disabled={loading}
-          />
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Grästorps IK:s ClubId i Swehockey-systemet.
-          </p>
-        </div>
-        <div>
-          <Label>Lineup Version</Label>
-          <Input
-            value={lineupVersion}
-            onChange={(e) => setLineupVersion(e.target.value)}
-            placeholder="0"
-            disabled={loading}
-          />
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Versionsparametern i API-URL:en (/api/lineup/0).
-          </p>
-        </div>
-        <div className="sm:col-span-3">
-          <Button
-            size="sm"
-            disabled={saving || loading || !assetBaseUrl || !clubId || !lineupVersion}
-            onClick={async () => {
-              setSaving(true);
-              try {
-                await onSave({
-                  asset_base_url: assetBaseUrl,
-                  club_id: clubId,
-                  lineup_version: lineupVersion,
-                });
-              } catch (e) {
-                toast.error(`Kunde inte spara: ${(e as Error).message}`);
-              } finally {
-                setSaving(false);
-              }
-            }}
-          >
-            {saving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-            Spara inställningar
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 // ---------- Team logo codes ----------
 
 function TeamCodesCard({
