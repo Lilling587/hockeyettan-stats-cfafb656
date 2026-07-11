@@ -262,7 +262,7 @@ export const unpublishVmix = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// ---------- vMix settings (asset base URL, club id, lineup version) ----------
+// ---------- vMix settings ----------
 
 export type VmixSettings = {
   asset_base_url: string;
@@ -270,12 +270,7 @@ export type VmixSettings = {
   lineup_version: string;
 };
 
-const SETTING_KEYS = ["asset_base_url", "club_id", "lineup_version"] as const;
-
 const SETTING_DEFAULTS: VmixSettings = {
-  // Empty string = fall back to the Lovable Cloud Storage public URL for the
-  // vmix-assets bucket. Set a full https URL here only to override with a
-  // publicly reachable CDN.
   asset_base_url: "",
   club_id: "570",
   lineup_version: "0",
@@ -284,34 +279,6 @@ const SETTING_DEFAULTS: VmixSettings = {
 export async function readVmixSettings(): Promise<VmixSettings> {
   return { ...SETTING_DEFAULTS };
 }
-
-
-
-
-export const getVmixSettings = createServerFn({ method: "GET" }).handler(
-  async (): Promise<VmixSettings> => readVmixSettings(),
-);
-
-export const saveVmixSettings = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        asset_base_url: z.string(),
-        club_id: z.string().min(1),
-        lineup_version: z.string().min(1),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const rows = SETTING_KEYS.map((key) => ({ key, value: data[key] }));
-    const { error } = await context.supabase
-      .from("vmix_settings")
-      .upsert(rows, { onConflict: "key" });
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
 // ---------- Team logo codes (auto-fill from swehockey, manual overrides) ----------
 
 export type TeamLogoCode = {
