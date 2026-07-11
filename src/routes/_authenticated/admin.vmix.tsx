@@ -548,7 +548,17 @@ const restoreMut = useMutation({
         pool={awayPool}
       />
 
-      <div className="flex flex-wrap items-center gap-2 sticky bottom-2 bg-background/95 backdrop-blur border rounded-lg p-3">
+      <div className="space-y-2 sticky bottom-2 bg-background/95 backdrop-blur border rounded-lg p-3">
+        {publishWarnings.length > 0 && (
+          <div className="space-y-1">
+            {publishWarnings.map((w) => (
+              <p key={w} className="text-xs text-amber-500 flex items-center gap-1">
+                ⚠ {w}
+              </p>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
         <Button
           size="lg"
           disabled={publishMut.isPending || !awayTeam}
@@ -572,7 +582,8 @@ const restoreMut = useMutation({
             {new Date(activeQuery.data.publishedAt).toLocaleString("sv-SE")}
             {" · inkl. tabell"}
           </span>
-        )}
+      )}
+        </div>
       </div>
 
       <AlertDialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
@@ -596,6 +607,13 @@ const restoreMut = useMutation({
                   Tabellen hämtas live från Swehockey och inkluderas i
                   publiceringen. Eventuell tidigare publicering ersätts.
                 </p>
+                {publishWarnings.length > 0 && (
+                  <div className="rounded bg-amber-500/10 border border-amber-500/30 p-2 space-y-1">
+                    {publishWarnings.map((w) => (
+                      <p key={w} className="text-amber-500 text-xs">⚠ {w}</p>
+                    ))}
+                  </div>
+                )}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
