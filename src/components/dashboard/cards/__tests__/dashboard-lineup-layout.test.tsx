@@ -105,8 +105,8 @@ describe("Dashboard lineup diff layout", () => {
       </div>,
     );
     const row = getByTestId("dashboard-lineup-row");
-    // Two lineup cards, one per team.
-    expect(row.querySelectorAll("[data-slot='card']").length).toBeGreaterThanOrEqual(2);
+    // Two lineup cards, one per team (Card renders div.rounded-xl.border).
+    expect(row.children.length).toBe(2);
     // Both teams' titles are present.
     expect(getAllByText(/Laguppställning$/).length).toBe(2);
   });
