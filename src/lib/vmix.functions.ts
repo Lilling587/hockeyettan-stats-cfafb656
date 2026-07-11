@@ -279,6 +279,42 @@ const SETTING_DEFAULTS: VmixSettings = {
 export async function readVmixSettings(): Promise<VmixSettings> {
   return { ...SETTING_DEFAULTS };
 }
+// ---------- Publication history ----------
+
+export const getPublicationHistory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<VmixPublicationRow[]> => {
+    await assertAdmin(context);
+    const { data, error } = await context.supabase
+      .from("vmix_publications")
+      .select("*")
+      .order("published_at", { ascending: false })
+      .limit(5);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r: Record<string, unknown>) => mapRow(r));
+  });
+
+export const restorePublication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().min(1) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    // Deactivate all active publications.
+    const { error: deactErr } = await context.supabase
+      .from("vmix_publications")
+      .update({ is_active: false })
+      .eq("is_active", true);
+    if (deactErr) throw new Error(deactErr.message);
+    // Reactivate the target publication.
+    const { error: actErr } = await context.supabase
+      .from("vmix_publications")
+      .update({ is_active: true, updated_at: new Date().toISOString() })
+      .eq("id", data.id);
+    if (actErr) throw new Error(actErr.message);
+    return { ok: true };
+  });
 // ---------- Team logo codes (auto-fill from swehockey, manual overrides) ----------
 
 export type TeamLogoCode = {
