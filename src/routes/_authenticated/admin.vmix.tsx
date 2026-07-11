@@ -292,6 +292,18 @@ const restoreMut = useMutation({
     },
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
+  const publishWarnings = useMemo(() => {
+    const warnings: string[] = [];
+    const h = countFilledSlots(homeSlots);
+    const a = countFilledSlots(awaySlots);
+    if (h.goalies === 0) warnings.push("Ingen målvakt vald för hemmalaget");
+    if (a.goalies === 0 && awayTeam) warnings.push("Ingen målvakt vald för bortalaget");
+    if (h.skaters < 6) warnings.push(`Hemmalaget har bara ${h.skaters} utespelare (normalt minst 6)`);
+    if (a.skaters < 6 && awayTeam) warnings.push(`Bortalaget har bara ${a.skaters} utespelare (normalt minst 6)`);
+    if (!homeSlots.teamCode) warnings.push("Logotypkod saknas för hemmalaget");
+    if (awayTeam && !awaySlots.teamCode) warnings.push("Logotypkod saknas för bortalaget");
+    return warnings;
+  }, [homeSlots, awaySlots, awayTeam]);
   const todaysQuery = useQuery({
     queryKey: ["vmix-todays-matchup"],
     queryFn: () => fetchTodays({ data: {} }),
