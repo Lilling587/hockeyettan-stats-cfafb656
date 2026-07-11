@@ -532,6 +532,7 @@ const restoreMut = useMutation({
         onPrefill={() => prefillHome.mutate()}
         prefilling={prefillHome.isPending}
         pool={homePool}
+        poolLoaded={homePool.length > 0}
       />
 
       <SlotLineupEditor
@@ -546,6 +547,7 @@ const restoreMut = useMutation({
         prefilling={prefillAway.isPending}
         disablePrefill={!awayTeam}
         pool={awayPool}
+        poolLoaded={awayPool.length > 0}
       />
 
       <div className="space-y-2 sticky bottom-2 bg-background/95 backdrop-blur border rounded-lg p-3">
@@ -951,6 +953,7 @@ function SlotLineupEditor({
   prefilling,
   disablePrefill,
   pool = [],
+  poolLoaded = false,
 }: {
   title: string;
   teamName: string;
@@ -963,6 +966,7 @@ function SlotLineupEditor({
   prefilling: boolean;
   disablePrefill?: boolean;
   pool?: RosterPlayer[];
+  poolLoaded?: boolean;
 }) {
   const setSlot = (key: keyof VmixLineupSlots, v: SlotPlayer) => {
     setSlots((prev) => ({ ...prev, [key]: v }));
@@ -974,7 +978,19 @@ function SlotLineupEditor({
       <CardHeader className="space-y-2">
         <div className="flex flex-wrap items-end gap-2">
           <div className="flex-1 min-w-[200px]">
-            <CardTitle className="text-base">{title}</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              {title}
+              {teamName && !poolLoaded && (
+                <Badge variant="outline" className="text-[10px] text-amber-500 border-amber-500/50">
+                  Roster ej laddad
+                </Badge>
+              )}
+              {poolLoaded && (
+                <Badge variant="outline" className="text-[10px] text-emerald-500 border-emerald-500/50">
+                  {pool.length} spelare
+                </Badge>
+              )}
+            </CardTitle>
             <p className="text-xs text-muted-foreground">
               {filled.goalies} MV · {filled.skaters} utespelare
             </p>
