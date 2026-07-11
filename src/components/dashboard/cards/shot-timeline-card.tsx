@@ -42,11 +42,6 @@ export function ShotTimelineCard({
     });
   }
 
-  const maxShotVal = Math.max(
-    1,
-    ...games.flatMap((g) => [g.teamShots ?? 0, g.oppShots ?? 0]),
-  );
-
   const fmt = (n: number | null, digits = 1) =>
     n != null ? n.toFixed(digits) : "—";
 
@@ -55,7 +50,7 @@ export function ShotTimelineCard({
       <CardHeader>
         <CardTitle className="text-base">{teamName} · Skottförlopp</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Senaste {games.length} spelade matcherna. Skott på mål — för (blå) / mot (röd).
+          Senaste {games.length} spelade matcherna.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -73,39 +68,6 @@ export function ShotTimelineCard({
             <div className="text-xs text-muted-foreground">SF%</div>
           </div>
         </div>
-
-        {games.length > 0 && (
-          <div>
-            <div className="mb-2 text-xs font-medium text-muted-foreground">
-              Skott per match
-            </div>
-            <div className="flex items-end gap-1" style={{ minHeight: 80 }}>
-              {games.map((g) => {
-                const forH = g.teamShots != null ? (g.teamShots / maxShotVal) * 60 : 0;
-                const agH = g.oppShots != null ? (g.oppShots / maxShotVal) * 60 : 0;
-                return (
-                  <div key={g.gameId} className="flex flex-1 flex-col items-center gap-0.5">
-                    <div className="flex items-end gap-0.5" style={{ height: 60 }}>
-                      <div
-                        className="w-2 rounded-t bg-primary"
-                        style={{ height: `${forH}px` }}
-                        title={`${g.date} vs ${g.opponent}: SF ${g.teamShots ?? "—"}`}
-                      />
-                      <div
-                        className="w-2 rounded-t bg-destructive"
-                        style={{ height: `${agH}px` }}
-                        title={`${g.date} vs ${g.opponent}: SA ${g.oppShots ?? "—"}`}
-                      />
-                    </div>
-                    <div className="text-[9px] text-muted-foreground">
-                      {g.date.slice(5)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         <div>
           <div className="mb-2 text-xs font-medium text-muted-foreground">
