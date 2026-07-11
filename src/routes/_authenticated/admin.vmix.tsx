@@ -101,8 +101,10 @@ function VmixAdminPage() {
   const publish = useServerFn(publishVmix);
   const unpublish = useServerFn(unpublishVmix);
   const fetchCodes = useServerFn(getTeamLogoCodes);
-const syncCodes = useServerFn(syncTeamLogoCodes);
-const updateCode = useServerFn(updateTeamLogoCode);
+  const syncCodes = useServerFn(syncTeamLogoCodes);
+  const updateCode = useServerFn(updateTeamLogoCode);
+  const fetchHistory = useServerFn(getPublicationHistory);
+  const restore = useServerFn(restorePublication);
 
   const adminQuery = useQuery({
     queryKey: ["is-admin"],
@@ -128,6 +130,12 @@ const updateCode = useServerFn(updateTeamLogoCode);
   const codesQuery = useQuery({
     queryKey: ["vmix-codes"],
     queryFn: () => fetchCodes(),
+    enabled: !!adminQuery.data?.isAdmin,
+  });
+
+  const historyQuery = useQuery({
+    queryKey: ["vmix-history"],
+    queryFn: () => fetchHistory(),
     enabled: !!adminQuery.data?.isAdmin,
   });
 
@@ -266,7 +274,7 @@ const updateCode = useServerFn(updateTeamLogoCode);
     onError: (e) =>
       toast.error(`Publicering misslyckades: ${(e as Error).message}`),
   });
-
+const [showPublishConfirm, setShowPublishConfirm] = useState(false);
   const unpublishMut = useMutation({
     mutationFn: () => unpublish({}),
     onSuccess: () => {
@@ -275,7 +283,15 @@ const updateCode = useServerFn(updateTeamLogoCode);
     },
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
-
+const restoreMut = useMutation({
+    mutationFn: (id: string) => restore({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Publicering återställd");
+      queryClient.invalidateQueries({ queryKey: ["vmix-active"] });
+      queryClient.invalidateQueries({ queryKey: ["vmix-history"] });
+    },
+    onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
+  });
   const todaysQuery = useQuery({
     queryKey: ["vmix-todays-matchup"],
     queryFn: () => fetchTodays({ data: {} }),
@@ -524,7 +540,7 @@ const updateCode = useServerFn(updateTeamLogoCode);
         <Button
           size="lg"
           disabled={publishMut.isPending || !awayTeam}
-          onClick={() => publishMut.mutate()}
+          onClick={() => setShowPublishConfirm(true)}
         >
           {publishMut.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -546,6 +562,44 @@ const updateCode = useServerFn(updateTeamLogoCode);
           </span>
         )}
       </div>
+
+      <AlertDialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Publicera till vMix?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  Du publicerar <strong>{homeTeam}</strong> vs{" "}
+                  <strong>{awayTeam || "(inget bortalag valt)"}</strong>.
+                </p>
+                <p>
+                  Hemmalag: {countFilledSlots(homeSlots).goalies} MV,{" "}
+                  {countFilledSlots(homeSlots).skaters} utespelare.
+                  <br />
+                  Bortalag: {countFilledSlots(awaySlots).goalies} MV,{" "}
+                  {countFilledSlots(awaySlots).skaters} utespelare.
+                </p>
+                <p>
+                  Tabellen hämtas live från Swehockey och inkluderas i
+                  publiceringen. Eventuell tidigare publicering ersätts.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowPublishConfirm(false);
+                publishMut.mutate();
+              }}
+            >
+              Publicera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -1234,9 +1288,101 @@ function StatusBadge({ result }: { result?: EndpointResult }) {
     </Badge>
   );
 }
+// ---------- Publication history ----------
 
+function PublicationHistory({
+  publications,
+  loading,
+  activeId,
+  onRestore,
+  restoring,
+}: {
+  publications: VmixPublicationRow[];
+  loading: boolean;
+  activeId?: string;
+  onRestore: (id: string) => void;
+  restoring: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  if (loading || publications.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader
+        className="cursor-pointer select-none"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <CardTitle className="text-base flex items-center gap-2">
+          <CalendarDays className="h-4 w-4" />
+          Publiceringshistorik
+          <Badge variant="outline" className="ml-1 text-[10px]">
+            {publications.length}
+          </Badge>
+          <span className="ml-auto text-xs text-muted-foreground font-normal">
+            {open ? "Dölj" : "Visa"}
+          </span>
+        </CardTitle>
+      </CardHeader>
+      {open && (
+        <CardContent className="space-y-1 pt-0">
+          {publications.map((pub) => {
+            const isActive = pub.id === activeId;
+            const filled = countFilledSlots(pub.homeSlots);
+            const filledAway = countFilledSlots(pub.awaySlots);
+            return (
+              <div
+                key={pub.id}
+                className={`flex items-center gap-2 rounded px-2 py-1.5 text-xs ${
+                  isActive ? "bg-emerald-500/10 border border-emerald-500/30" : "hover:bg-muted/40"
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">
+                    {pub.homeTeam} vs {pub.awayTeam}
+                  </div>
+                  <div className="text-muted-foreground">
+                    {new Date(pub.publishedAt).toLocaleString("sv-SE")}
+                    {" · "}
+                    {filled.goalies + filledAway.goalies} MV,{" "}
+                    {filled.skaters + filledAway.skaters} utespelare
+                  </div>
+                </div>
+                {isActive ? (
+                  <Badge className="bg-emerald-600 hover:bg-emerald-600 text-[10px]">
+                    LIVE
+                  </Badge>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-xs"
+                    disabled={restoring}
+                    onClick={() => onRestore(pub.id)}
+                  >
+                    {restoring ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      "Återställ"
+                    )}
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+        </CardContent>
+      )}
+    </Card>
+  );
+}
 // ---------- Data source (auto / manual) ----------
-
+<PublicationHistory
+        publications={historyQuery.data ?? []}
+        loading={historyQuery.isLoading}
+        activeId={activeQuery.data?.id}
+        onRestore={(id) => restoreMut.mutate(id)}
+        restoring={restoreMut.isPending}
+      />
 function DataSourceCard({
   sourceMode,
   loading,
