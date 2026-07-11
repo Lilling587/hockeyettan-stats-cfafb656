@@ -529,6 +529,7 @@ const updateCode = useServerFn(updateTeamLogoCode);
           <span className="text-xs text-muted-foreground ml-auto">
             Publicerad{" "}
             {new Date(activeQuery.data.publishedAt).toLocaleString("sv-SE")}
+            {" · inkl. tabell"}
           </span>
         )}
       </div>
