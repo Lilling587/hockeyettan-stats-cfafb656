@@ -701,7 +701,6 @@ function TeamCodesCard({
 }
 
 // ---------- Slot-based lineup editor ----------
-// ---------- Slot-based lineup editor ----------
 
 const DEF_ROWS = [1, 2, 3, 4, 5] as const;
 const FWD_ROWS = [1, 2, 3, 4, 5] as const;
