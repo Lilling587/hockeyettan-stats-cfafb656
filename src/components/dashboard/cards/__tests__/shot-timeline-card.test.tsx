@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { render } from "@testing-library/react";
+import { render, within } from "@testing-library/react";
 import { ShotTimelineCard } from "../shot-timeline-card";
 import type { GameFlowResultDto } from "@/lib/game-flow.functions";
 
@@ -65,8 +65,8 @@ describe("ShotTimelineCard", () => {
     const away = render(<ShotTimelineCard teamName="Borta" data={data} />);
 
     const expected = SUBTITLE_TEMPLATE(data.games.length);
-    expect(home.getByText(expected)).toBeTruthy();
-    expect(away.getByText(expected)).toBeTruthy();
+    expect(within(home.container).getByText(expected)).toBeTruthy();
+    expect(within(away.container).getByText(expected)).toBeTruthy();
 
     // The subtitle must NOT include the old removed phrase.
     expect(home.container.textContent).not.toMatch(/Skott på mål/);
