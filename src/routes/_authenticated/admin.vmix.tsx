@@ -1422,13 +1422,6 @@ function PublicationHistory({
   );
 }
 // ---------- Data source (auto / manual) ----------
-<PublicationHistory
-        publications={historyQuery.data ?? []}
-        loading={historyQuery.isLoading}
-        activeId={activeQuery.data?.id}
-        onRestore={(id) => restoreMut.mutate(id)}
-        restoring={restoreMut.isPending}
-      />
 function DataSourceCard({
   sourceMode,
   loading,
