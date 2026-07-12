@@ -277,7 +277,8 @@ function LogoUploader({
     <div className="flex items-center gap-2">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-muted/40">
         <img
-          src={url}
+          src={previewUrl}
+
           alt={path}
           className="max-h-full max-w-full object-contain"
           onError={(e) => {
