@@ -166,6 +166,7 @@ function AdminAssetsPage() {
                     <LogoUploader
                       label="Small"
                       path={getVmixLogoPath(c.logoCode, "small")}
+                      url={getVmixLogoUrl(ASSET_BASE, c.logoCode, "small")}
                       bump={bump}
                       onUpload={(file) =>
                         uploadTo(getVmixLogoPath(c.logoCode, "small"), file)
@@ -174,11 +175,13 @@ function AdminAssetsPage() {
                     <LogoUploader
                       label="Large"
                       path={getVmixLogoPath(c.logoCode, "large")}
+                      url={getVmixLogoUrl(ASSET_BASE, c.logoCode, "large")}
                       bump={bump}
                       onUpload={(file) =>
                         uploadTo(getVmixLogoPath(c.logoCode, "large"), file)
                       }
                     />
+
                   </div>
                 ))}
               </div>
