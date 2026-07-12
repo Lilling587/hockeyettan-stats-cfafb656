@@ -32,7 +32,11 @@ import {
   type SlotPlayer,
   type TeamLogoCode,
   type VmixLineupSlots,
-  type VmixPublicationRow,
+ type VmixPublicationRow,
+  listLineupPresets,
+  saveLineupPreset,
+  deleteLineupPreset,
+  type LineupPreset,
 } from "@/lib/vmix.functions";
 
 import { Button } from "@/components/ui/button";
@@ -105,7 +109,9 @@ function VmixAdminPage() {
   const updateCode = useServerFn(updateTeamLogoCode);
   const fetchHistory = useServerFn(getPublicationHistory);
   const restore = useServerFn(restorePublication);
-
+  const fetchPresets = useServerFn(listLineupPresets);
+  const savePreset = useServerFn(saveLineupPreset);
+  const delPreset = useServerFn(deleteLineupPreset);
   const adminQuery = useQuery({
     queryKey: ["is-admin"],
     queryFn: () => fetchIsAdmin(),
@@ -138,7 +144,11 @@ function VmixAdminPage() {
     queryFn: () => fetchHistory(),
     enabled: !!adminQuery.data?.isAdmin,
   });
-
+const presetsQuery = useQuery({
+    queryKey: ["vmix-presets"],
+    queryFn: () => fetchPresets(),
+    enabled: !!adminQuery.data?.isAdmin,
+  });
   const activeQuery = useQuery({
     queryKey: ["vmix-active"],
     queryFn: () => fetchActive(),
@@ -303,6 +313,48 @@ function VmixAdminPage() {
       toast.error(`Fel: ${msg}`);
     },
   });
+  const [showSavePreset, setShowSavePreset] = useState(false);
+  const [presetLabel, setPresetLabel] = useState("");
+
+  const handleSavePreset = async () => {
+    if (!presetLabel.trim()) return;
+    try {
+      await savePreset({
+        data: {
+          label: presetLabel.trim(),
+          homeTeam,
+          awayTeam,
+          homeSlots: homeSlots as unknown as Record<string, unknown>,
+          awaySlots: awaySlots as unknown as Record<string, unknown>,
+        },
+      });
+      await queryClient.invalidateQueries({ queryKey: ["vmix-presets"] });
+      setShowSavePreset(false);
+      setPresetLabel("");
+      toast.success("Mall sparad");
+    } catch (e) {
+      toast.error(`Kunde inte spara: ${(e as Error).message}`);
+    }
+  };
+
+  const handleLoadPreset = (preset: LineupPreset) => {
+    setHomeTeam(preset.homeTeam);
+    setAwayTeam(preset.awayTeam);
+    setHomeSlots(preset.homeSlots);
+    setAwaySlots(preset.awaySlots);
+    setSourceMode("manual");
+    toast.success(`Mall laddad: ${preset.label}`);
+  };
+
+  const handleDeletePreset = async (id: number) => {
+    try {
+      await delPreset({ data: { id } });
+      await queryClient.invalidateQueries({ queryKey: ["vmix-presets"] });
+      toast.success("Mall borttagen");
+    } catch (e) {
+      toast.error(`Kunde inte ta bort: ${(e as Error).message}`);
+    }
+  };
   const restoreDraft = () => {
     try {
       const raw = localStorage.getItem("vmix-admin-draft");
@@ -652,7 +704,93 @@ const restoreMut = useMutation({
         poolLoaded={awayPool.length > 0}
         rosterError={awayRosterError}
       />
-
+<Card>
+        <CardHeader
+          className="cursor-pointer select-none"
+          onClick={() => setShowSavePreset((v) => !v)}
+        >
+          <CardTitle className="text-base flex items-center gap-2">
+            <Settings2 className="h-4 w-4" />
+            Lineup-mallar
+            {(presetsQuery.data?.length ?? 0) > 0 && (
+              <Badge variant="outline" className="ml-1 text-[10px]">
+                {presetsQuery.data!.length}
+              </Badge>
+            )}
+            <span className="ml-auto text-xs text-muted-foreground font-normal">
+              {showSavePreset ? "Dölj" : "Visa"}
+            </span>
+          </CardTitle>
+        </CardHeader>
+        {showSavePreset && (
+          <CardContent className="space-y-3 pt-0">
+            {awayTeam && (
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Label className="text-[11px]">Spara nuvarande lineup som mall</Label>
+                  <Input
+                    className="h-8 text-xs"
+                    placeholder={`t.ex. ${homeTeam} vs ${awayTeam}`}
+                    value={presetLabel}
+                    onChange={(e) => setPresetLabel(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSavePreset();
+                    }}
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  disabled={!presetLabel.trim()}
+                  onClick={handleSavePreset}
+                >
+                  Spara mall
+                </Button>
+              </div>
+            )}
+            {(presetsQuery.data?.length ?? 0) > 0 && (
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium text-muted-foreground">Sparade mallar</p>
+                {presetsQuery.data!.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-muted/40"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{p.label}</div>
+                      <div className="text-muted-foreground">
+                        {p.homeTeam} vs {p.awayTeam}
+                        {" · "}
+                        {new Date(p.createdAt).toLocaleDateString("sv-SE")}
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => handleLoadPreset(p)}
+                    >
+                      Ladda
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-2 text-xs text-destructive"
+                      onClick={() => handleDeletePreset(p.id)}
+                    >
+                      Ta bort
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {(presetsQuery.data?.length ?? 0) === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Inga mallar sparade ännu.
+              </p>
+            )}
+          </CardContent>
+        )}
+      </Card>
       <div className="space-y-2 sticky bottom-2 bg-background/95 backdrop-blur border rounded-lg p-3">
         {publishWarnings.length > 0 && (
           <div className="space-y-1">
