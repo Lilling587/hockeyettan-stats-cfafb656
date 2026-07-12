@@ -438,8 +438,15 @@ const presetsQuery = useQuery({
           awaySlots,
         },
       }),
-    onSuccess: () => {
-      toast.success("Publicerat till vMix");
+   onSuccess: () => {
+      const prev = prePublishRef.current;
+      const diffs = [
+        ...computeSlotDiff(prev?.homeSlots ?? null, homeSlots, "H"),
+        ...computeSlotDiff(prev?.awaySlots ?? null, awaySlots, "B"),
+      ];
+      setLastDiff(diffs);
+      const summary = formatDiffSummary(diffs);
+      toast.success(`Publicerat till vMix — ${summary}`);
       clearDraft();
       queryClient.invalidateQueries({ queryKey: ["vmix-active"] });
       queryClient.invalidateQueries({ queryKey: ["vmix-history"] });
