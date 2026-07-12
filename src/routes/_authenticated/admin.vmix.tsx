@@ -170,6 +170,7 @@ function VmixAdminPage() {
     "idle" | "auto" | "manual" | "live-hydrated"
   >("idle");
   const [autoApplied, setAutoApplied] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
 
   // Hydrate from active publication (once).
   useEffect(() => {
@@ -185,7 +186,44 @@ function VmixAdminPage() {
     setAutoApplied(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeQuery.data?.id]);
+// Auto-save draft to localStorage every 5 seconds.
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      try {
+        const draft = {
+          homeTeam,
+          awayTeam,
+          homeSlots,
+          awaySlots,
+          venue,
+          notes,
+          savedAt: new Date().toISOString(),
+        };
+        localStorage.setItem("vmix-admin-draft", JSON.stringify(draft));
+      } catch {
+        // localStorage full or unavailable — ignore silently
+      }
+    }, 5000);
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, [homeTeam, awayTeam, homeSlots, awaySlots, venue, notes]);
 
+  // Check for existing draft on mount.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("vmix-admin-draft");
+      if (raw) {
+        const draft = JSON.parse(raw);
+        // Only show restore if draft has actual content (an away team selected).
+        if (draft.awayTeam) setHasDraft(true);
+      }
+    } catch {
+      // corrupt or missing — ignore
+    }
+  }, []);
   const prevHomeTeamRef = useRef(homeTeam);
   const prevAwayTeamRef = useRef(awayTeam);
 
@@ -265,6 +303,35 @@ function VmixAdminPage() {
       toast.error(`Fel: ${msg}`);
     },
   });
+  const restoreDraft = () => {
+    try {
+      const raw = localStorage.getItem("vmix-admin-draft");
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft.homeTeam) setHomeTeam(draft.homeTeam);
+      if (draft.awayTeam) setAwayTeam(draft.awayTeam);
+      if (draft.homeSlots) setHomeSlots(draft.homeSlots);
+      if (draft.awaySlots) setAwaySlots(draft.awaySlots);
+      if (draft.venue !== undefined) setVenue(draft.venue);
+      if (draft.notes !== undefined) setNotes(draft.notes);
+      setSourceMode("manual");
+      setHasDraft(false);
+      toast.success(
+        `Utkast återställt (sparat ${new Date(draft.savedAt).toLocaleString("sv-SE")})`,
+      );
+    } catch {
+      toast.error("Kunde inte läsa utkastet");
+    }
+  };
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem("vmix-admin-draft");
+    } catch {
+      // ignore
+    }
+    setHasDraft(false);
+  };
   const publishMut = useMutation({
     mutationFn: () =>
       publish({
@@ -281,7 +348,9 @@ function VmixAdminPage() {
       }),
     onSuccess: () => {
       toast.success("Publicerat till vMix");
+      clearDraft();
       queryClient.invalidateQueries({ queryKey: ["vmix-active"] });
+      queryClient.invalidateQueries({ queryKey: ["vmix-history"] });
     },
     onError: (e) =>
       toast.error(`Publicering misslyckades: ${(e as Error).message}`),
@@ -434,7 +503,19 @@ const restoreMut = useMutation({
       </header>
 
 
-
+{hasDraft && sourceMode !== "live-hydrated" && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+          <p className="text-sm flex-1">
+            Det finns ett sparat utkast från en tidigare session. Vill du återställa det?
+          </p>
+          <Button size="sm" variant="outline" onClick={restoreDraft}>
+            Återställ utkast
+          </Button>
+          <Button size="sm" variant="ghost" onClick={clearDraft}>
+            Ignorera
+          </Button>
+        </div>
+      )}
       <TeamCodesCard
         codes={codesQuery.data ?? []}
         loading={codesQuery.isLoading}
