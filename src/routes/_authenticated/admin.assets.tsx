@@ -12,9 +12,11 @@ import {
   VMIX_BUCKET,
   VMIX_RESOURCE_FILES,
   getVmixLogoPath,
+  getVmixLogoUrl,
   getVmixAssetBaseUrl,
   type VmixResourceFile,
 } from "@/lib/vmix-assets";
+
 import { AdminNav } from "@/components/admin-nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -164,6 +166,7 @@ function AdminAssetsPage() {
                     <LogoUploader
                       label="Small"
                       path={getVmixLogoPath(c.logoCode, "small")}
+                      url={getVmixLogoUrl(ASSET_BASE, c.logoCode, "small")}
                       bump={bump}
                       onUpload={(file) =>
                         uploadTo(getVmixLogoPath(c.logoCode, "small"), file)
@@ -172,11 +175,13 @@ function AdminAssetsPage() {
                     <LogoUploader
                       label="Large"
                       path={getVmixLogoPath(c.logoCode, "large")}
+                      url={getVmixLogoUrl(ASSET_BASE, c.logoCode, "large")}
                       bump={bump}
                       onUpload={(file) =>
                         uploadTo(getVmixLogoPath(c.logoCode, "large"), file)
                       }
                     />
+
                   </div>
                 ))}
               </div>
@@ -253,23 +258,27 @@ function ResourceTile({
 function LogoUploader({
   label,
   path,
+  url,
   bump,
   onUpload,
 }: {
   label: string;
   path: string;
+  url: string;
   bump: number;
   onUpload: (file: File) => Promise<boolean>;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
-  const url = withCacheBuster(`${ASSET_BASE}/${path}`, bump);
+  const previewUrl = withCacheBuster(url, bump);
+
 
   return (
     <div className="flex items-center gap-2">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-muted/40">
         <img
-          src={url}
+          src={previewUrl}
+
           alt={path}
           className="max-h-full max-w-full object-contain"
           onError={(e) => {

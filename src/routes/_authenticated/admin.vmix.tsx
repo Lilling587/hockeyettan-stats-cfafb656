@@ -974,8 +974,10 @@ function SlotLineupEditor({
   onPrefill,
   prefilling,
   disablePrefill,
+  rosterError,
   pool = [],
   poolLoaded = false,
+
 }: {
   title: string;
   teamName: string;
