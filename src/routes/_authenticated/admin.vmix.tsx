@@ -877,7 +877,19 @@ const restoreMut = useMutation({
             {new Date(activeQuery.data.publishedAt).toLocaleString("sv-SE")}
             {" · inkl. tabell"}
           </span>
-      )}
+        )}
+        {lastDiff && lastDiff.length > 0 && (
+          <div className="w-full text-xs space-y-0.5 border-t pt-2 mt-1">
+            <p className="font-medium text-muted-foreground">Senaste ändringar:</p>
+            {lastDiff.map((d) => (
+              <p key={d.slot} className="text-muted-foreground">
+                {d.type === "added" && `＋ ${d.slot}: ${d.newName}`}
+                {d.type === "removed" && `－ ${d.slot}: ${d.oldName}`}
+                {d.type === "changed" && `↔ ${d.slot}: ${d.oldName} → ${d.newName}`}
+              </p>
+            ))}
+          </div>
+        )}
         </div>
       </div>
 
