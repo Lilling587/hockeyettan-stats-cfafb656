@@ -553,6 +553,7 @@ const restoreMut = useMutation({
         prefilling={prefillHome.isPending}
         pool={homePool}
         poolLoaded={homePool.length > 0}
+        rosterError={homeRosterError}
       />
 
       <SlotLineupEditor
@@ -568,6 +569,7 @@ const restoreMut = useMutation({
         disablePrefill={!awayTeam}
         pool={awayPool}
         poolLoaded={awayPool.length > 0}
+        rosterError={awayRosterError}
       />
 
       <div className="space-y-2 sticky bottom-2 bg-background/95 backdrop-blur border rounded-lg p-3">
