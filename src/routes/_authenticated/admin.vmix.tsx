@@ -80,7 +80,47 @@ export const Route = createFileRoute("/_authenticated/admin/vmix")({
   }),
   component: VmixAdminPage,
 });
+type SlotDiff = {
+  slot: string;
+  type: "added" | "removed" | "changed";
+  oldName?: string;
+  newName?: string;
+};
 
+function computeSlotDiff(
+  oldSlots: VmixLineupSlots | null,
+  newSlots: VmixLineupSlots,
+  label: string,
+): SlotDiff[] {
+  const diffs: SlotDiff[] = [];
+  for (const k of SLOT_KEYS) {
+    const oldP = oldSlots?.[k];
+    const newP = newSlots[k];
+    const oldName = oldP?.name ?? "";
+    const newName = newP?.name ?? "";
+    if (oldName === newName) continue;
+    if (!oldName && newName) {
+      diffs.push({ slot: `${label} ${k}`, type: "added", newName });
+    } else if (oldName && !newName) {
+      diffs.push({ slot: `${label} ${k}`, type: "removed", oldName });
+    } else {
+      diffs.push({ slot: `${label} ${k}`, type: "changed", oldName, newName });
+    }
+  }
+  return diffs;
+}
+
+function formatDiffSummary(diffs: SlotDiff[]): string {
+  if (diffs.length === 0) return "Inga ändringar i lineup.";
+  const added = diffs.filter((d) => d.type === "added").length;
+  const removed = diffs.filter((d) => d.type === "removed").length;
+  const changed = diffs.filter((d) => d.type === "changed").length;
+  const parts: string[] = [];
+  if (added > 0) parts.push(`${added} tillagd${added > 1 ? "a" : ""}`);
+  if (removed > 0) parts.push(`${removed} borttagen${removed > 1 ? "a" : ""}`);
+  if (changed > 0) parts.push(`${changed} bytt${changed > 1 ? "a" : ""}`);
+  return `${diffs.length} ändring${diffs.length > 1 ? "ar" : ""}: ${parts.join(", ")}.`;
+}
 function countFilledSlots(slots: VmixLineupSlots): { goalies: number; skaters: number } {
   let g = 0;
   let s = 0;
@@ -408,6 +448,8 @@ const presetsQuery = useQuery({
       toast.error(`Publicering misslyckades: ${(e as Error).message}`),
   });
 const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const [lastDiff, setLastDiff] = useState<SlotDiff[] | null>(null);
+  const prePublishRef = useRef<VmixPublicationRow | null>(null);
   const unpublishMut = useMutation({
     mutationFn: () => unpublish({}),
     onSuccess: () => {
