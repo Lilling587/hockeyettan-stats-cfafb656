@@ -164,6 +164,8 @@ function VmixAdminPage() {
   );
   const [homePool, setHomePool] = useState<RosterPlayer[]>([]);
   const [awayPool, setAwayPool] = useState<RosterPlayer[]>([]);
+  const [homeRosterError, setHomeRosterError] = useState<string | null>(null);
+  const [awayRosterError, setAwayRosterError] = useState<string | null>(null);
   const [sourceMode, setSourceMode] = useState<
     "idle" | "auto" | "manual" | "live-hydrated"
   >("idle");
@@ -237,21 +239,31 @@ function VmixAdminPage() {
     mutationFn: () => fetchRoster({ data: { team: homeTeam } }),
     onSuccess: (pool) => {
       setHomePool(pool);
+      setHomeRosterError(null);
       toast.success(
         `Hemmaroster laddad – ${pool.length} spelare tillgängliga i listorna`,
       );
     },
-    onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
+    onError: (e) => {
+      const msg = (e as Error).message;
+      setHomeRosterError(msg);
+      toast.error(`Fel: ${msg}`);
+    },
   });
   const prefillAway = useMutation({
     mutationFn: () => fetchRoster({ data: { team: awayTeam } }),
     onSuccess: (pool) => {
       setAwayPool(pool);
+      setAwayRosterError(null);
       toast.success(
         `Bortaroster laddad – ${pool.length} spelare tillgängliga i listorna`,
       );
     },
-    onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
+    onError: (e) => {
+      const msg = (e as Error).message;
+      setAwayRosterError(msg);
+      toast.error(`Fel: ${msg}`);
+    },
   });
   const publishMut = useMutation({
     mutationFn: () =>
