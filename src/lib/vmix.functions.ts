@@ -315,6 +315,81 @@ export const restorePublication = createServerFn({ method: "POST" })
     if (actErr) throw new Error(actErr.message);
     return { ok: true };
   });
+// ---------- Lineup presets ----------
+
+export type LineupPreset = {
+  id: number;
+  label: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeSlots: VmixLineupSlots;
+  awaySlots: VmixLineupSlots;
+  createdAt: string;
+};
+
+export const listLineupPresets = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<LineupPreset[]> => {
+    await assertAdmin(context);
+    const { data, error } = await context.supabase
+      .from("vmix_lineup_presets")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r: Record<string, unknown>): LineupPreset => ({
+      id: Number(r.id),
+      label: String(r.label),
+      homeTeam: String(r.home_team),
+      awayTeam: String(r.away_team),
+      homeSlots: r.home_slots as VmixLineupSlots,
+      awaySlots: r.away_slots as VmixLineupSlots,
+      createdAt: String(r.created_at),
+    }));
+  });
+
+export const saveLineupPreset = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        label: z.string().min(1),
+        homeTeam: z.string().min(1),
+        awayTeam: z.string().min(1),
+        homeSlots: z.record(z.unknown()),
+        awaySlots: z.record(z.unknown()),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("vmix_lineup_presets")
+      .insert({
+        label: data.label,
+        home_team: data.homeTeam,
+        away_team: data.awayTeam,
+        home_slots: data.homeSlots,
+        away_slots: data.awaySlots,
+      });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteLineupPreset = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.number() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("vmix_lineup_presets")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
 // ---------- Team logo codes (auto-fill from swehockey, manual overrides) ----------
 
 export type TeamLogoCode = {
