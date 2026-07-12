@@ -446,6 +446,36 @@ export type Database = {
         }
         Relationships: []
       }
+      vmix_lineup_presets: {
+        Row: {
+          away_slots: Json
+          away_team: string
+          created_at: string
+          home_slots: Json
+          home_team: string
+          id: number
+          label: string
+        }
+        Insert: {
+          away_slots: Json
+          away_team: string
+          created_at?: string
+          home_slots: Json
+          home_team: string
+          id?: number
+          label: string
+        }
+        Update: {
+          away_slots?: Json
+          away_team?: string
+          created_at?: string
+          home_slots?: Json
+          home_team?: string
+          id?: number
+          label?: string
+        }
+        Relationships: []
+      }
       vmix_publications: {
         Row: {
           away_slots: Json
