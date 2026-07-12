@@ -12,9 +12,11 @@ import {
   VMIX_BUCKET,
   VMIX_RESOURCE_FILES,
   getVmixLogoPath,
+  getVmixLogoUrl,
   getVmixAssetBaseUrl,
   type VmixResourceFile,
 } from "@/lib/vmix-assets";
+
 import { AdminNav } from "@/components/admin-nav";
 import { Button } from "@/components/ui/button";
 import {
