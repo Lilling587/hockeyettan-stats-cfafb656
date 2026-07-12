@@ -987,6 +987,7 @@ function SlotLineupEditor({
   disablePrefill?: boolean;
   pool?: RosterPlayer[];
   poolLoaded?: boolean;
+  rosterError?: string | null;
 }) {
   const setSlot = (key: keyof VmixLineupSlots, v: SlotPlayer) => {
     setSlots((prev) => ({ ...prev, [key]: v }));
@@ -1056,6 +1057,11 @@ function SlotLineupEditor({
           </Button>
         </div>
       </CardHeader>
+      {rosterError && (
+        <div className="mx-6 mb-2 rounded bg-destructive/10 border border-destructive/30 px-3 py-2 text-xs text-destructive">
+          Kunde inte hämta roster från swehockey.se: {rosterError}
+        </div>
+      )}
       <CardContent className="space-y-5">
         {/* Målvakter */}
         <section>
