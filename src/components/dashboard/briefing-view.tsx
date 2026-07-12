@@ -219,22 +219,22 @@ export function BriefingView({
         <TeamHeader team={data.away} side="Bortalag" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div id="form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FormCard team={data.home} />
         <FormCard team={data.away} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div id="venue" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <VenueStreakCard team={data.home} />
         <VenueStreakCard team={data.away} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div id="periods" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <PeriodGoalsCard team={data.home} refreshing={refreshing} error={refreshError} />
         <PeriodGoalsCard team={data.away} refreshing={refreshing} error={refreshError} />
       </div>
 
-      <Card>
+      <Card id="h2h">
         <CardHeader>
           <CardTitle className="text-base">Inbördes möten</CardTitle>
         </CardHeader>
@@ -283,24 +283,26 @@ export function BriefingView({
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div id="scorers" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <ScorersCard team={data.home} />
         <ScorersCard team={data.away} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div id="goalies" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <GoaliesCard team={data.home} />
         <GoaliesCard team={data.away} />
       </div>
 
-      <ShotVolumeCard home={data.home} away={data.away} />
+     <div id="shots">
+        <ShotVolumeCard home={data.home} away={data.away} />
+      </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <ShotTimelineCard teamName={data.home.name} data={homeFlow} />
         <ShotTimelineCard teamName={data.away.name} data={awayFlow} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div id="special" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SpecialTeamsTimelineCard team={data.home} opponent={data.away} flow={homeFlow} />
         <SpecialTeamsTimelineCard team={data.away} opponent={data.home} flow={awayFlow} />
       </div>
@@ -310,14 +312,18 @@ export function BriefingView({
         <LineupDiffCard teamName={data.away.name} data={awayFlow} />
       </div>
 
-      <WinProbabilityCard home={data.home} away={data.away} />
+      <div id="probability">
+        <WinProbabilityCard home={data.home} away={data.away} />
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div id="hot" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <HottestPlayerCard team={data.home} label="Hemmalag" />
         <HottestPlayerCard team={data.away} label="Bortalag" />
       </div>
 
-      <StreakAlertsCard home={data.home} away={data.away} />
+      <div id="streaks">
+        <StreakAlertsCard home={data.home} away={data.away} />
+      </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FormTrendCard team={data.home} />
@@ -326,7 +332,9 @@ export function BriefingView({
 
       <RestDaysCard home={data.home} away={data.away} />
 
-      <DisciplineCard home={data.home} away={data.away} />
+      <div id="discipline">
+        <DisciplineCard home={data.home} away={data.away} />
+      </div>
 
       {data.notes ? (
         <Card>
