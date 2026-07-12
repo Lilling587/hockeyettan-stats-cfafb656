@@ -509,6 +509,14 @@ const restoreMut = useMutation({
 
       <EndpointTester endpoints={endpoints} autoFetchTrigger={autoFetchTrigger} />
 
+      <PublicationHistory
+        publications={historyQuery.data ?? []}
+        loading={historyQuery.isLoading}
+        activeId={activeQuery.data?.id}
+        onRestore={(id) => restoreMut.mutate(id)}
+        restoring={restoreMut.isPending}
+      />
+
       <DataSourceCard
         sourceMode={sourceMode}
         loading={todaysQuery.isLoading}
