@@ -1000,7 +1000,7 @@ function SlotLineupEditor({
     <Card>
       <CardHeader className="space-y-2">
         <div className="flex flex-wrap items-end gap-2">
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full sm:flex-1 sm:w-auto min-w-[200px]">
             <CardTitle className="text-base flex items-center gap-2">
               {title}
               {teamName && !poolLoaded && (
@@ -1018,7 +1018,7 @@ function SlotLineupEditor({
               {filled.goalies} MV · {filled.skaters} utespelare
             </p>
           </div>
-          <div className="w-48">
+          <div className="w-full sm:w-48">
             <Label className="text-[11px]">Lag</Label>
             <Select value={teamName} onValueChange={onTeamChange}>
               <SelectTrigger className="h-8">
@@ -1033,7 +1033,7 @@ function SlotLineupEditor({
               </SelectContent>
             </Select>
           </div>
-          <div className="w-28">
+          <div className="w-20 sm:w-28">
             <Label className="text-[11px]">Logotypkod</Label>
             <Input
               className="h-8 uppercase"
