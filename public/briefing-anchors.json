@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "description": "Anchor-ID:n i BriefingView (rot-routen /). Kräver vald matchup + inloggning.",
+  "route": "/",
+  "environments": {
+    "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app",
+    "published": "https://hockeyettan-stats.lovable.app",
+    "custom": "https://hockeyettan-stats.spdproduktion.se"
+  },
+  "anchors": [
+    {
+      "id": "briefing-capture",
+      "label": "Toppen (hela briefingen)",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#briefing-capture",
+        "published": "https://hockeyettan-stats.lovable.app/#briefing-capture",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#briefing-capture"
+      }
+    },
+    {
+      "id": "form",
+      "label": "Form",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#form",
+        "published": "https://hockeyettan-stats.lovable.app/#form",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#form"
+      }
+    },
+    {
+      "id": "venue",
+      "label": "Hemma/borta-svit",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#venue",
+        "published": "https://hockeyettan-stats.lovable.app/#venue",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#venue"
+      }
+    },
+    {
+      "id": "periods",
+      "label": "Periodmål",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#periods",
+        "published": "https://hockeyettan-stats.lovable.app/#periods",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#periods"
+      }
+    },
+    {
+      "id": "h2h",
+      "label": "Inbördes möten",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#h2h",
+        "published": "https://hockeyettan-stats.lovable.app/#h2h",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#h2h"
+      }
+    },
+    {
+      "id": "scorers",
+      "label": "Toppscorers",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#scorers",
+        "published": "https://hockeyettan-stats.lovable.app/#scorers",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#scorers"
+      }
+    },
+    {
+      "id": "goalies",
+      "label": "Målvakter",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#goalies",
+        "published": "https://hockeyettan-stats.lovable.app/#goalies",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#goalies"
+      }
+    },
+    {
+      "id": "shots",
+      "label": "Skottvolym",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#shots",
+        "published": "https://hockeyettan-stats.lovable.app/#shots",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#shots"
+      }
+    },
+    {
+      "id": "special",
+      "label": "Special teams",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#special",
+        "published": "https://hockeyettan-stats.lovable.app/#special",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#special"
+      }
+    },
+    {
+      "id": "probability",
+      "label": "Vinstsannolikhet",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#probability",
+        "published": "https://hockeyettan-stats.lovable.app/#probability",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#probability"
+      }
+    },
+    {
+      "id": "hot",
+      "label": "Hetaste spelaren",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#hot",
+        "published": "https://hockeyettan-stats.lovable.app/#hot",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#hot"
+      }
+    },
+    {
+      "id": "streaks",
+      "label": "Streak alerts",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#streaks",
+        "published": "https://hockeyettan-stats.lovable.app/#streaks",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#streaks"
+      }
+    },
+    {
+      "id": "discipline",
+      "label": "Disciplin",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#discipline",
+        "published": "https://hockeyettan-stats.lovable.app/#discipline",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#discipline"
+      }
+    }
+  ]
+}
