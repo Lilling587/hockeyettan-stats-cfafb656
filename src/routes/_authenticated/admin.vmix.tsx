@@ -854,7 +854,10 @@ const restoreMut = useMutation({
         <Button
           size="lg"
           disabled={publishMut.isPending || !awayTeam}
-          onClick={() => setShowPublishConfirm(true)}
+          onClick={() => {
+            prePublishRef.current = activeQuery.data ?? null;
+            setShowPublishConfirm(true);
+          }}
         >
           {publishMut.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
