@@ -258,17 +258,20 @@ function ResourceTile({
 function LogoUploader({
   label,
   path,
+  url,
   bump,
   onUpload,
 }: {
   label: string;
   path: string;
+  url: string;
   bump: number;
   onUpload: (file: File) => Promise<boolean>;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
-  const url = withCacheBuster(`${ASSET_BASE}/${path}`, bump);
+  const previewUrl = withCacheBuster(url, bump);
+
 
   return (
     <div className="flex items-center gap-2">
