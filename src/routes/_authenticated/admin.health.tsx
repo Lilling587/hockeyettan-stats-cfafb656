@@ -103,6 +103,12 @@ function HealthPage() {
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+        <VmixOverallBanner
+          data={vmixHealthQuery.data}
+          isLoading={vmixHealthQuery.isLoading}
+          error={vmixHealthQuery.error}
+        />
+
         <SupabaseHealthCard
           data={supabaseHealthQuery.data}
           isLoading={supabaseHealthQuery.isLoading}
@@ -493,3 +499,77 @@ function VmixHealthCard({
     </Card>
   );
 }
+
+function VmixOverallBanner({
+  data,
+  isLoading,
+  error,
+}: {
+  data: import("@/lib/vmix-health.functions").VmixHealthReport | undefined;
+  isLoading: boolean;
+  error: unknown;
+}) {
+  let overall: "ok" | "degraded" | "down" | "unknown" = "unknown";
+  let title = "Kontrollerar vMix…";
+  let subtitle = "Pingar endpoints för att avgöra status.";
+
+  if (error) {
+    overall = "down";
+    title = "vMix: Kunde inte pinga";
+    subtitle = error instanceof Error ? error.message : "Okänt fel.";
+  } else if (data) {
+    overall = data.overall;
+    const total = data.endpoints.length;
+    const okCount = data.endpoints.filter((e) => e.ok).length;
+    if (overall === "ok") {
+      title = "All OK";
+      subtitle = `${okCount}/${total} vMix-endpoints svarar korrekt.`;
+    } else if (overall === "degraded") {
+      title = "Degraded";
+      subtitle = `${okCount}/${total} vMix-endpoints svarar. Vissa endpoints är nere.`;
+    } else {
+      title = "Down";
+      subtitle = `${okCount}/${total} vMix-endpoints svarar. Tjänsten är nere.`;
+    }
+  } else if (isLoading) {
+    // defaults above
+  }
+
+  const styles =
+    overall === "ok"
+      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+      : overall === "degraded"
+        ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+        : overall === "down"
+          ? "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-400"
+          : "border-border bg-muted text-muted-foreground";
+
+  const dot =
+    overall === "ok"
+      ? "bg-emerald-500"
+      : overall === "degraded"
+        ? "bg-amber-500"
+        : overall === "down"
+          ? "bg-rose-500"
+          : "bg-muted-foreground";
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={`flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${styles}`}
+    >
+      <div className="flex items-center gap-3">
+        <span className={`h-2.5 w-2.5 rounded-full ${dot} ${overall === "unknown" ? "animate-pulse" : ""}`} />
+        <div>
+          <div className="text-sm font-semibold">vMix status: {title}</div>
+          <div className="text-xs opacity-80">{subtitle}</div>
+        </div>
+      </div>
+      <Badge variant="outline" className="text-[10px] uppercase">
+        {overall}
+      </Badge>
+    </div>
+  );
+}
+
