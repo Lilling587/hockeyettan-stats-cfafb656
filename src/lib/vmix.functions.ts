@@ -71,7 +71,7 @@ export type VmixPublicationRow = {
 };
 /** Throw if a Supabase operation returned an error. */
 function throwIfSupabaseError(error: { message: string } | null): void {
-  throwIfSupabaseError(error);
+  if (error) throw new Error(error.message);
 }
 async function assertAdmin(context: {
   supabase: import("@supabase/supabase-js").SupabaseClient;
