@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderUp, Home, Image, ScrollText, Tv, Users } from "lucide-react";
+import { Activity, FolderUp, Home, Image, ListChecks, ScrollText, Tv, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +10,7 @@ const items = [
   { label: "Logotyper", to: "/admin/logos", icon: Image },
   { label: "Lagring", to: "/admin/assets", icon: FolderUp },
   { label: "vMix", to: "/admin/vmix", icon: Tv },
+  { label: "Presets", to: "/admin/vmix-presets", icon: ListChecks },
   { label: "Användare", to: "/admin/users", icon: Users },
 ];
 
