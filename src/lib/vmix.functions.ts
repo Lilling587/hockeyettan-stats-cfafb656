@@ -71,7 +71,7 @@ export type VmixPublicationRow = {
 };
 /** Throw if a Supabase operation returned an error. */
 function throwIfSupabaseError(error: { message: string } | null): void {
-  throwIfSupabaseError(error);
+  if (error) throw new Error(error.message);
 }
 async function assertAdmin(context: {
   supabase: import("@supabase/supabase-js").SupabaseClient;
@@ -131,7 +131,8 @@ function mapRow(row: Record<string, unknown>): VmixPublicationRow {
   };
 }
 
-/**
+
+
 // ---- Active publication cache ----
 // Reduces Supabase queries during broadcast. vMix polls every 5–15s per
 // endpoint; without caching that's 4–12+ queries/min. With a 10s TTL the
