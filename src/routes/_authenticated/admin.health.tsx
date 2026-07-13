@@ -36,6 +36,7 @@ function HealthPage() {
   const fetchIsAdmin = useServerFn(checkIsAdmin);
   const fetchHealth = useServerFn(getScrapeHealth);
   const fetchSupabaseHealth = useServerFn(checkSupabaseHealth);
+  const fetchVmixHealth = useServerFn(checkVmixHealth);
   const navigate = useNavigate();
 
   const adminQuery = useQuery({
