@@ -32,8 +32,8 @@ const ENDPOINTS: { name: string; path: string }[] = [
 export const checkVmixHealth = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .handler(async (): Promise<VmixHealthReport> => {
-    const reqUrl = getRequestUrl();
-    const origin = `${reqUrl.protocol}//${reqUrl.host}`;
+    const reqUrl = new URL(getRequestUrl());
+    const origin = reqUrl.origin;
 
     const results = await Promise.all(
       ENDPOINTS.map(async ({ name, path }): Promise<VmixEndpointStatus> => {
