@@ -83,10 +83,16 @@ export type ScrapeMetricsSummary = {
   }>;
 };
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
 export async function getScrapeMetricsSummary(
   windowHours = 24,
+  client?: SupabaseClient<Database>,
 ): Promise<ScrapeMetricsSummary> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const supabaseAdmin =
+    client ??
+    (await import("@/integrations/supabase/client.server")).supabaseAdmin;
   const since = new Date(Date.now() - windowHours * 60 * 60 * 1000).toISOString();
 
   const [{ data: rows }, { data: recent }] = await Promise.all([
