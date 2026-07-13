@@ -62,6 +62,20 @@ function HealthPage() {
   const [refreshInterval, setRefreshInterval] = useState<number>(60_000);
 
   useEffect(() => {
+    const stored = localStorage.getItem("health-refresh-interval");
+    if (stored) {
+      const parsed = Number(stored);
+      if ([15_000, 30_000, 60_000, 300_000].includes(parsed)) {
+        setRefreshInterval(parsed);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("health-refresh-interval", String(refreshInterval));
+  }, [refreshInterval]);
+
+  useEffect(() => {
     if (adminQuery.isError || (adminQuery.data && !adminQuery.data.isAdmin)) {
       toast.error("Du har inte behörighet att se admin-sidan.");
       navigate({ to: "/", replace: true });
