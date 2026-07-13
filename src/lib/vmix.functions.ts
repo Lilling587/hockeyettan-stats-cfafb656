@@ -270,7 +270,9 @@ export const publishVmix = createServerFn({ method: "POST" })
       .select("*")
       .single();
    throwIfSupabaseError(error);
+        _pubCache = null; // Invalidate cache so endpoints serve fresh data.
     return mapRow(inserted as Record<string, unknown>);
+
   });
 
 export const unpublishVmix = createServerFn({ method: "POST" })
@@ -282,7 +284,9 @@ export const unpublishVmix = createServerFn({ method: "POST" })
       .update({ is_active: false })
       .eq("is_active", true);
    throwIfSupabaseError(error);
+        _pubCache = null; // Invalidate cache so endpoints serve fresh data.
     return { ok: true };
+
   });
 
 // ---------- vMix settings ----------
@@ -335,8 +339,10 @@ export const restorePublication = createServerFn({ method: "POST" })
       .from("vmix_publications")
       .update({ is_active: true, updated_at: new Date().toISOString() })
       .eq("id", data.id);
-    if (actErr) throw new Error(actErr.message);
+        throwIfSupabaseError(actErr);
+    _pubCache = null; // Invalidate cache so endpoints serve fresh data.
     return { ok: true };
+
   });
 // ---------- Lineup presets ----------
 
