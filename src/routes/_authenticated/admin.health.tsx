@@ -1,7 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   RefreshCw,
   CheckCircle2,
@@ -52,6 +59,8 @@ function HealthPage() {
     retry: false,
   });
 
+  const [refreshInterval, setRefreshInterval] = useState<number>(60_000);
+
   useEffect(() => {
     if (adminQuery.isError || (adminQuery.data && !adminQuery.data.isAdmin)) {
       toast.error("Du har inte behörighet att se admin-sidan.");
@@ -63,48 +72,76 @@ function HealthPage() {
     queryKey: ["scrape-health", 24],
     queryFn: () => fetchHealth({ data: { windowHours: 24 } }),
     enabled: adminQuery.data?.isAdmin === true,
-    refetchInterval: 60_000,
+    refetchInterval: refreshInterval,
   });
 
   const supabaseHealthQuery = useQuery({
     queryKey: ["supabase-health"],
     queryFn: () => fetchSupabaseHealth(),
     enabled: adminQuery.data?.isAdmin === true,
-    refetchInterval: 60_000,
+    refetchInterval: refreshInterval,
   });
 
   const vmixHealthQuery = useQuery({
     queryKey: ["vmix-health"],
     queryFn: () => fetchVmixHealth(),
     enabled: adminQuery.data?.isAdmin === true,
-    refetchInterval: 60_000,
+    refetchInterval: refreshInterval,
   });
 
   const data = healthQuery.data;
+
+  const anyFetching =
+    healthQuery.isFetching || supabaseHealthQuery.isFetching || vmixHealthQuery.isFetching;
+
+  const refreshAll = () => {
+    healthQuery.refetch();
+    supabaseHealthQuery.refetch();
+    vmixHealthQuery.refetch();
+  };
+
+  const intervalLabel = (ms: number) =>
+    ms >= 60_000 ? `${ms / 60_000} min` : `${ms / 1000} s`;
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
           <AdminNav />
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Scraper health</h1>
               <p className="text-sm text-muted-foreground">
-                Senaste 24 timmarna · uppdateras varje minut
+                Senaste 24 timmarna · uppdateras var {intervalLabel(refreshInterval)}
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => healthQuery.refetch()}
-              disabled={healthQuery.isFetching}
-            >
-              <RefreshCw
-                className={`mr-2 h-4 w-4 ${healthQuery.isFetching ? "animate-spin" : ""}`}
-              />
-              Uppdatera
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={String(refreshInterval)}
+                onValueChange={(v) => setRefreshInterval(Number(v))}
+              >
+                <SelectTrigger className="h-9 w-[140px]" aria-label="Uppdateringsintervall">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15000">Var 15:e sekund</SelectItem>
+                  <SelectItem value="30000">Var 30:e sekund</SelectItem>
+                  <SelectItem value="60000">Varje minut</SelectItem>
+                  <SelectItem value="300000">Var 5:e minut</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={refreshAll}
+                disabled={anyFetching}
+              >
+                <RefreshCw
+                  className={`mr-2 h-4 w-4 ${anyFetching ? "animate-spin" : ""}`}
+                />
+                Kontrollera nu
+              </Button>
+            </div>
           </div>
         </div>
       </header>
