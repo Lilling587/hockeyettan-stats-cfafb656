@@ -1603,27 +1603,36 @@ function EndpointTester({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+      <CardHeader
+        className="flex flex-row items-center justify-between space-y-0 cursor-pointer select-none"
+        onClick={() => setExpanded((v) => !v)}
+      >
         <div>
           <CardTitle className="text-base">Testa endpoints</CardTitle>
-          <p className="text-xs text-muted-foreground mt-1">
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {expanded ? "Dölj" : "Visa"}
+        </span>
+      </CardHeader>
+      {expanded && (
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
             Hämtar varje JSON-feed live och visar status, svarstid och preview.
           </p>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={autoRefresh ? "default" : "outline"}
+              onClick={(e) => { e.stopPropagation(); setAutoRefresh((v) => !v); }}
+            >
+              Auto 10s {autoRefresh ? "på" : "av"}
+            </Button>
+            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); runAll(); }}>
+              <RefreshCw className="h-3 w-3 mr-1" /> Testa alla
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant={autoRefresh ? "default" : "outline"}
-            onClick={() => setAutoRefresh((v) => !v)}
-          >
-            Auto 10s {autoRefresh ? "på" : "av"}
-          </Button>
-          <Button size="sm" variant="outline" onClick={runAll}>
-            <RefreshCw className="h-3 w-3 mr-1" /> Testa alla
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
         {endpoints.map((e) => {
           const r = results[e.url];
           return (
@@ -1678,6 +1687,7 @@ function EndpointTester({
           );
         })}
       </CardContent>
+      )}
     </Card>
   );
 }
