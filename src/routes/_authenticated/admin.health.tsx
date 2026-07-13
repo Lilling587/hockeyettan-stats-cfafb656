@@ -145,25 +145,6 @@ function HealthPage() {
           </div>
         </div>
       </header>
-              <h1 className="text-2xl font-semibold tracking-tight">Scraper health</h1>
-              <p className="text-sm text-muted-foreground">
-                Senaste 24 timmarna · uppdateras varje minut
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => healthQuery.refetch()}
-              disabled={healthQuery.isFetching}
-            >
-              <RefreshCw
-                className={`mr-2 h-4 w-4 ${healthQuery.isFetching ? "animate-spin" : ""}`}
-              />
-              Uppdatera
-            </Button>
-          </div>
-        </div>
-      </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
         <VmixOverallBanner
