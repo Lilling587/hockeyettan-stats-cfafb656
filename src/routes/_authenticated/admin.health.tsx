@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { checkIsAdmin } from "@/lib/roles.functions";
 import { getScrapeHealth } from "@/lib/scrape-metrics.functions";
 import { checkSupabaseHealth } from "@/lib/supabase-health.functions";
+import { checkVmixHealth } from "@/lib/vmix-health.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminNav } from "@/components/admin-nav";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ function HealthPage() {
   const fetchIsAdmin = useServerFn(checkIsAdmin);
   const fetchHealth = useServerFn(getScrapeHealth);
   const fetchSupabaseHealth = useServerFn(checkSupabaseHealth);
+  const fetchVmixHealth = useServerFn(checkVmixHealth);
   const navigate = useNavigate();
 
   const adminQuery = useQuery({
@@ -60,6 +62,13 @@ function HealthPage() {
   const supabaseHealthQuery = useQuery({
     queryKey: ["supabase-health"],
     queryFn: () => fetchSupabaseHealth(),
+    enabled: adminQuery.data?.isAdmin === true,
+    refetchInterval: 60_000,
+  });
+
+  const vmixHealthQuery = useQuery({
+    queryKey: ["vmix-health"],
+    queryFn: () => fetchVmixHealth(),
     enabled: adminQuery.data?.isAdmin === true,
     refetchInterval: 60_000,
   });
@@ -98,6 +107,14 @@ function HealthPage() {
           data={supabaseHealthQuery.data}
           isLoading={supabaseHealthQuery.isLoading}
           error={supabaseHealthQuery.error}
+        />
+
+        <VmixHealthCard
+          data={vmixHealthQuery.data}
+          isLoading={vmixHealthQuery.isLoading}
+          isFetching={vmixHealthQuery.isFetching}
+          error={vmixHealthQuery.error}
+          onRefresh={() => vmixHealthQuery.refetch()}
         />
 
         {!data ? (
@@ -368,6 +385,107 @@ function SupabaseHealthCard({
 
             <p className="text-[11px] text-muted-foreground">
               Kontrollerad {new Date(data.checkedAt).toLocaleString("sv-SE")}
+            </p>
+          </>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function VmixHealthCard({
+  data,
+  isLoading,
+  isFetching,
+  error,
+  onRefresh,
+}: {
+  data: import("@/lib/vmix-health.functions").VmixHealthReport | undefined;
+  isLoading: boolean;
+  isFetching: boolean;
+  error: unknown;
+  onRefresh: () => void;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-base">vMix endpoints</CardTitle>
+        <div className="flex items-center gap-2">
+          {data ? (
+            <Badge
+              variant={
+                data.overall === "ok"
+                  ? "secondary"
+                  : data.overall === "degraded"
+                    ? "outline"
+                    : "destructive"
+              }
+              className="text-[10px] uppercase"
+            >
+              {data.overall}
+            </Badge>
+          ) : null}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            disabled={isFetching}
+          >
+            <RefreshCw className={`mr-2 h-3 w-3 ${isFetching ? "animate-spin" : ""}`} />
+            Pinga
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Pingar endpoints…</p>
+        ) : error ? (
+          <p className="text-sm text-rose-600">
+            {error instanceof Error ? error.message : "Kunde inte pinga vMix-endpoints."}
+          </p>
+        ) : data ? (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Endpoint</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">HTTP</TableHead>
+                  <TableHead className="text-right">Latens</TableHead>
+                  <TableHead>Content-Type</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.endpoints.map((e) => (
+                  <TableRow key={e.path}>
+                    <TableCell>
+                      <div className="text-sm">{e.name}</div>
+                      <div className="font-mono text-[10px] text-muted-foreground truncate max-w-xs">
+                        {e.path}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {e.ok ? (
+                        <Badge variant="secondary" className="text-[10px]">OK</Badge>
+                      ) : (
+                        <Badge variant="destructive" className="text-[10px]">FEL</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-xs">
+                      {e.status ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-xs">
+                      {e.latencyMs} ms
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground truncate max-w-[160px]">
+                      {e.contentType ?? "—"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <p className="text-[11px] text-muted-foreground">
+              Kontrollerad {new Date(data.checkedAt).toLocaleString("sv-SE")} · origin {data.origin}
             </p>
           </>
         ) : null}
