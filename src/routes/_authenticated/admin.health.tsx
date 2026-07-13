@@ -2,7 +2,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { RefreshCw } from "lucide-react";
+import {
+  RefreshCw,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Loader2,
+  Info,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
@@ -515,7 +522,7 @@ function VmixOverallBanner({
 
   if (error) {
     overall = "down";
-    title = "vMix: Kunde inte pinga";
+    title = "Kunde inte pinga";
     subtitle = error instanceof Error ? error.message : "Okänt fel.";
   } else if (data) {
     overall = data.overall;
@@ -535,40 +542,73 @@ function VmixOverallBanner({
     // defaults above
   }
 
-  const styles =
-    overall === "ok"
-      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-      : overall === "degraded"
-        ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-        : overall === "down"
-          ? "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-400"
-          : "border-border bg-muted text-muted-foreground";
+  const statusConfig = {
+    ok: {
+      icon: CheckCircle2,
+      border: "border-emerald-500/50",
+      bg: "bg-emerald-500/10",
+      text: "text-emerald-700 dark:text-emerald-400",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      badge: "secondary" as const,
+    },
+    degraded: {
+      icon: AlertTriangle,
+      border: "border-amber-500/50",
+      bg: "bg-amber-500/10",
+      text: "text-amber-700 dark:text-amber-400",
+      iconColor: "text-amber-600 dark:text-amber-400",
+      badge: "outline" as const,
+    },
+    down: {
+      icon: XCircle,
+      border: "border-rose-500/50",
+      bg: "bg-rose-500/10",
+      text: "text-rose-700 dark:text-rose-400",
+      iconColor: "text-rose-600 dark:text-rose-400",
+      badge: "destructive" as const,
+    },
+    unknown: {
+      icon: Loader2,
+      border: "border-border",
+      bg: "bg-muted",
+      text: "text-muted-foreground",
+      iconColor: "text-muted-foreground",
+      badge: "outline" as const,
+    },
+  };
 
-  const dot =
-    overall === "ok"
-      ? "bg-emerald-500"
-      : overall === "degraded"
-        ? "bg-amber-500"
-        : overall === "down"
-          ? "bg-rose-500"
-          : "bg-muted-foreground";
+  const config = statusConfig[overall];
+  const Icon = config.icon;
 
   return (
     <div
       role="status"
       aria-live="polite"
-      className={`flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${styles}`}
+      className={`rounded-lg border p-4 ${config.border} ${config.bg} ${config.text}`}
     >
-      <div className="flex items-center gap-3">
-        <span className={`h-2.5 w-2.5 rounded-full ${dot} ${overall === "unknown" ? "animate-pulse" : ""}`} />
-        <div>
-          <div className="text-sm font-semibold">vMix status: {title}</div>
-          <div className="text-xs opacity-80">{subtitle}</div>
+      <div className="flex items-start gap-4">
+        <Icon
+          className={`h-6 w-6 shrink-0 ${config.iconColor} ${overall === "unknown" ? "animate-spin" : ""}`}
+        />
+        <div className="flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold">vMix status: {title}</span>
+            <Badge variant={config.badge} className="text-[10px] uppercase">
+              {overall}
+            </Badge>
+          </div>
+          <p className="text-xs opacity-90">{subtitle}</p>
+          {overall === "degraded" && (
+            <div className="mt-2 flex items-start gap-1.5 text-[11px] opacity-90">
+              <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+              <span>
+                Degraded betyder att minst en endpoint svarar, men inte alla.
+                Kontrollera tabellen nedan för att se vilken som är nere.
+              </span>
+            </div>
+          )}
         </div>
       </div>
-      <Badge variant="outline" className="text-[10px] uppercase">
-        {overall}
-      </Badge>
     </div>
   );
 }
