@@ -66,6 +66,13 @@ function HealthPage() {
     refetchInterval: 60_000,
   });
 
+  const vmixHealthQuery = useQuery({
+    queryKey: ["vmix-health"],
+    queryFn: () => fetchVmixHealth(),
+    enabled: adminQuery.data?.isAdmin === true,
+    refetchInterval: 60_000,
+  });
+
   const data = healthQuery.data;
 
   return (
