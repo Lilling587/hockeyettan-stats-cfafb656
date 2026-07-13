@@ -46,6 +46,10 @@ async function logRow(row: {
   error: string | null;
   context: Record<string, unknown> | null;
 }) {
+  // Service role key is not exposed at runtime on Lovable Cloud, so we
+  // can't write scrape metrics from anonymous/unauthenticated scrape paths.
+  // Skip silently instead of throwing on every scrape.
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return;
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("scrape_metrics").insert(row as never);
