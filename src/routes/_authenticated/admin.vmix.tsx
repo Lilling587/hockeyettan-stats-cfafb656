@@ -575,14 +575,36 @@ const restoreMut = useMutation({
   },
 ];
 
-  if (!adminQuery.data?.isAdmin) {
+ if (!adminQuery.data?.isAdmin) {
     return (
-      <div className="p-6">
-        <Loader2 className="h-5 w-5 animate-spin" />
+      <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
+        <Skeleton className="h-8 w-64" />
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-40" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex gap-2">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-4 w-12" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       </div>
     );
   }
-
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
       <header className="space-y-4">
