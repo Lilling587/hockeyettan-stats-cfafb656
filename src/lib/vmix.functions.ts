@@ -71,7 +71,7 @@ export type VmixPublicationRow = {
 };
 /** Throw if a Supabase operation returned an error. */
 function throwIfSupabaseError(error: { message: string } | null): void {
-  if (error) throw new Error(error.message);
+  throwIfSupabaseError(error);
 }
 async function assertAdmin(context: {
   supabase: import("@supabase/supabase-js").SupabaseClient;
@@ -81,7 +81,7 @@ async function assertAdmin(context: {
     _user_id: context.userId,
     _role: "admin",
   });
-  if (error) throw new Error(error.message);
+  throwIfSupabaseError(error);
   if (!data) throw new Error("Forbidden: admin only");
 }
 
@@ -149,7 +149,7 @@ export const getActivePublication = createServerFn({ method: "GET" }).handler(
       .order("published_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+   throwIfSupabaseError(error);
     return data ? mapRow(data as Record<string, unknown>) : null;
   },
 );
@@ -222,7 +222,7 @@ export const publishVmix = createServerFn({ method: "POST" })
       .from("vmix_publications")
       .update({ is_active: false })
       .eq("is_active", true);
-    if (deactErr) throw new Error(deactErr.message);
+  throwIfSupabaseError(deactErr);
 
     const insertPayload: Record<string, unknown> = {
       game_date: data.gameDate ?? null,
@@ -249,7 +249,7 @@ export const publishVmix = createServerFn({ method: "POST" })
       .insert(insertPayload)
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+   throwIfSupabaseError(error);
     return mapRow(inserted as Record<string, unknown>);
   });
 
@@ -261,7 +261,7 @@ export const unpublishVmix = createServerFn({ method: "POST" })
       .from("vmix_publications")
       .update({ is_active: false })
       .eq("is_active", true);
-    if (error) throw new Error(error.message);
+   throwIfSupabaseError(error);
     return { ok: true };
   });
 
@@ -293,7 +293,7 @@ export const getPublicationHistory = createServerFn({ method: "GET" })
       .select("*")
       .order("published_at", { ascending: false })
       .limit(5);
-    if (error) throw new Error(error.message);
+  throwIfSupabaseError(error);
     return (data ?? []).map((r: Record<string, unknown>) => mapRow(r));
   });
 
@@ -309,7 +309,7 @@ export const restorePublication = createServerFn({ method: "POST" })
       .from("vmix_publications")
       .update({ is_active: false })
       .eq("is_active", true);
-    if (deactErr) throw new Error(deactErr.message);
+   throwIfSupabaseError(deactErr);
     // Reactivate the target publication.
     const { error: actErr } = await context.supabase
       .from("vmix_publications")
@@ -339,7 +339,7 @@ export const listLineupPresets = createServerFn({ method: "GET" })
       .select("*")
       .order("created_at", { ascending: false })
       .limit(20);
-    if (error) throw new Error(error.message);
+    throwIfSupabaseError(error);
     return (data ?? []).map((r: Record<string, unknown>): LineupPreset => ({
       id: Number(r.id),
       label: String(r.label),
@@ -375,7 +375,7 @@ export const saveLineupPreset = createServerFn({ method: "POST" })
         home_slots: data.homeSlots as unknown as Json,
         away_slots: data.awaySlots as unknown as Json,
       });
-    if (error) throw new Error(error.message);
+  throwIfSupabaseError(error);
     return { ok: true };
   });
 
@@ -405,7 +405,7 @@ export const updateLineupPreset = createServerFn({ method: "POST" })
         away_slots: data.awaySlots as unknown as Json,
       })
       .eq("id", data.id);
-    if (error) throw new Error(error.message);
+   throwIfSupabaseError(error);
     return { ok: true };
   });
 
@@ -422,7 +422,7 @@ export const deleteLineupPreset = createServerFn({ method: "POST" })
       .from("vmix_lineup_presets")
       .delete()
       .eq("id", data.id);
-    if (error) throw new Error(error.message);
+  throwIfSupabaseError(error);
     return { ok: true };
   });
 // ---------- Team logo codes (auto-fill from swehockey, manual overrides) ----------
@@ -443,7 +443,7 @@ export const getTeamLogoCodes = createServerFn({ method: "GET" })
       .from("team_logo_codes")
       .select("*")
       .order("team_name");
-    if (error) throw new Error(error.message);
+   throwIfSupabaseError(error);
     return (data ?? []).map(
       (r: Record<string, unknown>): TeamLogoCode => ({
         id: Number(r.id),
@@ -478,7 +478,7 @@ export const updateTeamLogoCode = createServerFn({ method: "POST" })
         },
         { onConflict: "team_name" },
       );
-    if (error) throw new Error(error.message);
+   throwIfSupabaseError(error);
     return { ok: true };
   });
 
@@ -517,7 +517,7 @@ export const syncTeamLogoCodes = createServerFn({ method: "POST" })
       const { error } = await context.supabase
         .from("team_logo_codes")
         .upsert(rows, { onConflict: "team_name" });
-      if (error) throw new Error(error.message);
+    throwIfSupabaseError(error);
     }
 
     return {
