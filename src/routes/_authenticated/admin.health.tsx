@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -60,6 +60,7 @@ function HealthPage() {
   });
 
   const [refreshInterval, setRefreshInterval] = useState<number>(60_000);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     const stored = localStorage.getItem("health-refresh-interval");
@@ -113,6 +114,14 @@ function HealthPage() {
     supabaseHealthQuery.refetch();
     vmixHealthQuery.refetch();
   };
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    refreshAll();
+  }, [refreshInterval]);
 
   const intervalLabel = (ms: number) =>
     ms >= 60_000 ? `${ms / 60_000} min` : `${ms / 1000} s`;
