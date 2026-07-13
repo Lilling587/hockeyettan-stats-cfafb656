@@ -132,27 +132,47 @@ function mapRow(row: Record<string, unknown>): VmixPublicationRow {
 }
 
 /**
+// ---- Active publication cache ----
+// Reduces Supabase queries during broadcast. vMix polls every 5–15s per
+// endpoint; without caching that's 4–12+ queries/min. With a 10s TTL the
+// database sees at most ~6 queries/min regardless of polling frequency.
+let _pubCache: { data: VmixPublicationRow | null; ts: number } | null = null;
+const PUB_CACHE_TTL_MS = 30_000;
+
+async function fetchActivePublicationFresh(): Promise<VmixPublicationRow | null> {
+  const { createClient } = await import("@supabase/supabase-js");
+  const client = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+  const { data, error } = await client
+    .from("vmix_publications")
+    .select("*")
+    .eq("is_active", true)
+    .order("published_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  throwIfSupabaseError(error);
+  const result = data ? mapRow(data as Record<string, unknown>) : null;
+  _pubCache = { data: result, ts: Date.now() };
+  return result;
+}
+
+/**
  * Anyone (including anon vMix pollers) can read the active publication.
+ * Uses a 10-second in-memory cache to reduce database queries during
+ * broadcast polling.
  */
 export const getActivePublication = createServerFn({ method: "GET" }).handler(
   async (): Promise<VmixPublicationRow | null> => {
-    const { createClient } = await import("@supabase/supabase-js");
-    const client = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } },
-    );
-    const { data, error } = await client
-      .from("vmix_publications")
-      .select("*")
-      .eq("is_active", true)
-      .order("published_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-   throwIfSupabaseError(error);
-    return data ? mapRow(data as Record<string, unknown>) : null;
+    if (_pubCache && Date.now() - _pubCache.ts < PUB_CACHE_TTL_MS) {
+      return _pubCache.data;
+    }
+    return fetchActivePublicationFresh();
   },
 );
+
 
 /**
  * Prefill a team lineup from the swehockey roster page.
