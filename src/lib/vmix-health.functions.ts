@@ -32,7 +32,7 @@ const ENDPOINTS: { name: string; path: string }[] = [
 export const checkVmixHealth = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .handler(async (): Promise<VmixHealthReport> => {
-    const reqUrl = getRequestURL();
+    const reqUrl = getRequestUrl();
     const origin = `${reqUrl.protocol}//${reqUrl.host}`;
 
     const results = await Promise.all(
