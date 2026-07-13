@@ -61,6 +61,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+
 import {
   Select,
   SelectContent,
@@ -1022,10 +1024,16 @@ function TeamCodesCard({
         </Button>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Laddar koder…
+                {loading ? (
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-2 px-2 py-1">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-4 w-12" />
+              </div>
+            ))}
           </div>
+
         ) : codes.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Inga logotypkoder laddade. Klicka <em>Synka från Swehockey</em> för
