@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestURL } from "@tanstack/react-start/server";
+import { getRequestUrl } from "@tanstack/react-start/server";
 import { requireAdmin } from "@/integrations/supabase/admin-middleware";
 
 export type VmixEndpointStatus = {
