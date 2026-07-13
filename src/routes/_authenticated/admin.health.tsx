@@ -109,6 +109,14 @@ function HealthPage() {
           error={supabaseHealthQuery.error}
         />
 
+        <VmixHealthCard
+          data={vmixHealthQuery.data}
+          isLoading={vmixHealthQuery.isLoading}
+          isFetching={vmixHealthQuery.isFetching}
+          error={vmixHealthQuery.error}
+          onRefresh={() => vmixHealthQuery.refetch()}
+        />
+
         {!data ? (
           <p className="text-sm text-muted-foreground">Laddar…</p>
         ) : (
