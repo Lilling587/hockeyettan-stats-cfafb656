@@ -69,7 +69,10 @@ export type VmixPublicationRow = {
   publishedAt: string;
   updatedAt: string;
 };
-
+/** Throw if a Supabase operation returned an error. */
+function throwIfSupabaseError(error: { message: string } | null): void {
+  if (error) throw new Error(error.message);
+}
 async function assertAdmin(context: {
   supabase: import("@supabase/supabase-js").SupabaseClient;
   userId: string;
