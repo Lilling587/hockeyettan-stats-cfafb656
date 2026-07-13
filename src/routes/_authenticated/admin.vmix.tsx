@@ -355,7 +355,8 @@ const presetsQuery = useQuery({
       toast.error(`Fel: ${msg}`);
     },
   });
-  const [showSavePreset, setShowSavePreset] = useState(false);
+ const [showSavePreset, setShowSavePreset] = useState(false);
+  const [endpointsExpanded, setEndpointsExpanded] = useState(false);
   const [presetLabel, setPresetLabel] = useState("");
 
   const handleSavePreset = async () => {
@@ -662,9 +663,18 @@ const restoreMut = useMutation({
       />
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">vMix-endpoints</CardTitle>
+        <CardHeader
+          className="cursor-pointer select-none"
+          onClick={() => setEndpointsExpanded((v) => !v)}
+        >
+          <CardTitle className="text-base flex items-center gap-2">
+            vMix-endpoints
+            <span className="ml-auto text-xs text-muted-foreground font-normal">
+              {endpointsExpanded ? "Dölj" : "Visa"}
+            </span>
+          </CardTitle>
         </CardHeader>
+        {endpointsExpanded && (
         <CardContent className="space-y-2">
           <p className="text-xs text-muted-foreground">
             Klistra in i vMix Data Sources → Web (JSON). Poll-intervall 5–15 s
@@ -722,7 +732,8 @@ const restoreMut = useMutation({
               </li>
             ))}
           </ul>
-        </CardContent>
+      </CardContent>
+        )}
       </Card>
 
       <EndpointTester endpoints={endpoints} autoFetchTrigger={autoFetchTrigger} />
@@ -981,6 +992,7 @@ function TeamCodesCard({
   onSync: () => Promise<void>;
   onUpdate: (teamName: string, logoCode: string) => Promise<void>;
 }) {
+ const [expanded, setExpanded] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [editTeam, setEditTeam] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -1012,40 +1024,54 @@ function TeamCodesCard({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+      <CardHeader
+        className="flex flex-row items-center justify-between space-y-0 cursor-pointer select-none"
+        onClick={() => setExpanded((v) => !v)}
+      >
         <div>
           <CardTitle className="text-base flex items-center gap-2">
             <Settings2 className="h-4 w-4" /> Logotypkoder
+            {codes.length > 0 && (
+              <Badge variant="outline" className="text-[10px]">{codes.length}</Badge>
+            )}
           </CardTitle>
-          <p className="text-xs text-muted-foreground mt-1">
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {expanded ? "Dölj" : "Visa"}
+        </span>
+      </CardHeader>
+      {expanded && (
+      <CardContent>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-muted-foreground">
             Kopplar lagnamn till filnamn för logotyper (t.ex. GRÄ →
             GRA_small.png). Synka från Swehockey eller skriv in manuellt.
           </p>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={syncing}
+            className="ml-2 shrink-0"
+            onClick={async (e) => {
+              e.stopPropagation();
+              setSyncing(true);
+              try {
+                await onSync();
+              } catch (err) {
+                toast.error(`Synk misslyckades: ${(err as Error).message}`);
+              } finally {
+                setSyncing(false);
+              }
+            }}
+          >
+            {syncing ? (
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-1 h-3 w-3" />
+            )}
+            Synka från Swehockey
+          </Button>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={syncing}
-          onClick={async () => {
-            setSyncing(true);
-            try {
-              await onSync();
-            } catch (e) {
-              toast.error(`Synk misslyckades: ${(e as Error).message}`);
-            } finally {
-              setSyncing(false);
-            }
-          }}
-        >
-          {syncing ? (
-            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-          ) : (
-            <RefreshCw className="mr-1 h-3 w-3" />
-          )}
-          Synka från Swehockey
-        </Button>
-      </CardHeader>
-      <CardContent>
                 {loading ? (
           <div className="space-y-2">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -1131,6 +1157,7 @@ function TeamCodesCard({
           </div>
         )}
       </CardContent>
+      )}
     </Card>
   );
 }
@@ -1516,6 +1543,7 @@ function EndpointTester({
   endpoints: { label: string; url: string }[];
   autoFetchTrigger?: number;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const [results, setResults] = useState<Record<string, EndpointResult>>({});
   const [autoRefresh, setAutoRefresh] = useState(false);
 
