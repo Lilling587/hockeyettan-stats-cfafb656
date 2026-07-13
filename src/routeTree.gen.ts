@@ -23,7 +23,6 @@ import { Route as AuthenticatedConnectRouteImport } from './routes/_authenticate
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as TvHomeAwayRouteImport } from './routes/tv.$home.$away'
-import { Route as AuthenticatedAdminVmixPresetsRouteImport } from './routes/_authenticated/admin.vmix-presets'
 import { Route as AuthenticatedAdminVmixRouteImport } from './routes/_authenticated/admin.vmix'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin.logs'
@@ -110,12 +109,6 @@ const TvHomeAwayRoute = TvHomeAwayRouteImport.update({
   path: '/tv/$home/$away',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminVmixPresetsRoute =
-  AuthenticatedAdminVmixPresetsRouteImport.update({
-    id: '/admin/vmix-presets',
-    path: '/admin/vmix-presets',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedAdminVmixRoute = AuthenticatedAdminVmixRouteImport.update({
   id: '/admin/vmix',
   path: '/admin/vmix',
@@ -209,7 +202,6 @@ export interface FileRoutesByFullPath {
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vmix': typeof AuthenticatedAdminVmixRoute
-  '/admin/vmix-presets': typeof AuthenticatedAdminVmixPresetsRoute
   '/tv/$home/$away': typeof TvHomeAwayRoute
   '/api/public/hooks/postgame-emails': typeof ApiPublicHooksPostgameEmailsRoute
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
@@ -238,7 +230,6 @@ export interface FileRoutesByTo {
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vmix': typeof AuthenticatedAdminVmixRoute
-  '/admin/vmix-presets': typeof AuthenticatedAdminVmixPresetsRoute
   '/tv/$home/$away': typeof TvHomeAwayRoute
   '/api/public/hooks/postgame-emails': typeof ApiPublicHooksPostgameEmailsRoute
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
@@ -269,7 +260,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/vmix': typeof AuthenticatedAdminVmixRoute
-  '/_authenticated/admin/vmix-presets': typeof AuthenticatedAdminVmixPresetsRoute
   '/tv/$home/$away': typeof TvHomeAwayRoute
   '/api/public/hooks/postgame-emails': typeof ApiPublicHooksPostgameEmailsRoute
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
@@ -300,7 +290,6 @@ export interface FileRouteTypes {
     | '/admin/logs'
     | '/admin/users'
     | '/admin/vmix'
-    | '/admin/vmix-presets'
     | '/tv/$home/$away'
     | '/api/public/hooks/postgame-emails'
     | '/api/public/hooks/pregame-emails'
@@ -329,7 +318,6 @@ export interface FileRouteTypes {
     | '/admin/logs'
     | '/admin/users'
     | '/admin/vmix'
-    | '/admin/vmix-presets'
     | '/tv/$home/$away'
     | '/api/public/hooks/postgame-emails'
     | '/api/public/hooks/pregame-emails'
@@ -359,7 +347,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/logs'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/vmix'
-    | '/_authenticated/admin/vmix-presets'
     | '/tv/$home/$away'
     | '/api/public/hooks/postgame-emails'
     | '/api/public/hooks/pregame-emails'
@@ -491,13 +478,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TvHomeAwayRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin/vmix-presets': {
-      id: '/_authenticated/admin/vmix-presets'
-      path: '/admin/vmix-presets'
-      fullPath: '/admin/vmix-presets'
-      preLoaderRoute: typeof AuthenticatedAdminVmixPresetsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/admin/vmix': {
       id: '/_authenticated/admin/vmix'
       path: '/admin/vmix'
@@ -601,7 +581,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminLogsRoute: typeof AuthenticatedAdminLogsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVmixRoute: typeof AuthenticatedAdminVmixRoute
-  AuthenticatedAdminVmixPresetsRoute: typeof AuthenticatedAdminVmixPresetsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -613,7 +592,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminLogsRoute: AuthenticatedAdminLogsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminVmixRoute: AuthenticatedAdminVmixRoute,
-  AuthenticatedAdminVmixPresetsRoute: AuthenticatedAdminVmixPresetsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
