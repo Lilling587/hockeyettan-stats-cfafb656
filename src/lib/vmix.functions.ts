@@ -356,8 +356,8 @@ export const saveLineupPreset = createServerFn({ method: "POST" })
         label: z.string().min(1),
         homeTeam: z.string().min(1),
         awayTeam: z.string().min(1),
-        homeSlots: z.record(z.unknown()),
-        awaySlots: z.record(z.unknown()),
+        homeSlots: z.record(z.string(), z.unknown()),
+        awaySlots: z.record(z.string(), z.unknown()),
       })
       .parse(input),
   )
@@ -369,12 +369,44 @@ export const saveLineupPreset = createServerFn({ method: "POST" })
         label: data.label,
         home_team: data.homeTeam,
         away_team: data.awayTeam,
-        home_slots: data.homeSlots,
-        away_slots: data.awaySlots,
+        home_slots: data.homeSlots as unknown as Json,
+        away_slots: data.awaySlots as unknown as Json,
       });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const updateLineupPreset = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.number(),
+        label: z.string().min(1),
+        homeTeam: z.string().min(1),
+        awayTeam: z.string().min(1),
+        homeSlots: z.record(z.string(), z.unknown()),
+        awaySlots: z.record(z.string(), z.unknown()),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("vmix_lineup_presets")
+      .update({
+        label: data.label,
+        home_team: data.homeTeam,
+        away_team: data.awayTeam,
+        home_slots: data.homeSlots as unknown as Json,
+        away_slots: data.awaySlots as unknown as Json,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
 
 export const deleteLineupPreset = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
