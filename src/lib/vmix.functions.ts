@@ -376,6 +376,38 @@ export const saveLineupPreset = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const updateLineupPreset = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.number(),
+        label: z.string().min(1),
+        homeTeam: z.string().min(1),
+        awayTeam: z.string().min(1),
+        homeSlots: z.record(z.unknown()),
+        awaySlots: z.record(z.unknown()),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("vmix_lineup_presets")
+      .update({
+        label: data.label,
+        home_team: data.homeTeam,
+        away_team: data.awayTeam,
+        home_slots: data.homeSlots,
+        away_slots: data.awaySlots,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
+
 export const deleteLineupPreset = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
