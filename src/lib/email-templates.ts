@@ -7,20 +7,23 @@ export type PregameEmailInput = {
   away: string;
   dateISO: string;
   briefingUrl: string;
+  unsubscribeUrl: string;
+  manageUrl: string;
 };
+
 
 export function renderPregameEmail(input: PregameEmailInput): {
   subject: string;
   html: string;
   text: string;
 } {
-  const { favoriteTeam, home, away, dateISO, briefingUrl } = input;
+  const { favoriteTeam, home, away, dateISO, briefingUrl, unsubscribeUrl, manageUrl } = input;
   const isHome = home === favoriteTeam;
   const opponent = isHome ? away : home;
   const venue = isHome ? "home" : "away";
 
   const subject = `${favoriteTeam} plays today — ${home} vs ${away}`;
-  const text = `${favoriteTeam} plays ${opponent} (${venue}) today, ${dateISO}.\n\nFull producer briefing: ${briefingUrl}\n`;
+  const text = `${favoriteTeam} plays ${opponent} (${venue}) today, ${dateISO}.\n\nFull producer briefing: ${briefingUrl}\n\nManage notifications: ${manageUrl}\nUnsubscribe: ${unsubscribeUrl}\n`;
 
   const html = `<!doctype html>
 <html><body style="margin:0;padding:24px;background:#0b1220;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#e5e7eb">
@@ -36,11 +39,15 @@ export function renderPregameEmail(input: PregameEmailInput): {
        style="display:inline-block;background:#22d3ee;color:#0b1220;font-weight:600;text-decoration:none;padding:10px 16px;border-radius:8px;font-size:14px">
       Open producer briefing →
     </a>
-    <p style="margin:24px 0 0;color:#64748b;font-size:11px">
-      You're getting this because you enabled game-day notifications.
+    <p style="margin:24px 0 0;color:#64748b;font-size:11px;line-height:1.6">
+      You're getting this because you enabled game-day notifications.<br>
+      <a href="${escapeAttr(manageUrl)}" style="color:#94a3b8;text-decoration:underline">Manage notifications</a>
+      &nbsp;·&nbsp;
+      <a href="${escapeAttr(unsubscribeUrl)}" style="color:#94a3b8;text-decoration:underline">Unsubscribe</a>
     </p>
   </div>
 </body></html>`;
+
 
   return { subject, html, text };
 }
@@ -55,6 +62,8 @@ export type PostgameEmailInput = {
   recapUrl: string;
   topScorers: Array<{ name: string; teamCode: string; goals: number; assists: number }>;
   gameUrl: string;
+  unsubscribeUrl: string;
+  manageUrl: string;
 };
 
 export function renderPostgameEmail(input: PostgameEmailInput): {
@@ -62,7 +71,7 @@ export function renderPostgameEmail(input: PostgameEmailInput): {
   html: string;
   text: string;
 } {
-  const { favoriteTeam, home, away, homeGoals, awayGoals, dateISO, recapUrl, topScorers, gameUrl } = input;
+  const { favoriteTeam, home, away, homeGoals, awayGoals, dateISO, recapUrl, topScorers, gameUrl, unsubscribeUrl, manageUrl } = input;
   const favGoals = home === favoriteTeam ? homeGoals : awayGoals;
   const oppGoals = home === favoriteTeam ? awayGoals : homeGoals;
   const opponent = home === favoriteTeam ? away : home;
@@ -74,7 +83,7 @@ export function renderPostgameEmail(input: PostgameEmailInput): {
     .slice(0, 5)
     .map((p) => `  ${p.teamCode}  ${p.name}  ${p.goals}M ${p.assists}A`)
     .join("\n");
-  const text = `${home} ${homeGoals}–${awayGoals} ${away}\n${outcome} för ${favoriteTeam}.\n\nTopp-poängplockare:\n${scorersText || "  (inga måldata)"}\n\nRecap: ${recapUrl}\nMatchprotokoll: ${gameUrl}\n`;
+  const text = `${home} ${homeGoals}–${awayGoals} ${away}\n${outcome} för ${favoriteTeam}.\n\nTopp-poängplockare:\n${scorersText || "  (inga måldata)"}\n\nRecap: ${recapUrl}\nMatchprotokoll: ${gameUrl}\n\nHantera notiser: ${manageUrl}\nAvregistrera: ${unsubscribeUrl}\n`;
 
   const scorersHtml = topScorers
     .slice(0, 5)
@@ -102,11 +111,15 @@ export function renderPostgameEmail(input: PostgameEmailInput): {
     <p style="margin:16px 0 0;font-size:12px">
       <a href="${escapeAttr(gameUrl)}" style="color:#94a3b8">Matchprotokoll ↗</a>
     </p>
-    <p style="margin:24px 0 0;color:#64748b;font-size:11px">
-      You're getting this because you enabled game-day notifications.
+    <p style="margin:24px 0 0;color:#64748b;font-size:11px;line-height:1.6">
+      You're getting this because you enabled game-day notifications.<br>
+      <a href="${escapeAttr(manageUrl)}" style="color:#94a3b8;text-decoration:underline">Hantera notiser</a>
+      &nbsp;·&nbsp;
+      <a href="${escapeAttr(unsubscribeUrl)}" style="color:#94a3b8;text-decoration:underline">Avregistrera</a>
     </p>
   </div>
 </body></html>`;
+
 
   return { subject, html, text };
 }

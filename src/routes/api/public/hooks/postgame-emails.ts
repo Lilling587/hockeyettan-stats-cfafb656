@@ -37,6 +37,10 @@ export const Route = createFileRoute("/api/public/hooks/postgame-emails")({
           "@/lib/stats.server"
         );
         const { DEFAULT_SEASON } = await import("@/lib/seasons.config");
+        const { signUnsubscribeToken } = await import(
+          "@/lib/unsubscribe-token.server"
+        );
+
 
         const today = new Intl.DateTimeFormat("en-CA", {
           timeZone: "Europe/Stockholm",
@@ -109,6 +113,7 @@ export const Route = createFileRoute("/api/public/hooks/postgame-emails")({
               .slice(0, 5);
 
             const recapUrl = `${origin}/?home=${encodeURIComponent(recap.homeTeam)}&away=${encodeURIComponent(recap.awayTeam)}`;
+            const token = signUnsubscribeToken(pref.user_id);
             const { subject, html, text } = renderPostgameEmail({
               favoriteTeam: pref.favorite_team,
               home: recap.homeTeam,
@@ -119,7 +124,10 @@ export const Route = createFileRoute("/api/public/hooks/postgame-emails")({
               recapUrl,
               gameUrl: recap.gameUrl,
               topScorers,
+              manageUrl: `${origin}/notifications`,
+              unsubscribeUrl: `${origin}/api/public/unsubscribe?t=${encodeURIComponent(token)}`,
             });
+
 
             const res = await fetch(
               "https://connector-gateway.lovable.dev/resend/emails",
