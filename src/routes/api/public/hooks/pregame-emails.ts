@@ -37,6 +37,10 @@ export const Route = createFileRoute("/api/public/hooks/pregame-emails")({
         );
         const { findMatchupOnDate } = await import("@/lib/stats.server");
         const { DEFAULT_SEASON } = await import("@/lib/seasons.config");
+        const { signUnsubscribeToken } = await import(
+          "@/lib/unsubscribe-token.server"
+        );
+
 
         const today = new Intl.DateTimeFormat("en-CA", {
           timeZone: "Europe/Stockholm",
@@ -84,13 +88,17 @@ export const Route = createFileRoute("/api/public/hooks/pregame-emails")({
               continue;
             }
             const briefingUrl = `${origin}/?home=${encodeURIComponent(match.home)}&away=${encodeURIComponent(match.away)}`;
+            const token = signUnsubscribeToken(pref.user_id);
             const { subject, html, text } = renderPregameEmail({
               favoriteTeam: pref.favorite_team,
               home: match.home,
               away: match.away,
               dateISO: today,
               briefingUrl,
+              manageUrl: `${origin}/notifications`,
+              unsubscribeUrl: `${origin}/api/public/unsubscribe?t=${encodeURIComponent(token)}`,
             });
+
 
             const res = await fetch(
               "https://connector-gateway.lovable.dev/resend/emails",
