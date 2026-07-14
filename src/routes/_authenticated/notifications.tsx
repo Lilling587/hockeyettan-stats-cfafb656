@@ -76,7 +76,13 @@ function NotificationsPage() {
     setSaving(true);
     try {
       await savePrefs({
-        data: { email, favorite_team: favorite, enabled },
+        data: {
+          email,
+          favorite_team: favorite,
+          enabled,
+          digest_enabled: digestEnabled,
+          digest_dow: digestDow,
+        },
       });
       toast.success("Saved");
     } catch (err) {
