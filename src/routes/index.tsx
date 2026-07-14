@@ -169,18 +169,10 @@ function Dashboard() {
     staleTime: 24 * 60 * 60 * 1000,
   });
 
-  const pendingQuery = useQuery({
-    queryKey: ["season-detections"],
-    queryFn: () => fetchPending(),
-    staleTime: 5 * 60 * 1000,
-  });
+  // pendingQuery and runScan are declared after adminQuery below, since both
+  // now require the caller to be an admin (enforced by requireAdmin middleware
+  // on the server functions).
 
-  useEffect(() => {
-    runScan({ data: {} })
-      .then(() => qc.invalidateQueries({ queryKey: ["season-detections"] }))
-      .catch((e) => console.warn("[season-scan] failed:", e));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const [season, setSeason] = useState<string>(loaderData.defaultSeason);
   const activeSeason =
