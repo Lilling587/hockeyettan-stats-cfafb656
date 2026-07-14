@@ -245,6 +245,23 @@ function Dashboard() {
     enabled: !!user,
   });
 
+  const isAdmin = !!adminQuery.data?.isAdmin;
+
+  const pendingQuery = useQuery({
+    queryKey: ["season-detections"],
+    queryFn: () => fetchPending(),
+    staleTime: 5 * 60 * 1000,
+    enabled: isAdmin,
+  });
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    runScan({ data: {} })
+      .then(() => qc.invalidateQueries({ queryKey: ["season-detections"] }))
+      .catch((e) => console.warn("[season-scan] failed:", e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
