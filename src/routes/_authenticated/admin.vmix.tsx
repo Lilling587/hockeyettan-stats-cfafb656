@@ -846,10 +846,31 @@ const restoreMut = useMutation({
                 </Button>
               </div>
             )}
-            {(presetsQuery.data?.length ?? 0) > 0 && (
+            {presetsQuery.isLoading && (
               <div className="space-y-1">
-                <p className="text-[11px] font-medium text-muted-foreground">Sparade mallar</p>
-                {presetsQuery.data!.map((p) => (
+                {[1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-2 rounded px-2 py-1.5">
+                    <div className="flex-1 space-y-1 py-0.5">
+                      <Skeleton className="h-3.5 w-32" />
+                      <Skeleton className="h-3 w-48" />
+                    </div>
+                    <Skeleton className="h-6 w-12" />
+                    <Skeleton className="h-6 w-14" />
+                  </div>
+                ))}
+              </div>
+            )}
+            {!presetsQuery.isLoading && (presetsQuery.data?.length ?? 0) > 0 && (
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium text-muted-foreground">
+                  Sparade mallar
+                  {relevantPresets.hiddenCount > 0 && (
+                    <span className="ml-1 font-normal text-muted-foreground/60">
+                      · {relevantPresets.shown.length} av {presetsQuery.data!.length} (filtrerat på valda lag)
+                    </span>
+                  )}
+                </p>
+                {relevantPresets.shown.map((p) => (
                   <div
                     key={p.id}
                     className="flex items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-muted/40"
@@ -882,7 +903,7 @@ const restoreMut = useMutation({
                 ))}
               </div>
             )}
-            {(presetsQuery.data?.length ?? 0) === 0 && (
+            {!presetsQuery.isLoading && (presetsQuery.data?.length ?? 0) === 0 && (
               <p className="text-xs text-muted-foreground">
                 Inga mallar sparade ännu.
               </p>
