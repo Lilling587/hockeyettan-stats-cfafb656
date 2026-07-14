@@ -137,7 +137,7 @@ function countFilledSlots(slots: VmixLineupSlots): { goalies: number; skaters: n
   return { goalies: g, skaters: s };
 }
 
-class CardErrorBoundary extends Component
+class CardErrorBoundary extends Component<
   { children: ReactNode; title: string },
   { hasError: boolean; error?: Error }
 > {
