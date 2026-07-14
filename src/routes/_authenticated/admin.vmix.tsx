@@ -67,7 +67,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 import {
   Select,
-  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
