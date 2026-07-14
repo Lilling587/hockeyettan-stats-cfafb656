@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   CalendarDays,
@@ -135,6 +135,46 @@ function countFilledSlots(slots: VmixLineupSlots): { goalies: number; skaters: n
     else s++;
   }
   return { goalies: g, skaters: s };
+}
+
+class CardErrorBoundary extends Component
+  { children: ReactNode; title: string },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: ReactNode; title: string }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base text-destructive flex items-center gap-2">
+              <XCircle className="h-4 w-4" />
+              {this.props.title} – kraschade
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground mb-2">
+              {this.state.error?.message ?? "Okänt fel"}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => this.setState({ hasError: false })}
+            >
+              Försök igen
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 function VmixAdminPage() {
@@ -753,25 +793,27 @@ const restoreMut = useMutation({
           </Button>
         </div>
       )}
-      <TeamCodesCard
-        codes={codesQuery.data ?? []}
-        loading={codesQuery.isLoading}
-        onSync={async () => {
-          const result = await syncCodes({ data: {} });
-          await queryClient.invalidateQueries({ queryKey: ["vmix-codes"] });
-          toast.success(
-            `Synkat ${result.synced} koder från Swehockey` +
-              (result.skippedManual > 0
-                ? ` (${result.skippedManual} manuella overrides bevarade)`
-                : ""),
-          );
-        }}
-        onUpdate={async (teamName, logoCode) => {
-          await updateCode({ data: { teamName, logoCode } });
-          await queryClient.invalidateQueries({ queryKey: ["vmix-codes"] });
-          toast.success(`Kod uppdaterad: ${teamName} → ${logoCode}`);
-        }}
-      />
+      <CardErrorBoundary title="Logotypkoder">
+        <TeamCodesCard
+          codes={codesQuery.data ?? []}
+          loading={codesQuery.isLoading}
+          onSync={async () => {
+            const result = await syncCodes({ data: {} });
+            await queryClient.invalidateQueries({ queryKey: ["vmix-codes"] });
+            toast.success(
+              `Synkat ${result.synced} koder från Swehockey` +
+                (result.skippedManual > 0
+                  ? ` (${result.skippedManual} manuella overrides bevarade)`
+                  : ""),
+            );
+          }}
+          onUpdate={async (teamName, logoCode) => {
+            await updateCode({ data: { teamName, logoCode } });
+            await queryClient.invalidateQueries({ queryKey: ["vmix-codes"] });
+            toast.success(`Kod uppdaterad: ${teamName} → ${logoCode}`);
+          }}
+        />
+      </CardErrorBoundary>
 
       <Card>
         <CardHeader
@@ -847,15 +889,19 @@ const restoreMut = useMutation({
         )}
       </Card>
 
-      <EndpointTester endpoints={endpoints} autoFetchTrigger={autoFetchTrigger} />
+      <CardErrorBoundary title="Endpoint-testaren">
+        <EndpointTester endpoints={endpoints} autoFetchTrigger={autoFetchTrigger} />
+      </CardErrorBoundary>
 
-      <PublicationHistory
-        publications={historyQuery.data ?? []}
-        loading={historyQuery.isLoading}
-        activeId={activeQuery.data?.id}
-        onRestore={(id) => restoreMut.mutate(id)}
-        restoring={restoreMut.isPending}
-      />
+      <CardErrorBoundary title="Publiceringshistorik">
+        <PublicationHistory
+          publications={historyQuery.data ?? []}
+          loading={historyQuery.isLoading}
+          activeId={activeQuery.data?.id}
+          onRestore={(id) => restoreMut.mutate(id)}
+          restoring={restoreMut.isPending}
+        />
+      </CardErrorBoundary>
 
       <DataSourceCard
         sourceMode={sourceMode}
