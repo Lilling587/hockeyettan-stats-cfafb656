@@ -236,6 +236,15 @@ export const publishVmix = createServerFn({ method: "POST" })
     const { fetchFullStandings } = await import("./stats.server");
     const standings = await fetchFullStandings(season).catch(() => []);
 
+    // Guard: if we got some data but suspiciously few teams, the scrape
+    // likely returned partial HTML (swehockey mid-update on a busy game day).
+    // Block the publish rather than serve a corrupt standings table.
+    if (standings.length > 0 && standings.length < 8) {
+      throw new Error(
+        `Tabellen verkar ofullständig – ${standings.length} lag hittades (normalt 14). Försök publicera igen om en stund.`,
+      );
+    }
+
     // Enrich standings with logo codes for the standings vMix endpoint.
     const { data: codeRows } = await context.supabase
       .from("team_logo_codes")
