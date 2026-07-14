@@ -185,6 +185,47 @@ function NotificationsPage() {
                   <Switch checked={enabled} onCheckedChange={setEnabled} />
                 </div>
 
+                <div className="rounded-md border border-border px-4 py-3 space-y-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="text-sm font-medium">
+                        Weekly digest email
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        A summary of your favorite team's games for the next 7 days.
+                      </div>
+                    </div>
+                    <Switch
+                      checked={digestEnabled}
+                      onCheckedChange={setDigestEnabled}
+                    />
+                  </div>
+                  {digestEnabled && (
+                    <div className="flex items-center justify-between gap-4">
+                      <Label htmlFor="digest-day" className="text-xs text-muted-foreground">
+                        Send day (09:00 Europe/Stockholm)
+                      </Label>
+                      <Select
+                        value={String(digestDow)}
+                        onValueChange={(v) => setDigestDow(Number(v))}
+                      >
+                        <SelectTrigger id="digest-day" className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Monday</SelectItem>
+                          <SelectItem value="2">Tuesday</SelectItem>
+                          <SelectItem value="3">Wednesday</SelectItem>
+                          <SelectItem value="4">Thursday</SelectItem>
+                          <SelectItem value="5">Friday</SelectItem>
+                          <SelectItem value="6">Saturday</SelectItem>
+                          <SelectItem value="7">Sunday</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                   <Button type="submit" disabled={saving}>
                     {saving ? "Saving…" : "Save preferences"}
