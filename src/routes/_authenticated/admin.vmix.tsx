@@ -757,6 +757,7 @@ const restoreMut = useMutation({
     label: "lineup.json",
     url: `${baseUrl}/api/public/vmix/lineup/${lineupVersion}?ClubId=${clubId}`,
   },
+  { label: "titlecard.json", url: `${baseUrl}/api/public/vmix/titlecard` },
 ];
 
  if (!adminQuery.data?.isAdmin) {
