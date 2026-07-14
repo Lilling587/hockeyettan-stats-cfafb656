@@ -386,8 +386,8 @@ export const saveLineupPreset = createServerFn({ method: "POST" })
         label: z.string().min(1),
         homeTeam: z.string().min(1),
         awayTeam: z.string().min(1),
-        homeSlots: z.record(z.string(), z.unknown()),
-        awaySlots: z.record(z.string(), z.unknown()),
+        homeSlots: SlotsSchema,
+        awaySlots: SlotsSchema,
       })
       .parse(input),
   )
@@ -415,8 +415,8 @@ export const updateLineupPreset = createServerFn({ method: "POST" })
         label: z.string().min(1),
         homeTeam: z.string().min(1),
         awayTeam: z.string().min(1),
-        homeSlots: z.record(z.string(), z.unknown()),
-        awaySlots: z.record(z.string(), z.unknown()),
+        homeSlots: SlotsSchema,
+        awaySlots: SlotsSchema,
       })
       .parse(input),
   )
