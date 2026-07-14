@@ -62,7 +62,7 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const lovableKey = process.env.LOVABLE_API_KEY;
     const resendKey = process.env.RESEND_API_KEY;
     if (!lovableKey || !resendKey) {
@@ -71,6 +71,7 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
 
     const { findMatchupOnDate } = await import("@/lib/stats.server");
     const { DEFAULT_SEASON } = await import("@/lib/seasons.config");
+    const { signUnsubscribeToken } = await import("@/lib/unsubscribe-token.server");
 
     const today = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Europe/Stockholm",
@@ -93,14 +94,19 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
       // ignore — use sample
     }
 
-    const briefingUrl = `https://hockeyettan.lovable.app/?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}`;
+    const origin = "https://hockeyettan.lovable.app";
+    const briefingUrl = `${origin}/?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}`;
+    const token = signUnsubscribeToken(context.userId);
     const { subject, html, text } = renderPregameEmail({
       favoriteTeam: data.favorite_team,
       home,
       away,
       dateISO: today,
       briefingUrl,
+      manageUrl: `${origin}/notifications`,
+      unsubscribeUrl: `${origin}/api/public/unsubscribe?t=${encodeURIComponent(token)}`,
     });
+
 
     const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
