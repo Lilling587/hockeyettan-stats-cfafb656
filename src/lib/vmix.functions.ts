@@ -219,8 +219,18 @@ export const publishVmix = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
+ .handler(async ({ data, context }) => {
     await assertAdmin(context);
+
+    // Server-side safety guards — prevents publishing invalid data
+    // even if the client-side warnings are somehow bypassed.
+    const homeFilled = SLOT_KEYS.filter((k) => !!data.homeSlots[k]?.name).length;
+    if (homeFilled === 0)
+      throw new Error("Hemmalag-lineup är tom – lägg till minst en spelare.");
+    if (!data.homeSlots.teamCode)
+      throw new Error("Logotypkod saknas för hemmalaget.");
+    if (!data.awaySlots.teamCode)
+      throw new Error("Logotypkod saknas för bortalaget.");
 
     const season = getSeason(data.season) ?? DEFAULT_SEASON;
     const { fetchFullStandings } = await import("./stats.server");
