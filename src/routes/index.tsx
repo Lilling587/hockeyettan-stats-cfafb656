@@ -79,11 +79,9 @@ const teamsQueryOptions = (season: string) =>
     staleTime: 60 * 60 * 1000,
   });
 
-const pendingQueryOptions = queryOptions({
-  queryKey: ["season-detections"],
-  queryFn: () => listPendingSeasons(),
-  staleTime: 5 * 60 * 1000,
-});
+// Pending-season detections are admin-only server-side. The query is enabled
+// from the component only when the current user is verified as admin.
+
 
 function RouteError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
