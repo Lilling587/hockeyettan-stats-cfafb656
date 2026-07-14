@@ -7,6 +7,8 @@ export type NotificationPrefs = {
   email: string;
   favorite_team: string;
   enabled: boolean;
+  digest_enabled: boolean;
+  digest_dow: number;
 };
 
 export const getMyNotificationPrefs = createServerFn({ method: "GET" })
@@ -15,13 +17,19 @@ export const getMyNotificationPrefs = createServerFn({ method: "GET" })
     const { supabase, userId, claims } = context;
     const { data, error } = await supabase
       .from("notification_prefs")
-      .select("email, favorite_team, enabled")
+      .select("email, favorite_team, enabled, digest_enabled, digest_dow")
       .eq("user_id", userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (data) return data as NotificationPrefs;
     const email = (claims?.email as string | undefined) ?? "";
-    return { email, favorite_team: "Grästorps IK", enabled: false };
+    return {
+      email,
+      favorite_team: "Grästorps IK",
+      enabled: false,
+      digest_enabled: false,
+      digest_dow: 1,
+    };
   });
 
 export const saveMyNotificationPrefs = createServerFn({ method: "POST" })
@@ -32,6 +40,8 @@ export const saveMyNotificationPrefs = createServerFn({ method: "POST" })
         email: z.string().email(),
         favorite_team: z.string().min(1).max(120),
         enabled: z.boolean(),
+        digest_enabled: z.boolean(),
+        digest_dow: z.number().int().min(1).max(7),
       })
       .parse(input),
   )
@@ -45,6 +55,8 @@ export const saveMyNotificationPrefs = createServerFn({ method: "POST" })
           email: data.email,
           favorite_team: data.favorite_team,
           enabled: data.enabled,
+          digest_enabled: data.digest_enabled,
+          digest_dow: data.digest_dow,
         },
         { onConflict: "user_id" },
       );
