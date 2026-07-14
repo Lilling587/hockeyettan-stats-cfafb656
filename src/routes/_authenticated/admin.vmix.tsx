@@ -1789,7 +1789,20 @@ function PublicationHistory({
           </span>
         </CardTitle>
       </CardHeader>
-      {open && (
+      {open && loading && (
+        <CardContent className="space-y-1 pt-0">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-2 rounded px-2 py-1.5">
+              <div className="flex-1 space-y-1 py-0.5">
+                <Skeleton className="h-3.5 w-40" />
+                <Skeleton className="h-3 w-56" />
+              </div>
+              <Skeleton className="h-5 w-10" />
+            </div>
+          ))}
+        </CardContent>
+      )}
+      {open && !loading && (
         <CardContent className="space-y-1 pt-0">
           {publications.map((pub) => {
             const isActive = pub.id === activeId;
