@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertTriangle,
   CalendarDays,
   CheckCircle2,
   Copy,
@@ -62,8 +63,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 
 import {
+  Select,
   Select,
   SelectContent,
   SelectItem,
@@ -272,10 +275,41 @@ const presetsQuery = useQuery({
         // Only show restore if draft has actual content (an away team selected).
         if (draft.awayTeam) setHasDraft(true);
       }
-    } catch {
+   } catch {
       // corrupt or missing — ignore
     }
   }, []);
+
+  // Session expiry warning — shows banner 5 minutes before JWT expires.
+  useEffect(() => {
+    let warningTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleWarning = (session: { expires_at?: number } | null) => {
+      if (warningTimer) clearTimeout(warningTimer);
+      if (!session?.expires_at) return;
+      const warnAtMs = session.expires_at * 1000 - 5 * 60 * 1000;
+      const msUntilWarning = warnAtMs - Date.now();
+      if (msUntilWarning <= 0) {
+        setSessionExpiryWarning(true);
+        return;
+      }
+      setSessionExpiryWarning(false);
+      warningTimer = setTimeout(() => setSessionExpiryWarning(true), msUntilWarning);
+    };
+
+    supabase.auth.getSession().then(({ data }) => scheduleWarning(data.session));
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSessionExpiryWarning(false);
+      scheduleWarning(session);
+    });
+
+    return () => {
+      if (warningTimer) clearTimeout(warningTimer);
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
   const prevHomeTeamRef = useRef(homeTeam);
   const prevAwayTeamRef = useRef(awayTeam);
 
@@ -473,8 +507,9 @@ const presetsQuery = useQuery({
       toast.error(`Publicering misslyckades: ${(e as Error).message}`),
   });
 const [showPublishConfirm, setShowPublishConfirm] = useState(false);
-  const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
+const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
+const [showResetConfirm, setShowResetConfirm] = useState(false);
+const [sessionExpiryWarning, setSessionExpiryWarning] = useState(false);
   const [lastDiff, setLastDiff] = useState<SlotDiff[] | null>(null);
   const prePublishRef = useRef<VmixPublicationRow | null>(null);
   const unpublishMut = useMutation({
@@ -561,6 +596,20 @@ const restoreMut = useMutation({
     }
   };
 
+  // Warn before closing/navigating away if lineup slots are filled.
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      const h = countFilledSlots(homeSlots);
+      const a = countFilledSlots(awaySlots);
+      if (h.goalies + h.skaters + a.goalies + a.skaters > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [homeSlots, awaySlots]);
+
   const [autoFetchTrigger, setAutoFetchTrigger] = useState(0);
 
   useEffect(() => {
@@ -637,6 +686,22 @@ const restoreMut = useMutation({
     <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
       <header className="space-y-4">
         <AdminNav />
+        {sessionExpiryWarning && (
+          <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span className="flex-1">
+              Din inloggning går snart ut. Logga ut och in igen för att undvika problem under sändningen.
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => setSessionExpiryWarning(false)}
+            >
+              Stäng
+            </Button>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold">vMix broadcast data</h1>
