@@ -1,0 +1,62 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { getActivePublication } from "@/lib/vmix.functions";
+
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Cache-Control": "public, max-age=30, stale-while-revalidate=60",
+  "Content-Type": "application/json; charset=utf-8",
+};
+
+const SWEDISH_MONTHS = [
+  "JAN", "FEB", "MAR", "APR", "MAJ", "JUN",
+  "JUL", "AUG", "SEP", "OKT", "NOV", "DEC",
+];
+
+function formatGameDate(dateStr: string | null): string {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(`${dateStr}T12:00:00Z`);
+    return `${d.getUTCDate()} ${SWEDISH_MONTHS[d.getUTCMonth()]}`;
+  } catch {
+    return dateStr;
+  }
+}
+
+export const Route = createFileRoute("/api/public/vmix/titlecard")({
+  server: {
+    handlers: {
+      OPTIONS: async () =>
+        new Response(null, { status: 204, headers: CORS_HEADERS }),
+
+      GET: async () => {
+        const pub = await getActivePublication();
+
+        if (!pub) {
+          return new Response(
+            JSON.stringify([
+              "Ingen aktiv publicering – publicera via admin-sidan",
+            ]),
+            { status: 200, headers: CORS_HEADERS },
+          );
+        }
+
+        const payload = {
+          "HomeTeam.Text": pub.homeTeam.toUpperCase(),
+          "AwayTeam.Text": pub.awayTeam.toUpperCase(),
+          "HomeTeamShort.Text": pub.homeSlots.teamCode,
+          "AwayTeamShort.Text": pub.awaySlots.teamCode,
+          "GameDate.Text": formatGameDate(pub.gameDate),
+          "Venue.Text": pub.venue ?? "",
+          "League.Text": "HOCKEYETTAN SÖDRA",
+        };
+
+        return new Response(JSON.stringify([payload]), {
+          status: 200,
+          headers: CORS_HEADERS,
+        });
+      },
+    },
+  },
+});
