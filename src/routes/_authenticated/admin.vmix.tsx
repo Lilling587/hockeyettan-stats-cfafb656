@@ -609,6 +609,26 @@ const restoreMut = useMutation({
     return () => window.removeEventListener('beforeunload', handler);
   }, [homeSlots, awaySlots]);
 
+  // Supabase Realtime — keep publication status in sync across all open
+  // tabs and devices. Any publish/restore/unpublish from another browser
+  // immediately refreshes the active publication and history here too.
+  useEffect(() => {
+    const channel = supabase
+      .channel("vmix-publications-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "vmix_publications" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["vmix-active"] });
+          queryClient.invalidateQueries({ queryKey: ["vmix-history"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const [autoFetchTrigger, setAutoFetchTrigger] = useState(0);
 
   useEffect(() => {
