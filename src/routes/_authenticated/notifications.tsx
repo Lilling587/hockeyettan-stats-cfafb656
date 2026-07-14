@@ -54,6 +54,8 @@ function NotificationsPage() {
   const [email, setEmail] = useState("");
   const [favorite, setFavorite] = useState("Grästorps IK");
   const [enabled, setEnabled] = useState(false);
+  const [digestEnabled, setDigestEnabled] = useState(false);
+  const [digestDow, setDigestDow] = useState<number>(1);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
 
@@ -62,6 +64,8 @@ function NotificationsPage() {
       setEmail(prefsQuery.data.email);
       setFavorite(prefsQuery.data.favorite_team);
       setEnabled(prefsQuery.data.enabled);
+      setDigestEnabled(prefsQuery.data.digest_enabled);
+      setDigestDow(prefsQuery.data.digest_dow);
     }
   }, [prefsQuery.data]);
 
