@@ -69,7 +69,6 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        email: z.string().email(),
         favorite_team: z.string().min(1).max(120),
       })
       .parse(input),
