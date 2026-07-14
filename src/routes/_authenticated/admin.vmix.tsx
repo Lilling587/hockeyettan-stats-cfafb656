@@ -914,7 +914,7 @@ const restoreMut = useMutation({
           </span>
         )}
         {lastDiff && lastDiff.length > 0 && (
-          <div className="w-full text-xs space-y-0.5 border-t pt-2 mt-1 max-h-32 overflow-y-auto pr-1">
+          <div className="w-full text-xs space-y-0.5 border-t pt-2 mt-1">
             <p className="font-medium text-muted-foreground">Senaste ändringar:</p>
             {lastDiff.map((d) => (
               <p key={d.slot} className="text-muted-foreground">
