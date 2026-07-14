@@ -911,7 +911,7 @@ const restoreMut = useMutation({
           </CardContent>
         )}
       </Card>
-      <div className="space-y-2 sticky bottom-2 bg-background/95 backdrop-blur border rounded-lg p-3">
+      <div className="space-y-2 bg-background/95 backdrop-blur border rounded-lg p-3">
         {publishWarnings.length > 0 && (
           <div className="space-y-1">
             {publishWarnings.map((w) => (
