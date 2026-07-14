@@ -8,6 +8,7 @@ const paths = [
   ".tanstack",
   ".nitro",
   "tsconfig.tsbuildinfo",
+  "node_modules/.vite",
 ];
 
 async function clean() {
