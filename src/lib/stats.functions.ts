@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireAdmin } from "@/integrations/supabase/admin-middleware";
 import { DEFAULT_SEASON, getSeason, type Season } from "./seasons.config";
 
 async function resolveSeason(label?: string | null): Promise<Season> {
