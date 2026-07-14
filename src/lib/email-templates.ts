@@ -7,7 +7,10 @@ export type PregameEmailInput = {
   away: string;
   dateISO: string;
   briefingUrl: string;
+  unsubscribeUrl: string;
+  manageUrl: string;
 };
+
 
 export function renderPregameEmail(input: PregameEmailInput): {
   subject: string;

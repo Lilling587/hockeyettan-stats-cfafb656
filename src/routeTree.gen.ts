@@ -23,6 +23,7 @@ import { Route as AuthenticatedConnectRouteImport } from './routes/_authenticate
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as TvHomeAwayRouteImport } from './routes/tv.$home.$away'
+import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
 import { Route as AuthenticatedAdminVmixRouteImport } from './routes/_authenticated/admin.vmix'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin.logs'
@@ -107,6 +108,11 @@ const Char91DotmcpChar93ListToolsRoute =
 const TvHomeAwayRoute = TvHomeAwayRouteImport.update({
   id: '/tv/$home/$away',
   path: '/tv/$home/$away',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
+  id: '/api/public/unsubscribe',
+  path: '/api/public/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminVmixRoute = AuthenticatedAdminVmixRouteImport.update({
@@ -202,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vmix': typeof AuthenticatedAdminVmixRoute
+  '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/tv/$home/$away': typeof TvHomeAwayRoute
   '/api/public/hooks/postgame-emails': typeof ApiPublicHooksPostgameEmailsRoute
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByTo {
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vmix': typeof AuthenticatedAdminVmixRoute
+  '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/tv/$home/$away': typeof TvHomeAwayRoute
   '/api/public/hooks/postgame-emails': typeof ApiPublicHooksPostgameEmailsRoute
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/vmix': typeof AuthenticatedAdminVmixRoute
+  '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
   '/tv/$home/$away': typeof TvHomeAwayRoute
   '/api/public/hooks/postgame-emails': typeof ApiPublicHooksPostgameEmailsRoute
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
@@ -290,6 +299,7 @@ export interface FileRouteTypes {
     | '/admin/logs'
     | '/admin/users'
     | '/admin/vmix'
+    | '/api/public/unsubscribe'
     | '/tv/$home/$away'
     | '/api/public/hooks/postgame-emails'
     | '/api/public/hooks/pregame-emails'
@@ -318,6 +328,7 @@ export interface FileRouteTypes {
     | '/admin/logs'
     | '/admin/users'
     | '/admin/vmix'
+    | '/api/public/unsubscribe'
     | '/tv/$home/$away'
     | '/api/public/hooks/postgame-emails'
     | '/api/public/hooks/pregame-emails'
@@ -347,6 +358,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/logs'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/vmix'
+    | '/api/public/unsubscribe'
     | '/tv/$home/$away'
     | '/api/public/hooks/postgame-emails'
     | '/api/public/hooks/pregame-emails'
@@ -369,6 +381,7 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   IndexIndexRoute: typeof IndexIndexRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
   TvHomeAwayRoute: typeof TvHomeAwayRoute
   ApiPublicHooksPostgameEmailsRoute: typeof ApiPublicHooksPostgameEmailsRoute
   ApiPublicHooksPregameEmailsRoute: typeof ApiPublicHooksPregameEmailsRoute
@@ -476,6 +489,13 @@ declare module '@tanstack/react-router' {
       path: '/tv/$home/$away'
       fullPath: '/tv/$home/$away'
       preLoaderRoute: typeof TvHomeAwayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/unsubscribe': {
+      id: '/api/public/unsubscribe'
+      path: '/api/public/unsubscribe'
+      fullPath: '/api/public/unsubscribe'
+      preLoaderRoute: typeof ApiPublicUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/vmix': {
@@ -611,6 +631,7 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   IndexIndexRoute: IndexIndexRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
   TvHomeAwayRoute: TvHomeAwayRoute,
   ApiPublicHooksPostgameEmailsRoute: ApiPublicHooksPostgameEmailsRoute,
   ApiPublicHooksPregameEmailsRoute: ApiPublicHooksPregameEmailsRoute,
