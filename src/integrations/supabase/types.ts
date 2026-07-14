@@ -221,6 +221,8 @@ export type Database = {
       notification_prefs: {
         Row: {
           created_at: string
+          digest_dow: number
+          digest_enabled: boolean
           email: string
           enabled: boolean
           favorite_team: string
@@ -229,6 +231,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          digest_dow?: number
+          digest_enabled?: boolean
           email: string
           enabled?: boolean
           favorite_team?: string
@@ -237,6 +241,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          digest_dow?: number
+          digest_enabled?: boolean
           email?: string
           enabled?: boolean
           favorite_team?: string
