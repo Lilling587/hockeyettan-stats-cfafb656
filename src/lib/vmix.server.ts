@@ -78,14 +78,52 @@ function isRightWing(pos: string | null): boolean {
   return (pos ?? "").toUpperCase().trim() === "RW";
 }
 
+/** Fetch with an automatic 10-second abort timeout. If swehockey hangs
+ *  instead of refusing, this fails fast rather than blocking the worker. */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10_000);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Retry an async operation up to maxAttempts times with exponential backoff.
+ *  Delays: 500 ms → 1 000 ms → 2 000 ms. Handles transient swehockey 503s. */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts = 3,
+  baseDelayMs = 500,
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxAttempts - 1) {
+        await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
+      }
+    }
+  }
+  throw lastError;
+}
+
 export async function scrapeTeamRoster(
   teamName: string,
   season: Season,
 ): Promise<RosterPlayer[]> {
   const url = `${STATS_BASE_URL}/Teams/Info/TeamRoster/${season.competitionId}`;
-  const res = await fetch(url, {
-    headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-  });
+  const res = await withRetry(() =>
+    fetchWithTimeout(url, {
+      headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
+    }),
+  );
   if (!res.ok) throw new Error(`Roster fetch failed: ${res.status}`);
   const html = await res.text();
 
@@ -227,9 +265,11 @@ export async function scrapeTeamCodes(
   season: Season,
 ): Promise<Record<string, string>> {
   const url = `${STATS_BASE_URL}/Teams/Info/TeamRoster/${season.competitionId}`;
-  const res = await fetch(url, {
-    headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-  });
+  const res = await withRetry(() =>
+    fetchWithTimeout(url, {
+      headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
+    }),
+  );
   if (!res.ok) throw new Error(`Team codes fetch failed: ${res.status}`);
   const html = await res.text();
 
