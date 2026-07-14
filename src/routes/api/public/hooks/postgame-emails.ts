@@ -9,9 +9,15 @@ export const Route = createFileRoute("/api/public/hooks/postgame-emails")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = request.headers.get("apikey");
-        const expected = process.env.SUPABASE_PUBLISHABLE_KEY;
-        if (!expected || apiKey !== expected) {
+        // Require a shared secret Bearer token so only the configured cron
+        // caller can trigger mass email sends. The Supabase publishable key
+        // is public and MUST NOT be used to gate this endpoint.
+        const expected = process.env.CRON_SECRET;
+        const auth = request.headers.get("authorization") ?? "";
+        const provided = auth.toLowerCase().startsWith("bearer ")
+          ? auth.slice(7).trim()
+          : "";
+        if (!expected || !provided || provided !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
 
