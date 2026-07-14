@@ -131,6 +131,72 @@ function escapeHtml(s: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
+
+export type DigestGame = {
+  dateISO: string;
+  home: string;
+  away: string;
+  isHome: boolean;
+  opponent: string;
+};
+
+export type DigestEmailInput = {
+  favoriteTeam: string;
+  weekLabel: string;
+  games: DigestGame[];
+  briefingUrl: string;
+  unsubscribeUrl: string;
+  manageUrl: string;
+};
+
+export function renderDigestEmail(input: DigestEmailInput): {
+  subject: string;
+  html: string;
+  text: string;
+} {
+  const { favoriteTeam, weekLabel, games, briefingUrl, unsubscribeUrl, manageUrl } = input;
+  const count = games.length;
+  const subject =
+    count === 0
+      ? `${favoriteTeam} — inga matcher denna vecka (${weekLabel})`
+      : `${favoriteTeam} — ${count} match${count === 1 ? "" : "er"} denna vecka (${weekLabel})`;
+
+  const textLines = games.length
+    ? games.map(
+        (g) =>
+          `  ${g.dateISO}  ${g.home} vs ${g.away}  (${g.isHome ? "hemma" : "borta"} mot ${g.opponent})`,
+      )
+    : ["  Inga matcher denna vecka."];
+  const text = `Veckans matcher för ${favoriteTeam} (${weekLabel}):\n${textLines.join("\n")}\n\nBriefing: ${briefingUrl}\n\nHantera notiser: ${manageUrl}\nAvregistrera: ${unsubscribeUrl}\n`;
+
+  const rowsHtml = games.length
+    ? games
+        .map(
+          (g) =>
+            `<tr><td style="padding:8px 12px 8px 0;color:#94a3b8;font-family:ui-monospace,Menlo,monospace;font-size:12px;white-space:nowrap">${escapeHtml(g.dateISO)}</td><td style="padding:8px 0;color:#e5e7eb;font-size:14px">${escapeHtml(g.home)} <span style="color:#64748b">vs</span> ${escapeHtml(g.away)}</td><td style="padding:8px 0 8px 12px;text-align:right;color:#94a3b8;font-size:12px;white-space:nowrap">${g.isHome ? "hemma" : "borta"}</td></tr>`,
+        )
+        .join("")
+    : `<tr><td style="padding:12px 0;color:#94a3b8;font-size:14px">Inga matcher denna vecka.</td></tr>`;
+
+  const html = `<!doctype html>
+<html><body style="margin:0;padding:24px;background:#0b1220;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#e5e7eb">
+  <div style="max-width:560px;margin:0 auto;background:#111827;border:1px solid #1f2937;border-radius:12px;padding:28px">
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#22d3ee">Veckans digest · ${escapeHtml(weekLabel)}</div>
+    <h1 style="margin:8px 0 4px;font-size:22px;line-height:1.25;color:#f8fafc">${escapeHtml(favoriteTeam)}</h1>
+    <p style="margin:0 0 16px;color:#cbd5e1;font-size:14px">${count === 0 ? "Inga matcher denna vecka." : `${count} match${count === 1 ? "" : "er"} kommer.`}</p>
+    <table style="width:100%;border-collapse:collapse;margin:0 0 20px"><tbody>${rowsHtml}</tbody></table>
+    <a href="${escapeAttr(briefingUrl)}" style="display:inline-block;background:#22d3ee;color:#0b1220;font-weight:600;text-decoration:none;padding:10px 16px;border-radius:8px;font-size:14px">Öppna briefing →</a>
+    <p style="margin:24px 0 0;color:#64748b;font-size:11px;line-height:1.6">
+      Du får detta veckobrev för att du aktiverat digest-notiser.<br>
+      <a href="${escapeAttr(manageUrl)}" style="color:#94a3b8;text-decoration:underline">Hantera notiser</a>
+      &nbsp;·&nbsp;
+      <a href="${escapeAttr(unsubscribeUrl)}" style="color:#94a3b8;text-decoration:underline">Avregistrera</a>
+    </p>
+  </div>
+</body></html>`;
+
+  return { subject, html, text };
+}
 function escapeAttr(s: string): string {
   return escapeHtml(s).replace(/"/g, "&quot;");
 }
