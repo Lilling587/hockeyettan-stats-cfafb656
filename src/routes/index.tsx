@@ -137,8 +137,6 @@ export const Route = createFileRoute("/")({
     if (defaultSeason) {
       defaultTeams = await context.queryClient.ensureQueryData(teamsQueryOptions(defaultSeason));
     }
-    // Preload non-critical dashboard queries so initial render skips spinner state.
-    void context.queryClient.prefetchQuery(pendingQueryOptions);
     return { seasons, defaultSeason, defaultTeams };
   },
   errorComponent: RouteError,
