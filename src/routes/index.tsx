@@ -79,11 +79,9 @@ const teamsQueryOptions = (season: string) =>
     staleTime: 60 * 60 * 1000,
   });
 
-const pendingQueryOptions = queryOptions({
-  queryKey: ["season-detections"],
-  queryFn: () => listPendingSeasons(),
-  staleTime: 5 * 60 * 1000,
-});
+// Pending-season detections are admin-only server-side. The query is enabled
+// from the component only when the current user is verified as admin.
+
 
 function RouteError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
@@ -139,8 +137,6 @@ export const Route = createFileRoute("/")({
     if (defaultSeason) {
       defaultTeams = await context.queryClient.ensureQueryData(teamsQueryOptions(defaultSeason));
     }
-    // Preload non-critical dashboard queries so initial render skips spinner state.
-    void context.queryClient.prefetchQuery(pendingQueryOptions);
     return { seasons, defaultSeason, defaultTeams };
   },
   errorComponent: RouteError,
@@ -173,18 +169,10 @@ function Dashboard() {
     staleTime: 24 * 60 * 60 * 1000,
   });
 
-  const pendingQuery = useQuery({
-    queryKey: ["season-detections"],
-    queryFn: () => fetchPending(),
-    staleTime: 5 * 60 * 1000,
-  });
+  // pendingQuery and runScan are declared after adminQuery below, since both
+  // now require the caller to be an admin (enforced by requireAdmin middleware
+  // on the server functions).
 
-  useEffect(() => {
-    runScan({ data: {} })
-      .then(() => qc.invalidateQueries({ queryKey: ["season-detections"] }))
-      .catch((e) => console.warn("[season-scan] failed:", e));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const [season, setSeason] = useState<string>(loaderData.defaultSeason);
   const activeSeason =
@@ -256,6 +244,23 @@ function Dashboard() {
     queryFn: () => adminFn(),
     enabled: !!user,
   });
+
+  const isAdmin = !!adminQuery.data?.isAdmin;
+
+  const pendingQuery = useQuery({
+    queryKey: ["season-detections"],
+    queryFn: () => fetchPending(),
+    staleTime: 5 * 60 * 1000,
+    enabled: isAdmin,
+  });
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    runScan({ data: {} })
+      .then(() => qc.invalidateQueries({ queryKey: ["season-detections"] }))
+      .catch((e) => console.warn("[season-scan] failed:", e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

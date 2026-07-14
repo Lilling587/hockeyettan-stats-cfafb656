@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireAdmin } from "@/integrations/supabase/admin-middleware";
 import { DEFAULT_SEASON, getSeason, type Season } from "./seasons.config";
 
 async function resolveSeason(label?: string | null): Promise<Season> {
@@ -224,6 +225,7 @@ export const getMatchupBriefing = createServerFn({ method: "POST" })
 // ---------- Season detection / confirmation ----------
 
 export const scanForNewSeasons = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .inputValidator((input: unknown) =>
     z.object({ force: z.boolean().optional() }).parse(input ?? {}),
   )
@@ -232,15 +234,16 @@ export const scanForNewSeasons = createServerFn({ method: "POST" })
     return runSeasonScan({ force: data.force });
   });
 
-export const listPendingSeasons = createServerFn({ method: "GET" }).handler(
-  async () => {
+export const listPendingSeasons = createServerFn({ method: "GET" })
+  .middleware([requireAdmin])
+  .handler(async () => {
     const { listPendingDetections } = await import("./seasons.server");
     const pending = await listPendingDetections();
     return { pending };
-  },
-);
+  });
 
 export const confirmSeasonDetection = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -256,6 +259,7 @@ export const confirmSeasonDetection = createServerFn({ method: "POST" })
   });
 
 export const dismissSeasonDetection = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
     const { dismissDetection } = await import("./seasons.server");
