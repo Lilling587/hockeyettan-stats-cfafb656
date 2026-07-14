@@ -290,7 +290,22 @@ const presetsQuery = useQuery({
     for (const c of codesQuery.data ?? []) m[c.teamName] = c.logoCode;
     return m;
   }, [codesQuery.data]);
-
+// Filter presets to show only those involving the currently selected teams.
+  const relevantPresets = useMemo(() => {
+    const all = presetsQuery.data ?? [];
+    if (!awayTeam) return { shown: all, hiddenCount: 0 };
+    const matched = all.filter(
+      (p) =>
+        p.homeTeam === homeTeam ||
+        p.awayTeam === homeTeam ||
+        p.homeTeam === awayTeam ||
+        p.awayTeam === awayTeam,
+    );
+    return {
+      shown: matched.length > 0 ? matched : all,
+      hiddenCount: matched.length > 0 ? all.length - matched.length : 0,
+    };
+  }, [presetsQuery.data, homeTeam, awayTeam]);
   // Combined team-sync + auto-fill effect. Merging these into one effect
   // is critical: if team-sync ran as a separate earlier effect, its
   // setState callback would update prev.team BEFORE the auto-fill
@@ -367,8 +382,8 @@ const presetsQuery = useQuery({
           label: presetLabel.trim(),
           homeTeam,
           awayTeam,
-          homeSlots: homeSlots as unknown as Record<string, unknown>,
-          awaySlots: awaySlots as unknown as Record<string, unknown>,
+          homeSlots,
+        awaySlots,
         },
       });
       await queryClient.invalidateQueries({ queryKey: ["vmix-presets"] });
