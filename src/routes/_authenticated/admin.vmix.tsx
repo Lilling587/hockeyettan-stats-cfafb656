@@ -580,6 +580,34 @@ const restoreMut = useMutation({
     if (awayTeam && !awaySlots.teamCode) warnings.push("Logotypkod saknas för bortalaget");
     return warnings;
   }, [homeSlots, awaySlots, awayTeam]);
+
+  const readinessChecks = useMemo(() => {
+    const h = countFilledSlots(homeSlots);
+    const a = countFilledSlots(awaySlots);
+    return [
+      {
+        label: "Bortalag valt",
+        status: awayTeam ? "ok" : "error",
+      },
+      {
+        label: "Aktiv publicering",
+        status: activeQuery.data ? "ok" : "error",
+      },
+      {
+        label: `Hemma-lineup · ${h.goalies} MV · ${h.skaters} utespel.`,
+        status: h.goalies > 0 && h.skaters >= 6 ? "ok" : h.goalies > 0 ? "warn" : "error",
+      },
+      {
+        label: `Borta-lineup · ${a.goalies} MV · ${a.skaters} utespel.`,
+        status: !awayTeam ? "warn" : a.goalies > 0 && a.skaters >= 6 ? "ok" : a.goalies > 0 ? "warn" : "error",
+      },
+      {
+        label: `Logotypkoder · ${codesQuery.data?.length ?? 0} lag`,
+        status: (codesQuery.data?.length ?? 0) > 0 ? "ok" : "error",
+      },
+    ] as { label: string; status: "ok" | "warn" | "error" }[];
+  }, [homeSlots, awaySlots, awayTeam, activeQuery.data, codesQuery.data]);
+
   const todaysQuery = useQuery({
     queryKey: ["vmix-todays-matchup"],
     queryFn: () => fetchTodays({ data: {} }),
