@@ -80,6 +80,15 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
       throw new Error("Email provider not configured");
     }
 
+    // Recipient is always the caller's own verified account email — never a
+    // client-supplied address — so the test-send feature can't be used to
+    // deliver branded mail to third parties.
+    const recipient = (context.claims?.email as string | undefined) ?? "";
+    if (!recipient) {
+      throw new Error("Your account has no verified email address");
+    }
+
+
     const { findMatchupOnDate } = await import("@/lib/stats.server");
     const { DEFAULT_SEASON } = await import("@/lib/seasons.config");
     const { signUnsubscribeToken } = await import("@/lib/unsubscribe-token.server");
