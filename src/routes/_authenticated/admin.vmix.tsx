@@ -1768,7 +1768,7 @@ function PublicationHistory({
 }) {
   const [open, setOpen] = useState(false);
 
-  if (loading || publications.length === 0) return null;
+  if (!loading && publications.length === 0) return null;
 
   return (
     <Card>
@@ -1779,9 +1779,11 @@ function PublicationHistory({
         <CardTitle className="text-base flex items-center gap-2">
           <CalendarDays className="h-4 w-4" />
           Publiceringshistorik
-          <Badge variant="outline" className="ml-1 text-[10px]">
-            {publications.length}
-          </Badge>
+          {!loading && (
+            <Badge variant="outline" className="ml-1 text-[10px]">
+              {publications.length}
+            </Badge>
+          )}
           <span className="ml-auto text-xs text-muted-foreground font-normal">
             {open ? "Dölj" : "Visa"}
           </span>
