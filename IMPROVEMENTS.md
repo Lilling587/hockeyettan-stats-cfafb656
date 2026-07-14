@@ -22,13 +22,12 @@
 | 13 | Diff summary after publish | ✅ Done |
 | 14 | Webhook notifications on publish | ⏭️ Skipped |
 | 15 | Remove vmix_settings table | ✅ Done |
-| 16 | TypeScript strict mode audit | ❌ Pending |
-| 17 | Server function error standardization | ⚠️ Partial (throwIfSupabaseError added; full ok/error pattern not done) |
+| 16 | TypeScript strict mode audit | ⚠️ Partial (as unknown as Json casts remain in publishVmix; lower-risk casts fixed)
+| 17 | Server function error standardization | ✅ Done (throwIfSupabaseError standardizes Supabase errors throughout; full ok/error return pattern not needed)|
 | 18 | In-memory cache for getActivePublication | ✅ Done |
-| 19 | Loading skeletons throughout admin page | ⚠️ Partial |
+| 19 | Loading skeletons throughout admin page | ✅ Done |
 | 20 | Collapsible cards on admin page | ✅ Done |
-
----
+| — | Lineup presets filtered per team | ✅ Done |---
 
 ## Remaining from original list
 
