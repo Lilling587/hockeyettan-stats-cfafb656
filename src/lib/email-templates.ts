@@ -17,13 +17,13 @@ export function renderPregameEmail(input: PregameEmailInput): {
   html: string;
   text: string;
 } {
-  const { favoriteTeam, home, away, dateISO, briefingUrl } = input;
+  const { favoriteTeam, home, away, dateISO, briefingUrl, unsubscribeUrl, manageUrl } = input;
   const isHome = home === favoriteTeam;
   const opponent = isHome ? away : home;
   const venue = isHome ? "home" : "away";
 
   const subject = `${favoriteTeam} plays today — ${home} vs ${away}`;
-  const text = `${favoriteTeam} plays ${opponent} (${venue}) today, ${dateISO}.\n\nFull producer briefing: ${briefingUrl}\n`;
+  const text = `${favoriteTeam} plays ${opponent} (${venue}) today, ${dateISO}.\n\nFull producer briefing: ${briefingUrl}\n\nManage notifications: ${manageUrl}\nUnsubscribe: ${unsubscribeUrl}\n`;
 
   const html = `<!doctype html>
 <html><body style="margin:0;padding:24px;background:#0b1220;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#e5e7eb">
@@ -39,11 +39,15 @@ export function renderPregameEmail(input: PregameEmailInput): {
        style="display:inline-block;background:#22d3ee;color:#0b1220;font-weight:600;text-decoration:none;padding:10px 16px;border-radius:8px;font-size:14px">
       Open producer briefing →
     </a>
-    <p style="margin:24px 0 0;color:#64748b;font-size:11px">
-      You're getting this because you enabled game-day notifications.
+    <p style="margin:24px 0 0;color:#64748b;font-size:11px;line-height:1.6">
+      You're getting this because you enabled game-day notifications.<br>
+      <a href="${escapeAttr(manageUrl)}" style="color:#94a3b8;text-decoration:underline">Manage notifications</a>
+      &nbsp;·&nbsp;
+      <a href="${escapeAttr(unsubscribeUrl)}" style="color:#94a3b8;text-decoration:underline">Unsubscribe</a>
     </p>
   </div>
 </body></html>`;
+
 
   return { subject, html, text };
 }
