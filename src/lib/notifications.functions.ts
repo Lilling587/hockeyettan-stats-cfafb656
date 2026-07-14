@@ -69,7 +69,6 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        email: z.string().email(),
         favorite_team: z.string().min(1).max(120),
       })
       .parse(input),
@@ -80,6 +79,15 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
     if (!lovableKey || !resendKey) {
       throw new Error("Email provider not configured");
     }
+
+    // Recipient is always the caller's own verified account email — never a
+    // client-supplied address — so the test-send feature can't be used to
+    // deliver branded mail to third parties.
+    const recipient = (context.claims?.email as string | undefined) ?? "";
+    if (!recipient) {
+      throw new Error("Your account has no verified email address");
+    }
+
 
     const { findMatchupOnDate } = await import("@/lib/stats.server");
     const { DEFAULT_SEASON } = await import("@/lib/seasons.config");
@@ -129,7 +137,7 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
       },
       body: JSON.stringify({
         from: "HockeyEttan Briefing <onboarding@resend.dev>",
-        to: [data.email],
+        to: [recipient],
         subject: `[TEST] ${subject}`,
         html,
         text,

@@ -32,6 +32,7 @@ import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminAssetsRouteImport } from './routes/_authenticated/admin.assets'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as ApiPublicVmixTitlecardRouteImport } from './routes/api/public/vmix/titlecard'
 import { Route as ApiPublicVmixStandingsRouteImport } from './routes/api/public/vmix/standings'
 import { Route as ApiPublicVmixCurrentRouteImport } from './routes/api/public/vmix/current'
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
@@ -160,6 +161,11 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicVmixTitlecardRoute = ApiPublicVmixTitlecardRouteImport.update({
+  id: '/api/public/vmix/titlecard',
+  path: '/api/public/vmix/titlecard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicVmixStandingsRoute = ApiPublicVmixStandingsRouteImport.update({
   id: '/api/public/vmix/standings',
   path: '/api/public/vmix/standings',
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/vmix/current': typeof ApiPublicVmixCurrentRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
+  '/api/public/vmix/titlecard': typeof ApiPublicVmixTitlecardRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
 }
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/vmix/current': typeof ApiPublicVmixCurrentRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
+  '/api/public/vmix/titlecard': typeof ApiPublicVmixTitlecardRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
 }
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/vmix/current': typeof ApiPublicVmixCurrentRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
+  '/api/public/vmix/titlecard': typeof ApiPublicVmixTitlecardRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
 }
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/weekly-digest'
     | '/api/public/vmix/current'
     | '/api/public/vmix/standings'
+    | '/api/public/vmix/titlecard'
     | '/lovable/email/queue/process'
     | '/api/public/vmix/lineup/$version'
   fileRoutesByTo: FileRoutesByTo
@@ -346,6 +356,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/weekly-digest'
     | '/api/public/vmix/current'
     | '/api/public/vmix/standings'
+    | '/api/public/vmix/titlecard'
     | '/lovable/email/queue/process'
     | '/api/public/vmix/lineup/$version'
   id:
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/weekly-digest'
     | '/api/public/vmix/current'
     | '/api/public/vmix/standings'
+    | '/api/public/vmix/titlecard'
     | '/lovable/email/queue/process'
     | '/api/public/vmix/lineup/$version'
   fileRoutesById: FileRoutesById
@@ -401,6 +413,7 @@ export interface RootRouteChildren {
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicVmixCurrentRoute: typeof ApiPublicVmixCurrentRoute
   ApiPublicVmixStandingsRoute: typeof ApiPublicVmixStandingsRoute
+  ApiPublicVmixTitlecardRoute: typeof ApiPublicVmixTitlecardRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   ApiPublicVmixLineupVersionRoute: typeof ApiPublicVmixLineupVersionRoute
 }
@@ -568,6 +581,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/vmix/titlecard': {
+      id: '/api/public/vmix/titlecard'
+      path: '/api/public/vmix/titlecard'
+      fullPath: '/api/public/vmix/titlecard'
+      preLoaderRoute: typeof ApiPublicVmixTitlecardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/vmix/standings': {
       id: '/api/public/vmix/standings'
       path: '/api/public/vmix/standings'
@@ -659,6 +679,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicVmixCurrentRoute: ApiPublicVmixCurrentRoute,
   ApiPublicVmixStandingsRoute: ApiPublicVmixStandingsRoute,
+  ApiPublicVmixTitlecardRoute: ApiPublicVmixTitlecardRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   ApiPublicVmixLineupVersionRoute: ApiPublicVmixLineupVersionRoute,
 }

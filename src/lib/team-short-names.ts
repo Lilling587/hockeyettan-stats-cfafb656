@@ -32,3 +32,7 @@ export function shortTeamName(name: string): string {
   if (upper.length >= 2 && upper.length <= 5) return upper;
   return trimmed.slice(0, 4).toUpperCase();
 }
+
+export const KNOWN_TEAM_NAMES: ReadonlySet<string> = new Set(
+  Object.keys(SHORT_NAMES),
+);

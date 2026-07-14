@@ -13,11 +13,23 @@ export const getTeamLogos = createServerFn({ method: "GET" }).handler(
 
 export const ensureTeamLogo = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
-    z.object({ team: z.string().min(1) }).parse(input),
+    z.object({ team: z.string().min(1).max(120) }).parse(input),
   )
   .handler(async ({ data }): Promise<{ team: string; url: string | null }> => {
     try {
-      const { ensureLogoForTeam } = await import("./team-logos.server");
+      // Allow-list against known league teams (static short-name map + any
+      // team already cached) so anonymous callers can't spam arbitrary
+      // strings into the logo cache or trigger outbound scrapes.
+      const { KNOWN_TEAM_NAMES } = await import("./team-short-names");
+      const { ensureLogoForTeam, fetchAllCachedLogos } = await import(
+        "./team-logos.server"
+      );
+      if (!KNOWN_TEAM_NAMES.has(data.team)) {
+        const cached = await fetchAllCachedLogos();
+        if (!(data.team in cached)) {
+          return { team: data.team, url: null };
+        }
+      }
       const url = await ensureLogoForTeam(data.team);
       return { team: data.team, url };
     } catch (error) {

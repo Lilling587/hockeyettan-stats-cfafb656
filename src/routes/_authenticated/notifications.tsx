@@ -95,8 +95,8 @@ function NotificationsPage() {
   const onSendTest = async () => {
     setTesting(true);
     try {
-      await sendTest({ data: { email, favorite_team: favorite } });
-      toast.success(`Test email sent to ${email}`);
+      await sendTest({ data: { favorite_team: favorite } });
+      toast.success("Test email sent to your account address");
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
