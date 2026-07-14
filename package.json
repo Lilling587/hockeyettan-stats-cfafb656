@@ -10,6 +10,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "build:verify": "node scripts/verify-build.mjs",
+    "typecheck": "tsc --noEmit",
     "dev": "vite dev",
     "dev:clean": "bun run clean && vite dev",
     "preview": "vite preview",
