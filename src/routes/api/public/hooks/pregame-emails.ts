@@ -3,18 +3,23 @@ import { renderPregameEmail } from "@/lib/email-templates";
 
 // Daily cron-driven endpoint. For each enabled notification pref, check if the
 // favorite team plays today and send a pre-game email via the Resend connector.
-// Authenticated by the Supabase publishable apikey header (set by pg_cron); the
-// /api/public/* prefix bypasses the platform auth gate, so all checks happen here.
+// Authenticated by a shared CRON_SECRET (Bearer token) known only to the
+// scheduler. The /api/public/* prefix bypasses the platform auth gate, so all
+// checks happen here.
 
 export const Route = createFileRoute("/api/public/hooks/pregame-emails")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        // Lightweight auth check: require a valid apikey header that matches
-        // the project's publishable key. Rejects anonymous callers.
-        const apiKey = request.headers.get("apikey");
-        const expected = process.env.SUPABASE_PUBLISHABLE_KEY;
-        if (!expected || apiKey !== expected) {
+        // Require a shared secret Bearer token so only the configured cron
+        // caller can trigger mass email sends. The Supabase publishable key
+        // is public and MUST NOT be used to gate this endpoint.
+        const expected = process.env.CRON_SECRET;
+        const auth = request.headers.get("authorization") ?? "";
+        const provided = auth.toLowerCase().startsWith("bearer ")
+          ? auth.slice(7).trim()
+          : "";
+        if (!expected || !provided || provided !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
 
