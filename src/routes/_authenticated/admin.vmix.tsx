@@ -515,6 +515,26 @@ const presetsQuery = useQuery({
     }
     setHasDraft(false);
   };
+
+  const handleExportJson = async () => {
+    try {
+      const url = `${window.location.origin}/api/public/vmix/lineup/0?ClubId=570`;
+      const res = await fetch(url, { cache: "no-store" });
+      const text = await res.text();
+      const blob = new Blob([text], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `vmix-lineup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      toast.success("JSON exporterad");
+    } catch (e) {
+      toast.error(`Kunde inte exportera: ${(e as Error).message}`);
+    }
+  };
+
   const publishMut = useMutation({
     mutationFn: () =>
       publish({
@@ -807,6 +827,48 @@ const restoreMut = useMutation({
         </div>
       </header>
 
+      <Card className={`border-2 ${
+        readinessChecks.every((c) => c.status === "ok")
+          ? "border-emerald-500/30"
+          : readinessChecks.some((c) => c.status === "error")
+          ? "border-destructive/30"
+          : "border-amber-500/30"
+      }`}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            {readinessChecks.every((c) => c.status === "ok") ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            ) : readinessChecks.some((c) => c.status === "error") ? (
+              <XCircle className="h-4 w-4 text-destructive" />
+            ) : (
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+            )}
+            Förberedelsekontroll
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {readinessChecks.map((c) => (
+              <div key={c.label} className="flex items-center gap-1.5 text-xs">
+                {c.status === "ok" ? (
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                ) : c.status === "warn" ? (
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                ) : (
+                  <XCircle className="h-3.5 w-3.5 shrink-0 text-destructive" />
+                )}
+                <span className={
+                  c.status === "ok" ? "" :
+                  c.status === "warn" ? "text-amber-500" :
+                  "text-destructive"
+                }>
+                  {c.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
 {hasDraft && sourceMode !== "live-hydrated" && (
         <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
@@ -1105,13 +1167,24 @@ const restoreMut = useMutation({
           )}
           Publicera till vMix
         </Button>
-        <Button
+       <Button
           variant="outline"
           disabled={unpublishMut.isPending || !activeQuery.data}
           onClick={() => setShowUnpublishConfirm(true)}
         >
           Avpublicera
         </Button>
+        {activeQuery.data && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs"
+            onClick={handleExportJson}
+          >
+            <Download className="h-3 w-3 mr-1" />
+            Exportera JSON
+          </Button>
+        )}
         {activeQuery.data && (
           <span className="text-xs text-muted-foreground ml-auto">
             Publicerad{" "}
