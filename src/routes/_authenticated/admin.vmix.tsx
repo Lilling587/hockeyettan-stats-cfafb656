@@ -473,6 +473,8 @@ const presetsQuery = useQuery({
       toast.error(`Publicering misslyckades: ${(e as Error).message}`),
   });
 const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [lastDiff, setLastDiff] = useState<SlotDiff[] | null>(null);
   const prePublishRef = useRef<VmixPublicationRow | null>(null);
   const unpublishMut = useMutation({
@@ -547,6 +549,16 @@ const restoreMut = useMutation({
     setAwayPool([]);
     setSourceMode("manual");
     toast.info("Formuläret återställt – välj lag och ladda spelarlistan.");
+  };
+
+  const handleResetManual = () => {
+    const h = countFilledSlots(homeSlots);
+    const a = countFilledSlots(awaySlots);
+    if (h.goalies + h.skaters + a.goalies + a.skaters > 0) {
+      setShowResetConfirm(true);
+    } else {
+      resetToManual();
+    }
   };
 
   const [autoFetchTrigger, setAutoFetchTrigger] = useState(0);
@@ -768,7 +780,7 @@ const restoreMut = useMutation({
         match={todaysQuery.data?.match ?? null}
         currentHome={homeTeam}
         currentAway={awayTeam}
-        onResetManual={resetToManual}
+        onResetManual={handleResetManual}
         onRerunAuto={rerunAuto}
         hasLive={!!activeQuery.data}
       />
@@ -938,7 +950,7 @@ const restoreMut = useMutation({
         <Button
           variant="outline"
           disabled={unpublishMut.isPending || !activeQuery.data}
-          onClick={() => unpublishMut.mutate()}
+          onClick={() => setShowUnpublishConfirm(true)}
         >
           Avpublicera
         </Button>
@@ -1004,6 +1016,51 @@ const restoreMut = useMutation({
               }}
             >
               Publicera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showUnpublishConfirm} onOpenChange={setShowUnpublishConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Avpublicera sändningen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Du håller på att avpublicera den aktiva sändningen. vMix tappar anslutningen till backup-feeden direkt. Det går inte att ångra utan att publicera igen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                setShowUnpublishConfirm(false);
+                unpublishMut.mutate();
+              }}
+            >
+              Avpublicera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Återställ till manuellt läge?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Du har redan fyllt i spelare i lineup-korten. Om du återställer rensas alla valda spelare. Vill du fortsätta?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowResetConfirm(false);
+                resetToManual();
+              }}
+            >
+              Återställ ändå
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
