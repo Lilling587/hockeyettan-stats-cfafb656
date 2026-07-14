@@ -1723,6 +1723,7 @@ function EndpointTester({
   const [expanded, setExpanded] = useState(false);
   const [results, setResults] = useState<Record<string, EndpointResult>>({});
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const prevResultsRef = useRef<Record<string, EndpointResult>>({});
 
   const runOne = async (url: string) => {
     setResults((r) => ({ ...r, [url]: { ...r[url], status: "loading" } }));
@@ -1737,27 +1738,35 @@ function EndpointTester({
       } catch {
         /* keep as text */
       }
-      setResults((r) => ({
-        ...r,
-        [url]: {
-          status: res.ok ? "ok" : "error",
-          httpStatus: res.status,
-          ms,
-          body,
-          fetchedAt: new Date().toISOString(),
-          error: res.ok ? undefined : `HTTP ${res.status}`,
-        },
-      }));
+      const newResult: EndpointResult = {
+        status: res.ok ? "ok" : "error",
+        httpStatus: res.status,
+        ms,
+        body,
+        fetchedAt: new Date().toISOString(),
+        error: res.ok ? undefined : `HTTP ${res.status}`,
+      };
+      // Alert when auto-refresh detects an endpoint going from ok → error.
+      if (autoRefresh && prevResultsRef.current[url]?.status === "ok" && !res.ok) {
+        const label = endpoints.find((e) => e.url === url)?.label ?? url;
+        toast.error(`⚠ vMix-endpoint nere: ${label} (HTTP ${res.status})`);
+      }
+      prevResultsRef.current = { ...prevResultsRef.current, [url]: newResult };
+      setResults((r) => ({ ...r, [url]: newResult }));
     } catch (e) {
-      setResults((r) => ({
-        ...r,
-        [url]: {
-          status: "error",
-          ms: Math.round(performance.now() - t0),
-          error: (e as Error).message,
-          fetchedAt: new Date().toISOString(),
-        },
-      }));
+      const newResult: EndpointResult = {
+        status: "error",
+        ms: Math.round(performance.now() - t0),
+        error: (e as Error).message,
+        fetchedAt: new Date().toISOString(),
+      };
+      // Alert when auto-refresh detects a network failure after a previously ok state.
+      if (autoRefresh && prevResultsRef.current[url]?.status === "ok") {
+        const label = endpoints.find((e) => e.url === url)?.label ?? url;
+        toast.error(`⚠ vMix-endpoint nere: ${label} – ${(e as Error).message}`);
+      }
+      prevResultsRef.current = { ...prevResultsRef.current, [url]: newResult };
+      setResults((r) => ({ ...r, [url]: newResult }));
     }
   };
 
