@@ -1020,6 +1020,51 @@ const restoreMut = useMutation({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={showUnpublishConfirm} onOpenChange={setShowUnpublishConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Avpublicera sändningen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Du håller på att avpublicera den aktiva sändningen. vMix tappar anslutningen till backup-feeden direkt. Det går inte att ångra utan att publicera igen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                setShowUnpublishConfirm(false);
+                unpublishMut.mutate();
+              }}
+            >
+              Avpublicera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Återställ till manuellt läge?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Du har redan fyllt i spelare i lineup-korten. Om du återställer rensas alla valda spelare. Vill du fortsätta?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowResetConfirm(false);
+                resetToManual();
+              }}
+            >
+              Återställ ändå
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
