@@ -245,7 +245,7 @@ export const publishVmix = createServerFn({ method: "POST" })
       .eq("is_active", true);
   throwIfSupabaseError(deactErr);
 
-    const insertPayload: Record<string, unknown> = {
+    const insertPayload: Database["public"]["Tables"]["vmix_publications"]["Insert"] = {
       game_date: data.gameDate ?? null,
       home_team: data.homeTeam,
       away_team: data.awayTeam,
@@ -261,18 +261,14 @@ export const publishVmix = createServerFn({ method: "POST" })
       published_at: new Date().toISOString(),
     };
 
-    const { data: inserted, error } = await (context.supabase
-      .from("vmix_publications") as unknown as {
-        insert: (v: Record<string, unknown>) => {
-          select: (s: string) => { single: () => Promise<{ data: unknown; error: { message: string } | null }> };
-        };
-      })
+    const { data: inserted, error } = await context.supabase
+      .from("vmix_publications")
       .insert(insertPayload)
       .select("*")
       .single();
-   throwIfSupabaseError(error);
-        _pubCache = null; // Invalidate cache so endpoints serve fresh data.
-    return mapRow(inserted as Record<string, unknown>);
+    throwIfSupabaseError(error);
+    _pubCache = null; // Invalidate cache so endpoints serve fresh data.
+    return mapRow(inserted as unknown as Record<string, unknown>);
 
   });
 
