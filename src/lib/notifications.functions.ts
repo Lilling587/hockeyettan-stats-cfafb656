@@ -137,7 +137,7 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
       },
       body: JSON.stringify({
         from: "HockeyEttan Briefing <onboarding@resend.dev>",
-        to: [data.email],
+        to: [recipient],
         subject: `[TEST] ${subject}`,
         html,
         text,
