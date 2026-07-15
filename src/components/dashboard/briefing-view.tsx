@@ -240,6 +240,10 @@ export function BriefingView({
         <HomeAwaySplitCard home={data.home} away={data.away} />
       </div>
 
+      <div id="last-five-form">
+        <LastFiveFormCard home={data.home} away={data.away} />
+      </div>
+
       <div id="periods" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <PeriodGoalsCard team={data.home} refreshing={refreshing} error={refreshError} />
         <PeriodGoalsCard team={data.away} refreshing={refreshing} error={refreshError} />
