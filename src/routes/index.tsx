@@ -21,22 +21,7 @@ import type { Briefing } from "@/lib/stats.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  AlertCircle,
-  CalendarDays,
-  Check,
-  FolderUp,
-  Info,
-  Loader2,
-  LogOut,
-  RefreshCw,
-  Scale,
-  Settings,
-  Star,
-  Tv,
-  Users,
-  X,
-} from "lucide-react";
+import { AlertCircle, CalendarDays, Check, FolderUp, Info, Loader2, LogOut, Monitor, RefreshCw, Scale, Settings, Star, Tv, Users, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -215,7 +200,8 @@ function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todaysMatchupQuery.data?.match?.date]);
 
-  const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
+const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
+  const [tabletMode, setTabletMode] = useState(false);
   const [user, setUser] = useState<{ email?: string } | null>(null);
   useEffect(() => {
     setFavorite(getFavoriteTeam());
