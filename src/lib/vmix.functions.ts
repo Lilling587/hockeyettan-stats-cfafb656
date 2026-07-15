@@ -128,10 +128,30 @@ function mapRow(row: Record<string, unknown>): VmixPublicationRow {
     isActive: Boolean(row.is_active),
     publishedAt: String(row.published_at),
     updatedAt: String(row.updated_at),
-  };
+};
 }
 
-
+/** Write a non-blocking audit log entry. Never throws — failures are silently ignored. */
+async function logAuditEvent(
+  supabase: import("@supabase/supabase-js").SupabaseClient,
+  userId: string,
+  action: string,
+  details?: Record<string, unknown>,
+): Promise<void> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("vmix_audit_log").insert({
+      action,
+      publication_id: (details?.publicationId as string | null) ?? null,
+      home_team: (details?.homeTeam as string | null) ?? null,
+      away_team: (details?.awayTeam as string | null) ?? null,
+      performed_by: userId,
+      details: details ?? null,
+    });
+  } catch {
+    // Non-blocking — audit failures never break the main operation.
+  }
+}
 
 // ---- Active publication cache ----
 // Reduces Supabase queries during broadcast. vMix polls every 5–15s per
@@ -173,6 +193,34 @@ export type TodayGame = {
 export async function fetchTodaysGames(): Promise<TodayGame[]> {
   const { scrapeLiveGames } = await import("./vmix.server");
   return scrapeLiveGames(DEFAULT_SEASON.competitionId).catch(() => []);
+}
+
+export type PlayerStats = {
+  name: string;
+  team: string;
+  position: string;
+  gamesPlayed: number | null;
+  goals: number | null;
+  assists: number | null;
+  points: number | null;
+};
+
+/** Fetch season stats for a single player by name (LASTNAME, FIRSTNAME format). */
+export async function fetchPlayerStats(playerName: string): Promise<PlayerStats | null> {
+  const { fetchAllLeaguePlayers } = await import("./stats.server");
+  const players = await fetchAllLeaguePlayers(DEFAULT_SEASON);
+  const normalized = playerName.trim().toUpperCase();
+  const found = players.find((p) => p.name.toUpperCase() === normalized);
+  if (!found) return null;
+  return {
+    name: found.name,
+    team: found.team,
+    position: found.position,
+    gamesPlayed: found.gamesPlayed,
+    goals: found.goals,
+    assists: found.assists,
+    points: found.points,
+  };
 }
 
 /**
@@ -302,11 +350,19 @@ export const publishVmix = createServerFn({ method: "POST" })
       .single();
     throwIfSupabaseError(error);
     _pubCache = null; // Invalidate cache so endpoints serve fresh data.
-    return mapRow(inserted as unknown as Record<string, unknown>);
+    const pub = mapRow(inserted as unknown as Record<string, unknown>);
+    await logAuditEvent(context.supabase, context.userId, "publish", {
+      publicationId: pub.id,
+      homeTeam: pub.homeTeam,
+      awayTeam: pub.awayTeam,
+      homePlayers: homeFilled,
+      awayPlayers: SLOT_KEYS.filter((k) => !!data.awaySlots[k]?.name).length,
+    });
+    return pub;
 
   });
 
-export const unpublishVmix = createServerFn({ method: "POST" })
+export const unpublishVmix
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context);
@@ -316,6 +372,7 @@ export const unpublishVmix = createServerFn({ method: "POST" })
       .eq("is_active", true);
    throwIfSupabaseError(error);
         _pubCache = null; // Invalidate cache so endpoints serve fresh data.
+    await logAuditEvent(context.supabase, context.userId, "unpublish");
     return { ok: true };
 
   });
@@ -363,6 +420,10 @@ export const refreshStandings = createServerFn({ method: "POST" })
       .eq("id", active.id);
     throwIfSupabaseError(error);
     _pubCache = null;
+    await logAuditEvent(context.supabase, context.userId, "refresh_standings", {
+      publicationId: active.id,
+      teamsUpdated: enrichedStandings.length,
+    });
     return { ok: true, teamsUpdated: enrichedStandings.length };
   });
 
@@ -418,9 +479,48 @@ export const restorePublication = createServerFn({ method: "POST" })
       .eq("id", data.id);
         throwIfSupabaseError(actErr);
     _pubCache = null; // Invalidate cache so endpoints serve fresh data.
+    await logAuditEvent(context.supabase, context.userId, "restore", {
+      publicationId: data.id,
+    });
     return { ok: true };
 
   });
+// ---------- Audit log ----------
+
+export type AuditLogRow = {
+  id: string;
+  action: string;
+  publicationId: string | null;
+  homeTeam: string | null;
+  awayTeam: string | null;
+  performedBy: string | null;
+  details: Record<string, unknown> | null;
+  createdAt: string;
+};
+
+export const getAuditLog = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<AuditLogRow[]> => {
+    await assertAdmin(context);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (context.supabase as any)
+      .from("vmix_audit_log")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    throwIfSupabaseError(error);
+    return (data ?? []).map((r: Record<string, unknown>): AuditLogRow => ({
+      id: String(r.id),
+      action: String(r.action),
+      publicationId: r.publication_id ? String(r.publication_id) : null,
+      homeTeam: r.home_team ? String(r.home_team) : null,
+      awayTeam: r.away_team ? String(r.away_team) : null,
+      performedBy: r.performed_by ? String(r.performed_by) : null,
+      details: (r.details as Record<string, unknown> | null) ?? null,
+      createdAt: String(r.created_at),
+    }));
+  });
+
 // ---------- Lineup presets ----------
 
 export type LineupPreset = {
