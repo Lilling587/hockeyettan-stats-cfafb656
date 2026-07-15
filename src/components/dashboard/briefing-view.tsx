@@ -44,6 +44,7 @@ import { FormTrendCard } from "./cards/form-trend-card";
 import { RestDaysCard } from "./cards/rest-days-card";
 import { DisciplineCard } from "./cards/discipline-card";
 import { StandingsSnapshotCard } from "./cards/standings-snapshot-card";
+import { HomeAwaySplitCard } from "./cards/home-away-split-card";
 
 export function BriefingView({
   data,
@@ -232,6 +233,10 @@ export function BriefingView({
       <div id="venue" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <VenueStreakCard team={data.home} />
         <VenueStreakCard team={data.away} />
+      </div>
+
+      <div id="home-away-split">
+        <HomeAwaySplitCard home={data.home} away={data.away} />
       </div>
 
       <div id="periods" className="grid grid-cols-1 gap-4 md:grid-cols-2">
