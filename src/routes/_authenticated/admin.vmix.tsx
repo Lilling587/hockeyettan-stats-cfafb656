@@ -20,24 +20,27 @@ import { getTodaysMatchup, listTeams } from "@/lib/stats.functions";
 import {
   emptySlots,
   fetchTeamRoster,
+  fetchTodaysGames,
   getActivePublication,
   getPublicationHistory,
   getTeamLogoCodes,
   publishVmix,
+  refreshStandings,
   restorePublication,
   SLOT_KEYS,
   syncTeamLogoCodes,
   unpublishVmix,
   updateTeamLogoCode,
+  type LineupPreset,
   type RosterPlayer,
   type SlotPlayer,
   type TeamLogoCode,
+  type TodayGame,
   type VmixLineupSlots,
- type VmixPublicationRow,
+  type VmixPublicationRow,
   listLineupPresets,
   saveLineupPreset,
   deleteLineupPreset,
-  type LineupPreset,
 } from "@/lib/vmix.functions";
 
 import { Button } from "@/components/ui/button";
@@ -188,6 +191,8 @@ function VmixAdminPage() {
   
   const publish = useServerFn(publishVmix);
   const unpublish = useServerFn(unpublishVmix);
+  const doRefreshStandings = useServerFn(refreshStandings);
+  const doFetchTodaysGames = useServerFn(fetchTodaysGames);
   const fetchCodes = useServerFn(getTeamLogoCodes);
   const syncCodes = useServerFn(syncTeamLogoCodes);
   const updateCode = useServerFn(updateTeamLogoCode);
@@ -588,6 +593,17 @@ const restoreMut = useMutation({
     },
     onError: (e) => toast.error(`Fel: ${(e as Error).message}`),
   });
+
+  const refreshStandingsMut = useMutation({
+    mutationFn: () => doRefreshStandings(),
+    onSuccess: (result) => {
+      toast.success(`Tabell uppdaterad – ${result.teamsUpdated} lag`);
+      queryClient.invalidateQueries({ queryKey: ["vmix-active"] });
+    },
+    onError: (e) =>
+      toast.error(`Tabell-uppdatering misslyckades: ${(e as Error).message}`),
+  });
+
   const publishWarnings = useMemo(() => {
     const warnings: string[] = [];
     const h = countFilledSlots(homeSlots);
@@ -758,6 +774,7 @@ const restoreMut = useMutation({
     url: `${baseUrl}/api/public/vmix/lineup/${lineupVersion}?ClubId=${clubId}`,
   },
   { label: "titlecard.json", url: `${baseUrl}/api/public/vmix/titlecard` },
+  { label: "todays-games.json", url: `${baseUrl}/api/public/vmix/todays-games` },
 ];
 
  if (!adminQuery.data?.isAdmin) {
@@ -1175,6 +1192,22 @@ const restoreMut = useMutation({
         >
           Avpublicera
         </Button>
+        {activeQuery.data && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs"
+            disabled={refreshStandingsMut.isPending}
+            onClick={() => refreshStandingsMut.mutate()}
+          >
+            {refreshStandingsMut.isPending ? (
+              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3 w-3 mr-1" />
+            )}
+            Uppdatera tabell
+          </Button>
+        )}
         {activeQuery.data && (
           <Button
             size="sm"
