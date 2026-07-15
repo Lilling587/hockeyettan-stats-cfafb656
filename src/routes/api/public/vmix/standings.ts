@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getActivePublication, readVmixSettings } from "@/lib/vmix.functions";
 import { getVmixLogoUrl, resolveVmixAssetBaseUrl } from "@/lib/vmix-assets";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limiter";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -39,7 +40,13 @@ export const Route = createFileRoute("/api/public/vmix/standings")({
       OPTIONS: async () =>
         new Response(null, { status: 204, headers: CORS_HEADERS }),
 
-      GET: async () => {
+      GET: async ({ request }: { request: Request }) => {
+        if (!checkRateLimit(getClientIp(request)).allowed) {
+          return new Response(
+            JSON.stringify([{ "Error.Text": "Rate limit exceeded – try again in a minute" }]),
+            { status: 429, headers: { ...CORS_HEADERS, "Retry-After": "60" } },
+          );
+        }
         const [pub, settings] = await Promise.all([
           getActivePublication(),
           readVmixSettings(),
