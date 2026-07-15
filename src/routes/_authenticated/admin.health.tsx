@@ -12,10 +12,7 @@ import {
 import {
   RefreshCw,
   CheckCircle2,
-  AlertTriangle,
   XCircle,
-  Loader2,
-  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 
