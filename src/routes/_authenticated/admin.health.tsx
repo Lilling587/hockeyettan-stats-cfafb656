@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { checkIsAdmin } from "@/lib/roles.functions";
 import { getScrapeHealth } from "@/lib/scrape-metrics.functions";
 import { checkSupabaseHealth } from "@/lib/supabase-health.functions";
-import { checkVmixHealth } from "@/lib/vmix-health.functions";
+import { checkVmixHealth, logVmixHeartbeatTransition } from "@/lib/vmix-health.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminNav } from "@/components/admin-nav";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,8 @@ function HealthPage() {
   const fetchHealth = useServerFn(getScrapeHealth);
   const fetchSupabaseHealth = useServerFn(checkSupabaseHealth);
   const fetchVmixHealth = useServerFn(checkVmixHealth);
+  const logVmixTransition = useServerFn(logVmixHeartbeatTransition);
+  const prevVmixStateRef = useRef<"ok" | "fel" | null>(null);
   const navigate = useNavigate();
 
   const adminQuery = useQuery({
@@ -100,6 +102,37 @@ function HealthPage() {
     enabled: adminQuery.data?.isAdmin === true,
     refetchInterval: refreshInterval,
   });
+
+  useEffect(() => {
+    const report = vmixHealthQuery.data;
+    if (!report) return;
+    const total = report.endpoints.length;
+    const okCount = report.endpoints.filter((e) => e.ok).length;
+    const nextState: "ok" | "fel" = report.overall === "ok" ? "ok" : "fel";
+    const prev = prevVmixStateRef.current;
+    if (prev === null) {
+      prevVmixStateRef.current = nextState;
+      return;
+    }
+    if (prev !== nextState) {
+      prevVmixStateRef.current = nextState;
+      const failing = report.endpoints
+        .filter((e) => !e.ok)
+        .map((e) => `${e.name}${e.error ? `: ${e.error}` : ""}`)
+        .join(" · ");
+      logVmixTransition({
+        data: {
+          from: prev,
+          to: nextState,
+          okCount,
+          total,
+          reason: failing || undefined,
+        },
+      }).catch(() => {
+        // best-effort logging; ignore failures
+      });
+    }
+  }, [vmixHealthQuery.data, logVmixTransition]);
 
   const data = healthQuery.data;
 

@@ -1,6 +1,41 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestUrl } from "@tanstack/react-start/server";
+import { z } from "zod";
 import { requireAdmin } from "@/integrations/supabase/admin-middleware";
+
+export const logVmixHeartbeatTransition = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        from: z.enum(["ok", "fel"]),
+        to: z.enum(["ok", "fel"]),
+        okCount: z.number().int().min(0).max(999),
+        total: z.number().int().min(0).max(999),
+        reason: z.string().max(500).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const level = data.to === "ok" ? "info" : "warn";
+    const message = `vMix heartbeat: ${data.from} → ${data.to} (${data.okCount}/${data.total} endpoints OK)`;
+    await supabaseAdmin.from("error_log").insert({
+      source: "vmix-heartbeat",
+      level,
+      message,
+      context: {
+        from: data.from,
+        to: data.to,
+        okCount: data.okCount,
+        total: data.total,
+        reason: data.reason ?? null,
+        actorUserId: context.userId,
+      } as never,
+      route: "/admin/health",
+    });
+    return { ok: true };
+  });
 
 export type VmixEndpointStatus = {
   name: string;
