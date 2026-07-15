@@ -295,7 +295,7 @@ export async function scrapeTeamCodes(
  * Scrape today's live results from the swehockey live page.
  * Returns an empty array on off-days or if the page is unreachable.
  */
-export async function scrapeLiveGames(competitionId: string): Promise
+export async function scrapeLiveGames(competitionId: string): Promise<
   Array<{
     homeTeam: string;
     awayTeam: string;
