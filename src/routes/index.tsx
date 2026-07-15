@@ -601,6 +601,16 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                 </Button>
               </>
             )}
+           <Button
+              variant={tabletMode ? "default" : "ghost"}
+              size="sm"
+              className="w-full sm:w-auto"
+              title={tabletMode ? "Stäng av tablet-läge" : "Tablet-läge (större text)"}
+              onClick={() => setTabletMode((v) => !v)}
+            >
+              <Monitor className="mr-2 h-4 w-4 shrink-0" />
+              {tabletMode ? "Normal" : "Tablet"}
+            </Button>
             <ThemeToggle className="w-full sm:w-auto" />
           </div>
         </div>
@@ -620,7 +630,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
         </div>
       </div>
 
-      <main className="mx-auto max-w-6xl touch-pan-y px-6 py-8 space-y-6">
+    <main className={`mx-auto max-w-6xl touch-pan-y px-6 py-8 ${tabletMode ? "space-y-8 text-lg" : "space-y-6"}`}>
         <PendingSeasonsBanner
           pending={pendingQuery.data?.pending ?? []}
           onChanged={() => {
