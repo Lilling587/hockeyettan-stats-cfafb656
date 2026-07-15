@@ -366,6 +366,7 @@ function Dashboard() {
   const canLoad = home && selectedAway && home !== selectedAway;
   const [activeTab, setActiveTab] = useState<"briefing" | "recap">("briefing");
   const hasLoadedSavedTab = useRef(false);
+  const [autoRefresh, setAutoRefresh] = useState(false);
 
   useEffect(() => {
     if (!hasLoadedSavedTab.current) {
@@ -479,6 +480,15 @@ function Dashboard() {
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canLoad, briefing, briefingMut.isPending, home, selectedAway]);
+
+  useEffect(() => {
+    if (!autoRefresh || !briefing) return;
+    const id = setInterval(() => {
+      briefingMut.mutate({ home, away: selectedAway, force: true });
+    }, 30 * 60 * 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh, !!briefing, home, selectedAway]);
 
   return (
     <Tabs
@@ -698,16 +708,36 @@ function Dashboard() {
                   <p className="text-xs text-destructive">{validationErrors.away}</p>
                 ) : null}
               </div>
-              <Button disabled={briefingMut.isPending} onClick={handleLoadBriefing}>
-                {briefingMut.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Laddar…
-                  </>
-                ) : (
-                  "Ladda statistik"
+              <div className="flex flex-col gap-2">
+                <Button disabled={briefingMut.isPending} onClick={handleLoadBriefing}>
+                  {briefingMut.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Laddar…
+                    </>
+                  ) : (
+                    "Ladda statistik"
+                  )}
+                </Button>
+                {briefing && (
+                  <Button
+                    variant={autoRefresh ? "default" : "outline"}
+                    size="sm"
+                    className="text-xs"
+                    title={
+                      autoRefresh
+                        ? "Stäng av auto-uppdatering"
+                        : "Uppdatera automatiskt var 30:e minut"
+                    }
+                    onClick={() => setAutoRefresh((v) => !v)}
+                  >
+                    <RefreshCw
+                      className={`mr-1 h-3 w-3 ${autoRefresh ? "animate-spin" : ""}`}
+                    />
+                    {autoRefresh ? "Auto på" : "Auto av"}
+                  </Button>
                 )}
-              </Button>
+              </div>
             </div>
             {teamsQuery.isLoading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
