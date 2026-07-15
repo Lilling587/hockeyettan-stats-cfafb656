@@ -38,8 +38,7 @@ export const Route = createFileRoute("/api/public/vmix/titlecard")({
             { status: 429, headers: { ...CORS_HEADERS, "Retry-After": "60" } },
           );
         }
-        try {
-          const pub = await getActivePublication();
+        const pub = await getActivePublication();
 
         if (!pub) {
           return new Response(
