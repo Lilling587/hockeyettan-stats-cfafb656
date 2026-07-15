@@ -452,6 +452,39 @@ export type Database = {
         }
         Relationships: []
       }
+      vmix_audit_log: {
+        Row: {
+          action: string
+          away_team: string | null
+          created_at: string
+          details: Json | null
+          home_team: string | null
+          id: string
+          performed_by: string | null
+          publication_id: string | null
+        }
+        Insert: {
+          action: string
+          away_team?: string | null
+          created_at?: string
+          details?: Json | null
+          home_team?: string | null
+          id?: string
+          performed_by?: string | null
+          publication_id?: string | null
+        }
+        Update: {
+          action?: string
+          away_team?: string | null
+          created_at?: string
+          details?: Json | null
+          home_team?: string | null
+          id?: string
+          performed_by?: string | null
+          publication_id?: string | null
+        }
+        Relationships: []
+      }
       vmix_lineup_presets: {
         Row: {
           away_slots: Json
