@@ -48,6 +48,8 @@ function HealthPage() {
   const fetchHealth = useServerFn(getScrapeHealth);
   const fetchSupabaseHealth = useServerFn(checkSupabaseHealth);
   const fetchVmixHealth = useServerFn(checkVmixHealth);
+  const logVmixTransition = useServerFn(logVmixHeartbeatTransition);
+  const prevVmixStateRef = useRef<"ok" | "fel" | null>(null);
   const navigate = useNavigate();
 
   const adminQuery = useQuery({
