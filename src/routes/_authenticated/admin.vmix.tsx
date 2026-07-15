@@ -1019,7 +1019,29 @@ const restoreMut = useMutation({
           restoring={restoreMut.isPending}
         />
       </CardErrorBoundary>
+<div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">Säsong för spelarlistan:</span>
+        <Select
+          value={adminSeason ?? ""}
+          onValueChange={(v) => setAdminSeason(v || undefined)}
+        >
+          <SelectTrigger className="h-7 w-28 text-xs">
+            <SelectValue placeholder="Standard" />
+          </SelectTrigger>
+          <SelectContent>
+            {(seasonsQuery.data?.seasons ?? []).map((s: { label: string }) => (
+              <SelectItem key={s.label} value={s.label} className="text-xs">
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
+      <DataSourceCard
+        sourceMode={sourceMode}
+        autoApplied={autoApplied}
+        hasDraft={hasDraft}
       <DataSourceCard
         sourceMode={sourceMode}
         loading={todaysQuery.isLoading}
