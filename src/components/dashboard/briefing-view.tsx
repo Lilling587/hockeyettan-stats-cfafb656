@@ -43,6 +43,7 @@ import { StreakAlertsCard } from "./cards/streak-alerts-card";
 import { FormTrendCard } from "./cards/form-trend-card";
 import { RestDaysCard } from "./cards/rest-days-card";
 import { DisciplineCard } from "./cards/discipline-card";
+import { StandingsSnapshotCard } from "./cards/standings-snapshot-card";
 
 export function BriefingView({
   data,
@@ -217,6 +218,10 @@ export function BriefingView({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <TeamHeader team={data.home} side="Hemmalag" />
         <TeamHeader team={data.away} side="Bortalag" />
+      </div>
+
+      <div id="standings">
+        <StandingsSnapshotCard home={data.home} away={data.away} />
       </div>
 
       <div id="form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
