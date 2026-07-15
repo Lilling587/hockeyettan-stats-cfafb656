@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limiter";
 import {
   getActivePublication,
   readVmixSettings,
@@ -41,6 +42,12 @@ export const Route = createFileRoute("/api/public/vmix/lineup/$version")({
       OPTIONS: async () =>
         new Response(null, { status: 204, headers: CORS_HEADERS }),
       GET: async ({ request }) => {
+        if (!checkRateLimit(getClientIp(request)).allowed) {
+          return new Response(
+            JSON.stringify([{ "Error.Text": "Rate limit exceeded – try again in a minute" }]),
+            { status: 429, headers: { ...CORS_HEADERS, "Retry-After": "60" } },
+          );
+        }
         const url = new URL(request.url);
         const clubId = url.searchParams.get("ClubId") ?? "";
 
