@@ -487,6 +487,14 @@ export const restorePublication = createServerFn({ method: "POST" })
   });
 // ---------- Audit log ----------
 
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [k: string]: JsonValue };
+
 export type AuditLogRow = {
   id: string;
   action: string;
@@ -494,7 +502,7 @@ export type AuditLogRow = {
   homeTeam: string | null;
   awayTeam: string | null;
   performedBy: string | null;
-  details: Record<string, unknown> | null;
+  details: JsonValue | null;
   createdAt: string;
 };
 
@@ -516,10 +524,11 @@ export const getAuditLog = createServerFn({ method: "GET" })
       homeTeam: r.home_team ? String(r.home_team) : null,
       awayTeam: r.away_team ? String(r.away_team) : null,
       performedBy: r.performed_by ? String(r.performed_by) : null,
-      details: (r.details as Record<string, unknown> | null) ?? null,
+      details: (r.details as JsonValue | null) ?? null,
       createdAt: String(r.created_at),
     }));
   });
+
 
 // ---------- Lineup presets ----------
 

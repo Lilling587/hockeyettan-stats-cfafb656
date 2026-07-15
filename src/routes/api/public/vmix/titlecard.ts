@@ -20,7 +20,7 @@ function formatGameDate(dateStr: string | null): string {
   try {
     const d = new Date(`${dateStr}T12:00:00Z`);
     return `${d.getUTCDate()} ${SWEDISH_MONTHS[d.getUTCMonth()]}`;
-  } catch {
+  } catch (_e) {
     return dateStr;
   }
 }

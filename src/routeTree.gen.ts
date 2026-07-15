@@ -35,6 +35,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as ApiPublicVmixTodaysGamesRouteImport } from './routes/api/public/vmix/todays-games'
 import { Route as ApiPublicVmixTitlecardRouteImport } from './routes/api/public/vmix/titlecard'
 import { Route as ApiPublicVmixStandingsRouteImport } from './routes/api/public/vmix/standings'
+import { Route as ApiPublicVmixPlayerRouteImport } from './routes/api/public/vmix/player'
 import { Route as ApiPublicVmixCurrentRouteImport } from './routes/api/public/vmix/current'
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
 import { Route as ApiPublicHooksPregameEmailsRouteImport } from './routes/api/public/hooks/pregame-emails'
@@ -178,6 +179,11 @@ const ApiPublicVmixStandingsRoute = ApiPublicVmixStandingsRouteImport.update({
   path: '/api/public/vmix/standings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicVmixPlayerRoute = ApiPublicVmixPlayerRouteImport.update({
+  id: '/api/public/vmix/player',
+  path: '/api/public/vmix/player',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicVmixCurrentRoute = ApiPublicVmixCurrentRouteImport.update({
   id: '/api/public/vmix/current',
   path: '/api/public/vmix/current',
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/vmix/current': typeof ApiPublicVmixCurrentRoute
+  '/api/public/vmix/player': typeof ApiPublicVmixPlayerRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/api/public/vmix/titlecard': typeof ApiPublicVmixTitlecardRoute
   '/api/public/vmix/todays-games': typeof ApiPublicVmixTodaysGamesRoute
@@ -266,6 +273,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/vmix/current': typeof ApiPublicVmixCurrentRoute
+  '/api/public/vmix/player': typeof ApiPublicVmixPlayerRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/api/public/vmix/titlecard': typeof ApiPublicVmixTitlecardRoute
   '/api/public/vmix/todays-games': typeof ApiPublicVmixTodaysGamesRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/api/public/hooks/pregame-emails': typeof ApiPublicHooksPregameEmailsRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/vmix/current': typeof ApiPublicVmixCurrentRoute
+  '/api/public/vmix/player': typeof ApiPublicVmixPlayerRoute
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/api/public/vmix/titlecard': typeof ApiPublicVmixTitlecardRoute
   '/api/public/vmix/todays-games': typeof ApiPublicVmixTodaysGamesRoute
@@ -334,6 +343,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/pregame-emails'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/vmix/current'
+    | '/api/public/vmix/player'
     | '/api/public/vmix/standings'
     | '/api/public/vmix/titlecard'
     | '/api/public/vmix/todays-games'
@@ -366,6 +376,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/pregame-emails'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/vmix/current'
+    | '/api/public/vmix/player'
     | '/api/public/vmix/standings'
     | '/api/public/vmix/titlecard'
     | '/api/public/vmix/todays-games'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/pregame-emails'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/vmix/current'
+    | '/api/public/vmix/player'
     | '/api/public/vmix/standings'
     | '/api/public/vmix/titlecard'
     | '/api/public/vmix/todays-games'
@@ -425,6 +437,7 @@ export interface RootRouteChildren {
   ApiPublicHooksPregameEmailsRoute: typeof ApiPublicHooksPregameEmailsRoute
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicVmixCurrentRoute: typeof ApiPublicVmixCurrentRoute
+  ApiPublicVmixPlayerRoute: typeof ApiPublicVmixPlayerRoute
   ApiPublicVmixStandingsRoute: typeof ApiPublicVmixStandingsRoute
   ApiPublicVmixTitlecardRoute: typeof ApiPublicVmixTitlecardRoute
   ApiPublicVmixTodaysGamesRoute: typeof ApiPublicVmixTodaysGamesRoute
@@ -616,6 +629,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicVmixStandingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/vmix/player': {
+      id: '/api/public/vmix/player'
+      path: '/api/public/vmix/player'
+      fullPath: '/api/public/vmix/player'
+      preLoaderRoute: typeof ApiPublicVmixPlayerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/vmix/current': {
       id: '/api/public/vmix/current'
       path: '/api/public/vmix/current'
@@ -699,6 +719,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPregameEmailsRoute: ApiPublicHooksPregameEmailsRoute,
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicVmixCurrentRoute: ApiPublicVmixCurrentRoute,
+  ApiPublicVmixPlayerRoute: ApiPublicVmixPlayerRoute,
   ApiPublicVmixStandingsRoute: ApiPublicVmixStandingsRoute,
   ApiPublicVmixTitlecardRoute: ApiPublicVmixTitlecardRoute,
   ApiPublicVmixTodaysGamesRoute: ApiPublicVmixTodaysGamesRoute,
