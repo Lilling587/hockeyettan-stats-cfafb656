@@ -103,6 +103,37 @@ function HealthPage() {
     refetchInterval: refreshInterval,
   });
 
+  useEffect(() => {
+    const report = vmixHealthQuery.data;
+    if (!report) return;
+    const total = report.endpoints.length;
+    const okCount = report.endpoints.filter((e) => e.ok).length;
+    const nextState: "ok" | "fel" = report.overall === "ok" ? "ok" : "fel";
+    const prev = prevVmixStateRef.current;
+    if (prev === null) {
+      prevVmixStateRef.current = nextState;
+      return;
+    }
+    if (prev !== nextState) {
+      prevVmixStateRef.current = nextState;
+      const failing = report.endpoints
+        .filter((e) => !e.ok)
+        .map((e) => `${e.name}${e.error ? `: ${e.error}` : ""}`)
+        .join(" · ");
+      logVmixTransition({
+        data: {
+          from: prev,
+          to: nextState,
+          okCount,
+          total,
+          reason: failing || undefined,
+        },
+      }).catch(() => {
+        // best-effort logging; ignore failures
+      });
+    }
+  }, [vmixHealthQuery.data, logVmixTransition]);
+
   const data = healthQuery.data;
 
   const anyFetching =
