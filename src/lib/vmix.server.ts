@@ -290,3 +290,58 @@ export async function scrapeTeamCodes(
   }
   return codes;
 }
+
+/**
+ * Scrape today's live results from the swehockey live page.
+ * Returns an empty array on off-days or if the page is unreachable.
+ */
+export async function scrapeLiveGames(competitionId: string): Promise
+  Array<{
+    homeTeam: string;
+    awayTeam: string;
+    homeGoals: number | null;
+    awayGoals: number | null;
+    played: boolean;
+    status: string;
+  }>
+> {
+  const url = `https://stats.swehockey.se/ScheduleAndResults/Live/${competitionId}`;
+  const res = await fetchWithTimeout(url, {
+    headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
+  });
+  if (!res.ok) throw new Error(`Live page fetch failed: ${res.status}`);
+  const html = await res.text();
+
+  // Off-season or no games scheduled today.
+  if (/no games today/i.test(html)) return [];
+
+  const scoreRe = /^(\d+)\s*-\s*(\d+)$/;
+  const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+  const games: Array<{
+    homeTeam: string;
+    awayTeam: string;
+    homeGoals: number | null;
+    awayGoals: number | null;
+    played: boolean;
+    status: string;
+  }> = [];
+  let m: RegExpExecArray | null;
+
+  while ((m = rowRe.exec(html)) !== null) {
+    const cells = extractTds(m[1]);
+    if (cells.length < 3) continue;
+    const scoreIdx = cells.findIndex((c) => scoreRe.test(c.trim()));
+    if (scoreIdx < 1) continue;
+    const homeTeam = cells[scoreIdx - 1].trim();
+    const awayTeam = cells[scoreIdx + 1]?.trim() ?? "";
+    if (!homeTeam || !awayTeam || homeTeam.length < 3) continue;
+    const scoreMatch = cells[scoreIdx].trim().match(scoreRe);
+    const homeGoals = scoreMatch ? Number(scoreMatch[1]) : null;
+    const awayGoals = scoreMatch ? Number(scoreMatch[2]) : null;
+    const status = cells[0].trim();
+    const played = /klart/i.test(status);
+    games.push({ homeTeam, awayTeam, homeGoals, awayGoals, played, status });
+  }
+
+  return games;
+}
