@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { fetchTodaysGames } from "@/lib/vmix.functions";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limiter";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -15,7 +16,13 @@ export const Route = createFileRoute("/api/public/vmix/todays-games")({
       OPTIONS: async () =>
         new Response(null, { status: 204, headers: CORS_HEADERS }),
 
-      GET: async () => {
+      GET: async ({ request }: { request: Request }) => {
+        if (!checkRateLimit(getClientIp(request)).allowed) {
+          return new Response(
+            JSON.stringify([{ "Error.Text": "Rate limit exceeded – try again in a minute" }]),
+            { status: 429, headers: { ...CORS_HEADERS, "Retry-After": "60" } },
+          );
+        }
         try {
           const games = await fetchTodaysGames();
 
