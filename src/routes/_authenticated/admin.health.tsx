@@ -486,16 +486,10 @@ function VmixHealthCard({
         <div className="flex items-center gap-2">
           {data ? (
             <Badge
-              variant={
-                data.overall === "ok"
-                  ? "secondary"
-                  : data.overall === "degraded"
-                    ? "outline"
-                    : "destructive"
-              }
+              variant={data.overall === "ok" ? "secondary" : "destructive"}
               className="text-[10px] uppercase"
             >
-              {data.overall}
+              {data.overall === "ok" ? "ok" : "fel"}
             </Badge>
           ) : null}
           <Button
