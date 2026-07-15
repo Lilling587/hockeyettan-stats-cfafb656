@@ -362,7 +362,7 @@ export const publishVmix = createServerFn({ method: "POST" })
 
   });
 
-export const unpublishVmix
+export const unpublishVmix = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context);
