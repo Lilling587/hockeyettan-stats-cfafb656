@@ -253,7 +253,6 @@ const seasonsQuery = useQuery({
   const [adminSeason, setAdminSeason] = useState<string | undefined>(undefined);
 
   const teams: string[] = teamsQuery.data?.teams ?? [];
-  const teams: string[] = teamsQuery.data?.teams ?? [];
 
 
 
@@ -1038,10 +1037,6 @@ const restoreMut = useMutation({
         </Select>
       </div>
 
-      <DataSourceCard
-        sourceMode={sourceMode}
-        autoApplied={autoApplied}
-        hasDraft={hasDraft}
       <DataSourceCard
         sourceMode={sourceMode}
         loading={todaysQuery.isLoading}
