@@ -156,8 +156,23 @@ async function fetchActivePublicationFresh(): Promise<VmixPublicationRow | null>
     .maybeSingle();
   throwIfSupabaseError(error);
   const result = data ? mapRow(data as Record<string, unknown>) : null;
-  _pubCache = { data: result, ts: Date.now() };
+ _pubCache = { data: result, ts: Date.now() };
   return result;
+}
+
+export type TodayGame = {
+  homeTeam: string;
+  awayTeam: string;
+  homeGoals: number | null;
+  awayGoals: number | null;
+  played: boolean;
+  status: string;
+};
+
+/** Fetch today's live results from the swehockey live page. */
+export async function fetchTodaysGames(): Promise<TodayGame[]> {
+  const { scrapeLiveGames } = await import("./vmix.server");
+  return scrapeLiveGames(DEFAULT_SEASON.competitionId).catch(() => []);
 }
 
 /**
@@ -303,6 +318,52 @@ export const unpublishVmix = createServerFn({ method: "POST" })
         _pubCache = null; // Invalidate cache so endpoints serve fresh data.
     return { ok: true };
 
+  });
+
+/**
+ * Refresh only the standings_json of the active publication without
+ * touching lineup slots. Useful when another Södra game finishes
+ * before puck drop and the table changes.
+ */
+export const refreshStandings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+
+    const active = await fetchActivePublicationFresh();
+    if (!active) throw new Error("Ingen aktiv publicering att uppdatera.");
+
+    const { fetchFullStandings } = await import("./stats.server");
+    const standings = await fetchFullStandings(DEFAULT_SEASON).catch(() => []);
+
+    if (standings.length > 0 && standings.length < 8) {
+      throw new Error(
+        `Tabellen verkar ofullständig – ${standings.length} lag hittades. Försök igen om en stund.`,
+      );
+    }
+
+    const { data: codeRows } = await context.supabase
+      .from("team_logo_codes")
+      .select("team_name, logo_code");
+    const codesLookup: Record<string, string> = {};
+    for (const c of codeRows ?? []) {
+      codesLookup[String(c.team_name)] = String(c.logo_code);
+    }
+    const enrichedStandings = standings.map((row) => ({
+      ...row,
+      logoCode: codesLookup[row.team] ?? "",
+    }));
+
+    const { error } = await context.supabase
+      .from("vmix_publications")
+      .update({
+        standings_json: enrichedStandings as unknown as Json,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", active.id);
+    throwIfSupabaseError(error);
+    _pubCache = null;
+    return { ok: true, teamsUpdated: enrichedStandings.length };
   });
 
 // ---------- vMix settings ----------
