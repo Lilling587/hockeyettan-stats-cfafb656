@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getActivePublication } from "@/lib/vmix.functions";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limiter";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -30,8 +31,15 @@ export const Route = createFileRoute("/api/public/vmix/titlecard")({
       OPTIONS: async () =>
         new Response(null, { status: 204, headers: CORS_HEADERS }),
 
-      GET: async () => {
-        const pub = await getActivePublication();
+      GET: async ({ request }: { request: Request }) => {
+        if (!checkRateLimit(getClientIp(request)).allowed) {
+          return new Response(
+            JSON.stringify([{ "Error.Text": "Rate limit exceeded – try again in a minute" }]),
+            { status: 429, headers: { ...CORS_HEADERS, "Retry-After": "60" } },
+          );
+        }
+        try {
+          const pub = await getActivePublication();
 
         if (!pub) {
           return new Response(
