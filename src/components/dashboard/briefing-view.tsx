@@ -45,6 +45,7 @@ import { RestDaysCard } from "./cards/rest-days-card";
 import { DisciplineCard } from "./cards/discipline-card";
 import { StandingsSnapshotCard } from "./cards/standings-snapshot-card";
 import { HomeAwaySplitCard } from "./cards/home-away-split-card";
+import { LastFiveFormCard } from "./cards/last-five-form-card";
 
 export function BriefingView({
   data,
