@@ -1039,10 +1039,6 @@ const restoreMut = useMutation({
 
       <DataSourceCard
         sourceMode={sourceMode}
-        autoApplied={autoApplied}
-        hasDraft={hasDraft}
-      <DataSourceCard
-        sourceMode={sourceMode}
         loading={todaysQuery.isLoading}
         todayDate={todaysQuery.data?.date ?? null}
         match={todaysQuery.data?.match ?? null}
