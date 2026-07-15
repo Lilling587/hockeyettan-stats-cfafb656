@@ -253,7 +253,6 @@ const seasonsQuery = useQuery({
   const [adminSeason, setAdminSeason] = useState<string | undefined>(undefined);
 
   const teams: string[] = teamsQuery.data?.teams ?? [];
-  const teams: string[] = teamsQuery.data?.teams ?? [];
 
 
 
