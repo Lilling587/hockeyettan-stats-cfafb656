@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
-import { getTodaysMatchup, listTeams } from "@/lib/stats.functions";
+import { getTodaysMatchup, listSeasons, listTeams } from "@/lib/stats.functions";
 import {
   emptySlots,
   fetchTeamRoster,
@@ -185,6 +185,7 @@ function VmixAdminPage() {
   const queryClient = useQueryClient();
   const fetchIsAdmin = useServerFn(checkIsAdmin);
   const fetchTeams = useServerFn(listTeams);
+  const fetchSeasons = useServerFn(listSeasons);
   const fetchTodays = useServerFn(getTodaysMatchup);
   const fetchActive = useServerFn(getActivePublication);
   const fetchRoster = useServerFn(fetchTeamRoster);
@@ -243,7 +244,15 @@ const presetsQuery = useQuery({
     queryFn: () => fetchActive(),
     enabled: !!adminQuery.data?.isAdmin,
   });
+const seasonsQuery = useQuery({
+    queryKey: ["seasons"],
+    queryFn: () => fetchSeasons(),
+    staleTime: 24 * 60 * 60 * 1000,
+  });
 
+  const [adminSeason, setAdminSeason] = useState<string | undefined>(undefined);
+
+  const teams: string[] = teamsQuery.data?.teams ?? [];
   const teams: string[] = teamsQuery.data?.teams ?? [];
 
 
@@ -419,7 +428,7 @@ const presetsQuery = useQuery({
   }, [awayTeam, codesMap]);
 
   const prefillHome = useMutation({
-    mutationFn: () => fetchRoster({ data: { team: homeTeam } }),
+    mutationFn: () => fetchRoster({ data: { team: homeTeam, season: adminSeason } }),
     onSuccess: (pool) => {
       setHomePool(pool);
       setHomeRosterError(null);
@@ -434,7 +443,7 @@ const presetsQuery = useQuery({
     },
   });
   const prefillAway = useMutation({
-    mutationFn: () => fetchRoster({ data: { team: awayTeam } }),
+    mutationFn: () => fetchRoster({ data: { team: awayTeam, season: adminSeason } }),
     onSuccess: (pool) => {
       setAwayPool(pool);
       setAwayRosterError(null);
