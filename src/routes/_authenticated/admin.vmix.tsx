@@ -1341,6 +1341,16 @@ const restoreMut = useMutation({
           </Button>
         )}
         {activeQuery.data && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs border-destructive/50 text-destructive hover:bg-destructive/10"
+            onClick={() => setShowEndBroadcastConfirm(true)}
+          >
+            Avsluta sändning
+          </Button>
+        )}
+        {activeQuery.data && (
           <span className="text-xs text-muted-foreground ml-auto">
             Publicerad{" "}
             {new Date(activeQuery.data.publishedAt).toLocaleString("sv-SE")}
@@ -1447,6 +1457,42 @@ const restoreMut = useMutation({
               }}
             >
               Återställ ändå
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showEndBroadcastConfirm} onOpenChange={setShowEndBroadcastConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Avsluta sändningen?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>Detta kommer att:</p>
+                <p>1. Avpublicera den aktiva lineup-feeden (vMix tappar backup-datan)</p>
+                <p>2. Rensa det sparade utkastet</p>
+                <p>3. Återställa formuläret till utgångsläge</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                setShowEndBroadcastConfirm(false);
+                unpublishMut.mutate(undefined, {
+                  onSuccess: () => {
+                    clearDraft();
+                    resetToManual();
+                    setPuckDropTime("");
+                    setLastDiff(null);
+                    toast.success("Sändningen avslutad – allt städat.");
+                  },
+                });
+              }}
+            >
+              Avsluta sändning
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
