@@ -45,7 +45,7 @@ import { RestDaysCard } from "./cards/rest-days-card";
 import { DisciplineCard } from "./cards/discipline-card";
 import { StandingsSnapshotCard } from "./cards/standings-snapshot-card";
 import { HomeAwaySplitCard } from "./cards/home-away-split-card";
-import { LastFiveFormCard } from "./cards/last-five-form-card";
+
 
 export function BriefingView({
   data,
@@ -238,10 +238,6 @@ export function BriefingView({
 
       <div id="home-away-split">
         <HomeAwaySplitCard home={data.home} away={data.away} />
-      </div>
-
-      <div id="last-five-form">
-        <LastFiveFormCard home={data.home} away={data.away} />
       </div>
 
       <div id="periods" className="grid grid-cols-1 gap-4 md:grid-cols-2">
