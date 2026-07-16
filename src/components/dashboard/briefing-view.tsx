@@ -40,7 +40,6 @@ import { LineupDiffCard } from "./cards/lineup-diff-card";
 import { WinProbabilityCard } from "./cards/win-probability-card";
 import { HottestPlayerCard } from "./cards/hottest-player-card";
 import { StreakAlertsCard } from "./cards/streak-alerts-card";
-import { FormTrendCard } from "./cards/form-trend-card";
 import { RestDaysCard } from "./cards/rest-days-card";
 import { DisciplineCard } from "./cards/discipline-card";
 
@@ -330,11 +329,6 @@ export function BriefingView({
 
       <div id="streaks">
         <StreakAlertsCard home={data.home} away={data.away} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <FormTrendCard team={data.home} />
-        <FormTrendCard team={data.away} />
       </div>
 
       <RestDaysCard home={data.home} away={data.away} />
