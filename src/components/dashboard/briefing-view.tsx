@@ -331,11 +331,6 @@ export function BriefingView({
         <StreakAlertsCard home={data.home} away={data.away} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <FormTrendCard team={data.home} />
-        <FormTrendCard team={data.away} />
-      </div>
-
       <RestDaysCard home={data.home} away={data.away} />
 
       <div id="discipline">
