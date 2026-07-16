@@ -125,6 +125,8 @@ export function FormCard({ team }: { team: TeamData }) {
               <SplitRow label="Hemma (senaste 5)" games={home} />
               <SplitRow label="Borta (senaste 5)" games={away} />
             </div>
+
+            <FormTrendSection team={team} />
           </>
         )}
       </CardContent>
