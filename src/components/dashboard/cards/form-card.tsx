@@ -1,6 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { resultLabel, resultPoints, resultVariant, type TeamData } from "@/lib/dashboard-utils";
+import {
+  lastFivePpg,
+  resultLabel,
+  resultPoints,
+  resultVariant,
+  teamPpg,
+  type TeamData,
+} from "@/lib/dashboard-utils";
 
 type Game = TeamData["lastFive"][number];
 
