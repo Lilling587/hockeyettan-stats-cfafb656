@@ -40,7 +40,6 @@ import { LineupDiffCard } from "./cards/lineup-diff-card";
 import { WinProbabilityCard } from "./cards/win-probability-card";
 import { HottestPlayerCard } from "./cards/hottest-player-card";
 import { StreakAlertsCard } from "./cards/streak-alerts-card";
-import { FormTrendCard } from "./cards/form-trend-card";
 import { RestDaysCard } from "./cards/rest-days-card";
 import { DisciplineCard } from "./cards/discipline-card";
 
