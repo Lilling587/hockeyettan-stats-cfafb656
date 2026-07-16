@@ -699,7 +699,6 @@ const restoreMut = useMutation({
         status: !awayTeam ? "warn" : a.goalies > 0 && a.skaters >= 6 ? "ok" : a.goalies > 0 ? "warn" : "error",
       },
       {
-       {
         label: `Logotypkoder · ${codesQuery.data?.length ?? 0} lag`,
         status: (codesQuery.data?.length ?? 0) > 0 ? "ok" : "error",
       },
