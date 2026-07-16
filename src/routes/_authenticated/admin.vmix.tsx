@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   CalendarDays,
   CheckCircle2,
+  Clock,
   Copy,
   Download,
   Loader2,
@@ -242,6 +243,23 @@ const presetsQuery = useQuery({
   const activeQuery = useQuery({
     queryKey: ["vmix-active"],
     queryFn: () => fetchActive(),
+    enabled: !!adminQuery.data?.isAdmin,
+  });
+
+  const officialApiQuery = useQuery({
+    queryKey: ["official-api-health"],
+    queryFn: async () => {
+      try {
+        const res = await fetch(
+          "https://vmix-new.hockeyettan.se/api/lineup/0?ClubId=570",
+          { cache: "no-store" },
+        );
+        return { ok: res.ok, status: res.status };
+      } catch {
+        return { ok: false, status: 0 };
+      }
+    },
+    refetchInterval: 30_000,
     enabled: !!adminQuery.data?.isAdmin,
   });
 const seasonsQuery = useQuery({
@@ -582,6 +600,40 @@ const [showPublishConfirm, setShowPublishConfirm] = useState(false);
 const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
 const [showResetConfirm, setShowResetConfirm] = useState(false);
 const [sessionExpiryWarning, setSessionExpiryWarning] = useState(false);
+const [puckDropTime, setPuckDropTime] = useState("");
+const [countdownText, setCountdownText] = useState<string | null>(null);
+
+useEffect(() => {
+  if (!puckDropTime) {
+    setCountdownText(null);
+    return;
+  }
+  const [hh, mm] = puckDropTime.split(":").map(Number);
+  if (Number.isNaN(hh) || Number.isNaN(mm)) {
+    setCountdownText(null);
+    return;
+  }
+  const update = () => {
+    const now = new Date();
+    const target = new Date(now);
+    target.setHours(hh, mm, 0, 0);
+    const diffMs = target.getTime() - now.getTime();
+    if (diffMs <= 0) {
+      setCountdownText("SÄNDNING PÅGÅR");
+      return;
+    }
+    const totalSec = Math.floor(diffMs / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    setCountdownText(
+      `T-${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`,
+    );
+  };
+  update();
+  const id = setInterval(update, 1000);
+  return () => clearInterval(id);
+}, [puckDropTime]);
   const [lastDiff, setLastDiff] = useState<SlotDiff[] | null>(null);
   const prePublishRef = useRef<VmixPublicationRow | null>(null);
   const unpublishMut = useMutation({
@@ -646,8 +698,21 @@ const restoreMut = useMutation({
         status: !awayTeam ? "warn" : a.goalies > 0 && a.skaters >= 6 ? "ok" : a.goalies > 0 ? "warn" : "error",
       },
       {
+       {
         label: `Logotypkoder · ${codesQuery.data?.length ?? 0} lag`,
         status: (codesQuery.data?.length ?? 0) > 0 ? "ok" : "error",
+      },
+      {
+        label: officialApiQuery.data
+          ? officialApiQuery.data.ok
+            ? "Officiellt API OK"
+            : `Officiellt API NERE (${officialApiQuery.data.status || "nätverksfel"})`
+          : "Officiellt API – kontrollerar…",
+        status: officialApiQuery.data
+          ? officialApiQuery.data.ok
+            ? "ok"
+            : "error"
+          : "warn",
       },
     ] as { label: string; status: "ok" | "warn" | "error" }[];
   }, [homeSlots, awaySlots, awayTeam, activeQuery.data, codesQuery.data]);
@@ -870,7 +935,36 @@ const restoreMut = useMutation({
               <AlertTriangle className="h-4 w-4 text-amber-500" />
             )}
             Förberedelsekontroll
+            {countdownText && (
+              <span
+                className={`ml-auto font-mono text-sm ${
+                  countdownText === "SÄNDNING PÅGÅR"
+                    ? "text-emerald-500"
+                    : "text-amber-500"
+                }`}
+              >
+                <Clock className="inline h-3.5 w-3.5 mr-1" />
+                {countdownText}
+              </span>
+            )}
           </CardTitle>
+          <div className="flex items-center gap-2 mt-1">
+            <label className="text-[11px] text-muted-foreground">Nedsläpp:</label>
+            <input
+              type="time"
+              className="h-6 rounded border border-input bg-background px-2 text-xs"
+              value={puckDropTime}
+              onChange={(e) => setPuckDropTime(e.target.value)}
+            />
+            {puckDropTime && (
+              <button
+                className="text-[10px] text-muted-foreground hover:text-foreground"
+                onClick={() => setPuckDropTime("")}
+              >
+                Rensa
+              </button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
