@@ -599,6 +599,7 @@ const seasonsQuery = useQuery({
 const [showPublishConfirm, setShowPublishConfirm] = useState(false);
 const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
 const [showResetConfirm, setShowResetConfirm] = useState(false);
+const [showEndBroadcastConfirm, setShowEndBroadcastConfirm] = useState(false);
 const [sessionExpiryWarning, setSessionExpiryWarning] = useState(false);
 const [puckDropTime, setPuckDropTime] = useState("");
 const [countdownText, setCountdownText] = useState<string | null>(null);
