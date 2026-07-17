@@ -1101,8 +1101,18 @@ const restoreMut = useMutation({
           publications={historyQuery.data ?? []}
           loading={historyQuery.isLoading}
           activeId={activeQuery.data?.id}
-          onRestore={(id) => restoreMut.mutate(id)}
-          restoring={restoreMut.isPending}
+          onUse={(pub) => {
+            setHomeTeam(pub.homeTeam);
+            setAwayTeam(pub.awayTeam);
+            setHomeSlots(pub.homeSlots);
+            setAwaySlots(pub.awaySlots);
+            if (pub.venue !== null && pub.venue !== undefined) setVenue(pub.venue);
+            if (pub.notes !== null && pub.notes !== undefined) setNotes(pub.notes);
+            setSourceMode("manual");
+            toast.success(
+              `Laddat från historik: ${pub.homeTeam} vs ${pub.awayTeam}. Tryck "Publicera till vMix" för att gå live.`,
+            );
+          }}
         />
       </CardErrorBoundary>
 <div className="flex items-center gap-2">
@@ -2248,14 +2258,12 @@ function PublicationHistory({
   publications,
   loading,
   activeId,
-  onRestore,
-  restoring,
+  onUse,
 }: {
   publications: VmixPublicationRow[];
   loading: boolean;
   activeId?: string;
-  onRestore: (id: string) => void;
-  restoring: boolean;
+  onUse: (pub: VmixPublicationRow) => void;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -2326,14 +2334,9 @@ function PublicationHistory({
                     size="sm"
                     variant="ghost"
                     className="h-6 px-2 text-xs"
-                    disabled={restoring}
-                    onClick={() => onRestore(pub.id)}
+                    onClick={() => onUse(pub)}
                   >
-                    {restoring ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      "Återställ"
-                    )}
+                    Använd
                   </Button>
                 )}
               </div>
