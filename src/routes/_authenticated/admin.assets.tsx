@@ -101,8 +101,8 @@ function AdminAssetsPage() {
       invalidateLogos();
       toast.success(
         res.url
-          ? `Hittade logga för ${res.team}`
-          : `Ingen logga hittad för ${res.team}`,
+          ? `Logga uppdaterad för ${res.team}`
+          : `Ingen lagkod hittad för ${res.team} – synka lagkoder i vMix-admin först`,
       );
     },
     onError: (e: Error) => toast.error(e.message),
