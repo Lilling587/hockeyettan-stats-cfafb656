@@ -2258,14 +2258,12 @@ function PublicationHistory({
   publications,
   loading,
   activeId,
-  onRestore,
-  restoring,
+  onUse,
 }: {
   publications: VmixPublicationRow[];
   loading: boolean;
   activeId?: string;
-  onRestore: (id: string) => void;
-  restoring: boolean;
+  onUse: (pub: VmixPublicationRow) => void;
 }) {
   const [open, setOpen] = useState(false);
 
