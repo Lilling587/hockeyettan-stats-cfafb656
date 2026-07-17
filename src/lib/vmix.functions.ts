@@ -205,22 +205,33 @@ export type PlayerStats = {
   points: number | null;
 };
 
-/** Fetch season stats for a single player by name (LASTNAME, FIRSTNAME format). */
+let _playersCache: { data: PlayerStats[]; ts: number } | null = null;
+const PLAYERS_CACHE_TTL = 5 * 60_000; // 5 minutes
+
+/** Fetch season stats for a single player by name (LASTNAME, FIRSTNAME format).
+ *  Results are cached for 5 minutes to avoid re-scraping the full league on
+ *  every vMix poll. */
 export async function fetchPlayerStats(playerName: string): Promise<PlayerStats | null> {
-  const { fetchAllLeaguePlayers } = await import("./stats.server");
-  const players = await fetchAllLeaguePlayers(DEFAULT_SEASON);
+  let players: PlayerStats[];
+  if (_playersCache && Date.now() - _playersCache.ts < PLAYERS_CACHE_TTL) {
+    players = _playersCache.data;
+  } else {
+    const { fetchAllLeaguePlayers } = await import("./stats.server");
+    const raw = await fetchAllLeaguePlayers(DEFAULT_SEASON);
+    players = raw.map((p) => ({
+      name: p.name,
+      team: p.team,
+      position: p.position,
+      gamesPlayed: p.gamesPlayed,
+      goals: p.goals,
+      assists: p.assists,
+      points: p.points,
+    }));
+    _playersCache = { data: players, ts: Date.now() };
+  }
   const normalized = playerName.trim().toUpperCase();
   const found = players.find((p) => p.name.toUpperCase() === normalized);
-  if (!found) return null;
-  return {
-    name: found.name,
-    team: found.team,
-    position: found.position,
-    gamesPlayed: found.gamesPlayed,
-    goals: found.goals,
-    assists: found.assists,
-    points: found.points,
-  };
+  return found ?? null;
 }
 
 /**
