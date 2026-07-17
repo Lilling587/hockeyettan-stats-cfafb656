@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Component, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { Component, memo, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   CalendarDays,
@@ -194,7 +194,7 @@ function VmixAdminPage() {
   const publish = useServerFn(publishVmix);
   const unpublish = useServerFn(unpublishVmix);
   const doRefreshStandings = useServerFn(refreshStandings);
-  const doFetchTodaysGames = useServerFn(fetchTodaysGames);
+  
   const fetchCodes = useServerFn(getTeamLogoCodes);
   const syncCodes = useServerFn(syncTeamLogoCodes);
   const updateCode = useServerFn(updateTeamLogoCode);
@@ -259,7 +259,7 @@ const presetsQuery = useQuery({
         return { ok: false, status: 0 };
       }
     },
-    refetchInterval: 30_000,
+   refetchInterval: (activeQuery.data || awayTeam) ? 30_000 : false,
     enabled: !!adminQuery.data?.isAdmin,
   });
 const seasonsQuery = useQuery({
@@ -313,6 +313,7 @@ const seasonsQuery = useQuery({
   }, [activeQuery.data?.id]);
 // Auto-save draft to localStorage every 5 seconds.
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastDraftRef = useRef<string>("");
   useEffect(() => {
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     draftTimerRef.current = setTimeout(() => {
@@ -326,7 +327,10 @@ const seasonsQuery = useQuery({
           notes,
           savedAt: new Date().toISOString(),
         };
-        localStorage.setItem("vmix-admin-draft", JSON.stringify(draft));
+        const json = JSON.stringify(draft);
+        if (json === lastDraftRef.current) return;
+        lastDraftRef.current = json;
+        localStorage.setItem("vmix-admin-draft", json);
       } catch {
         // localStorage full or unavailable — ignore silently
       }
@@ -602,34 +606,30 @@ const [showResetConfirm, setShowResetConfirm] = useState(false);
 const [showEndBroadcastConfirm, setShowEndBroadcastConfirm] = useState(false);
 const [sessionExpiryWarning, setSessionExpiryWarning] = useState(false);
 const [puckDropTime, setPuckDropTime] = useState("");
-const [countdownText, setCountdownText] = useState<string | null>(null);
+const countdownTextRef = useRef<HTMLSpanElement>(null);
+const countdownWrapRef = useRef<HTMLSpanElement>(null);
 
 useEffect(() => {
-  if (!puckDropTime) {
-    setCountdownText(null);
-    return;
-  }
+  if (!puckDropTime) return;
   const [hh, mm] = puckDropTime.split(":").map(Number);
-  if (Number.isNaN(hh) || Number.isNaN(mm)) {
-    setCountdownText(null);
-    return;
-  }
+  if (Number.isNaN(hh) || Number.isNaN(mm)) return;
   const update = () => {
+    if (!countdownTextRef.current || !countdownWrapRef.current) return;
     const now = new Date();
     const target = new Date(now);
     target.setHours(hh, mm, 0, 0);
     const diffMs = target.getTime() - now.getTime();
     if (diffMs <= 0) {
-      setCountdownText("SÄNDNING PÅGÅR");
-      return;
+      countdownTextRef.current.textContent = "SÄNDNING PÅGÅR";
+      countdownWrapRef.current.className = "ml-auto font-mono text-sm text-emerald-500";
+    } else {
+      const totalSec = Math.floor(diffMs / 1000);
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      countdownTextRef.current.textContent = `T-${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      countdownWrapRef.current.className = "ml-auto font-mono text-sm text-amber-500";
     }
-    const totalSec = Math.floor(diffMs / 1000);
-    const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
-    const s = totalSec % 60;
-    setCountdownText(
-      `T-${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`,
-    );
   };
   update();
   const id = setInterval(update, 1000);
@@ -665,22 +665,21 @@ const restoreMut = useMutation({
       toast.error(`Tabell-uppdatering misslyckades: ${(e as Error).message}`),
   });
 
+  const filledHome = useMemo(() => countFilledSlots(homeSlots), [homeSlots]);
+  const filledAway = useMemo(() => countFilledSlots(awaySlots), [awaySlots]);
+
   const publishWarnings = useMemo(() => {
     const warnings: string[] = [];
-    const h = countFilledSlots(homeSlots);
-    const a = countFilledSlots(awaySlots);
-    if (h.goalies === 0) warnings.push("Ingen målvakt vald för hemmalaget");
-    if (a.goalies === 0 && awayTeam) warnings.push("Ingen målvakt vald för bortalaget");
-    if (h.skaters < 6) warnings.push(`Hemmalaget har bara ${h.skaters} utespelare (normalt minst 6)`);
-    if (a.skaters < 6 && awayTeam) warnings.push(`Bortalaget har bara ${a.skaters} utespelare (normalt minst 6)`);
+    if (filledHome.goalies === 0) warnings.push("Ingen målvakt vald för hemmalaget");
+    if (filledAway.goalies === 0 && awayTeam) warnings.push("Ingen målvakt vald för bortalaget");
+    if (filledHome.skaters < 6) warnings.push(`Hemmalaget har bara ${filledHome.skaters} utespelare (normalt minst 6)`);
+    if (filledAway.skaters < 6 && awayTeam) warnings.push(`Bortalaget har bara ${filledAway.skaters} utespelare (normalt minst 6)`);
     if (!homeSlots.teamCode) warnings.push("Logotypkod saknas för hemmalaget");
     if (awayTeam && !awaySlots.teamCode) warnings.push("Logotypkod saknas för bortalaget");
     return warnings;
-  }, [homeSlots, awaySlots, awayTeam]);
+  }, [filledHome, filledAway, homeSlots.teamCode, awaySlots.teamCode, awayTeam]);
 
   const readinessChecks = useMemo(() => {
-    const h = countFilledSlots(homeSlots);
-    const a = countFilledSlots(awaySlots);
     return [
       {
         label: "Bortalag valt",
@@ -691,12 +690,12 @@ const restoreMut = useMutation({
         status: activeQuery.data ? "ok" : "error",
       },
       {
-        label: `Hemma-lineup · ${h.goalies} MV · ${h.skaters} utespel.`,
-        status: h.goalies > 0 && h.skaters >= 6 ? "ok" : h.goalies > 0 ? "warn" : "error",
+        label: `Hemma-lineup · ${filledHome.goalies} MV · ${filledHome.skaters} utespel.`,
+        status: filledHome.goalies > 0 && filledHome.skaters >= 6 ? "ok" : filledHome.goalies > 0 ? "warn" : "error",
       },
       {
-        label: `Borta-lineup · ${a.goalies} MV · ${a.skaters} utespel.`,
-        status: !awayTeam ? "warn" : a.goalies > 0 && a.skaters >= 6 ? "ok" : a.goalies > 0 ? "warn" : "error",
+        label: `Borta-lineup · ${filledAway.goalies} MV · ${filledAway.skaters} utespel.`,
+        status: !awayTeam ? "warn" : filledAway.goalies > 0 && filledAway.skaters >= 6 ? "ok" : filledAway.goalies > 0 ? "warn" : "error",
       },
       {
         label: `Logotypkoder · ${codesQuery.data?.length ?? 0} lag`,
@@ -714,8 +713,8 @@ const restoreMut = useMutation({
             : "error"
           : "warn",
       },
-    ] as { label: string; status: "ok" | "warn" | "error" }[];
-  }, [homeSlots, awaySlots, awayTeam, activeQuery.data, codesQuery.data]);
+   ] as { label: string; status: "ok" | "warn" | "error" }[];
+  }, [filledHome, filledAway, awayTeam, activeQuery.data, codesQuery.data, officialApiQuery.data]);
 
   const todaysQuery = useQuery({
     queryKey: ["vmix-todays-matchup"],
@@ -935,16 +934,10 @@ const restoreMut = useMutation({
               <AlertTriangle className="h-4 w-4 text-amber-500" />
             )}
             Förberedelsekontroll
-            {countdownText && (
-              <span
-                className={`ml-auto font-mono text-sm ${
-                  countdownText === "SÄNDNING PÅGÅR"
-                    ? "text-emerald-500"
-                    : "text-amber-500"
-                }`}
-              >
+            {puckDropTime && (
+              <span ref={countdownWrapRef} className="ml-auto font-mono text-sm text-amber-500">
                 <Clock className="inline h-3.5 w-3.5 mr-1" />
-                {countdownText}
+                <span ref={countdownTextRef} />
               </span>
             )}
           </CardTitle>
@@ -1382,11 +1375,12 @@ const restoreMut = useMutation({
                   <strong>{awayTeam || "(inget bortalag valt)"}</strong>.
                 </p>
                 <p>
-                  Hemmalag: {countFilledSlots(homeSlots).goalies} MV,{" "}
-                  {countFilledSlots(homeSlots).skaters} utespelare.
+                  <p>
+                  Hemmalag: {filledHome.goalies} MV,{" "}
+                  {filledHome.skaters} utespelare.
                   <br />
-                  Bortalag: {countFilledSlots(awaySlots).goalies} MV,{" "}
-                  {countFilledSlots(awaySlots).skaters} utespelare.
+                  Bortalag: {filledAway.goalies} MV,{" "}
+                  {filledAway.skaters} utespelare.
                 </p>
                 <p>
                   Tabellen hämtas live från Swehockey och inkluderas i
@@ -1691,21 +1685,22 @@ function TeamCodesCard({
 const DEF_ROWS = [1, 2, 3, 4, 5] as const;
 const FWD_ROWS = [1, 2, 3, 4, 5] as const;
 
-function SlotInputs({
-  slot,
-  value,
-  onChange,
-  pool = [],
-}: {
-  slot: string;
-  value: SlotPlayer;
-  onChange: (v: SlotPlayer) => void;
-  pool?: RosterPlayer[];
-}) {
+const SlotInputs = memo(
+  function SlotInputs({
+    slot,
+    value,
+    onChange,
+    pool = [],
+  }: {
+    slot: string;
+    value: SlotPlayer;
+    onChange: (v: SlotPlayer) => void;
+    pool?: RosterPlayer[];
+  }) {
   const number = value?.number ?? "";
   const name = value?.name ?? "";
 
-  const commit = (patch: { number?: number | string; name?: string }) => {
+  const commit = useCallback((patch: { number?: number | string; name?: string }) => {
     const next = {
       number: patch.number !== undefined ? patch.number : number,
       name: patch.name !== undefined ? patch.name : name,
@@ -1718,7 +1713,7 @@ function SlotInputs({
         number: next.number,
       });
     }
-  };
+  }, [number, name, onChange]);
 
   // Find the pool index of the currently assigned player so the dropdown
   // shows the right selected option. Returns -1 if the player is not in
@@ -1743,12 +1738,10 @@ function SlotInputs({
   };
 
   // Split pool into display groups for <optgroup> labels.
-  const goalies = pool.filter((p) => /^(GK|MV)$/i.test(p.position ?? ""));
-  const defenders = pool.filter((p) => /^(LD|RD|D|B)$/i.test(p.position ?? ""));
-  const forwards = pool.filter(
-    (p) => p.position && !/^(GK|MV|LD|RD|D|B)$/i.test(p.position),
-  );
-  const other = pool.filter((p) => !p.position);
+  const goalies = useMemo(() => pool.filter((p) => /^(GK|MV)$/i.test(p.position ?? "")), [pool]);
+  const defenders = useMemo(() => pool.filter((p) => /^(LD|RD|D|B)$/i.test(p.position ?? "")), [pool]);
+  const forwards = useMemo(() => pool.filter((p) => p.position && !/^(GK|MV|LD|RD|D|B)$/i.test(p.position)), [pool]);
+  const other = useMemo(() => pool.filter((p) => !p.position), [pool]);
 
   return (
     <div className="space-y-1">
@@ -1825,7 +1818,9 @@ function SlotInputs({
       </div>
     </div>
   );
-}
+},
+  (prev, next) => prev.value === next.value && prev.pool === next.pool,
+);
 
 function SlotLineupEditor({
   title,
