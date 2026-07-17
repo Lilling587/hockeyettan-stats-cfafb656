@@ -1375,7 +1375,6 @@ const restoreMut = useMutation({
                   <strong>{awayTeam || "(inget bortalag valt)"}</strong>.
                 </p>
                 <p>
-                  <p>
                   Hemmalag: {filledHome.goalies} MV,{" "}
                   {filledHome.skaters} utespelare.
                   <br />
