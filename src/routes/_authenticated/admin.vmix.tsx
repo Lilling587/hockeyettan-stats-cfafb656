@@ -259,7 +259,7 @@ const presetsQuery = useQuery({
         return { ok: false, status: 0 };
       }
     },
-   refetchInterval: (activeQuery.data || awayTeam) ? 30_000 : false,
+   refetchInterval: (activeQuery.data || awayTeam) ? 60_000 : false,
     enabled: !!adminQuery.data?.isAdmin,
   });
 const seasonsQuery = useQuery({
