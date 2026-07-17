@@ -27,7 +27,6 @@ import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/un
 import { Route as AuthenticatedAdminVmixRouteImport } from './routes/_authenticated/admin.vmix'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin.logs'
-import { Route as AuthenticatedAdminLogosRouteImport } from './routes/_authenticated/admin.logos'
 import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
 import { Route as AuthenticatedAdminAssetsRouteImport } from './routes/_authenticated/admin.assets'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -134,11 +133,6 @@ const AuthenticatedAdminLogsRoute = AuthenticatedAdminLogsRouteImport.update({
   path: '/admin/logs',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdminLogosRoute = AuthenticatedAdminLogosRouteImport.update({
-  id: '/admin/logos',
-  path: '/admin/logos',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedAdminHealthRoute =
   AuthenticatedAdminHealthRouteImport.update({
     id: '/admin/health',
@@ -230,7 +224,6 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
-  '/admin/logos': typeof AuthenticatedAdminLogosRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vmix': typeof AuthenticatedAdminVmixRoute
@@ -263,7 +256,6 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
-  '/admin/logos': typeof AuthenticatedAdminLogosRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vmix': typeof AuthenticatedAdminVmixRoute
@@ -298,7 +290,6 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
-  '/_authenticated/admin/logos': typeof AuthenticatedAdminLogosRoute
   '/_authenticated/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/vmix': typeof AuthenticatedAdminVmixRoute
@@ -333,7 +324,6 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/admin/assets'
     | '/admin/health'
-    | '/admin/logos'
     | '/admin/logs'
     | '/admin/users'
     | '/admin/vmix'
@@ -366,7 +356,6 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/admin/assets'
     | '/admin/health'
-    | '/admin/logos'
     | '/admin/logs'
     | '/admin/users'
     | '/admin/vmix'
@@ -400,7 +389,6 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/admin/assets'
     | '/_authenticated/admin/health'
-    | '/_authenticated/admin/logos'
     | '/_authenticated/admin/logs'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/vmix'
@@ -573,13 +561,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLogsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin/logos': {
-      id: '/_authenticated/admin/logos'
-      path: '/admin/logos'
-      fullPath: '/admin/logos'
-      preLoaderRoute: typeof AuthenticatedAdminLogosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/admin/health': {
       id: '/_authenticated/admin/health'
       path: '/admin/health'
@@ -679,7 +660,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedAdminAssetsRoute: typeof AuthenticatedAdminAssetsRoute
   AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
-  AuthenticatedAdminLogosRoute: typeof AuthenticatedAdminLogosRoute
   AuthenticatedAdminLogsRoute: typeof AuthenticatedAdminLogsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVmixRoute: typeof AuthenticatedAdminVmixRoute
@@ -690,7 +670,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedAdminAssetsRoute: AuthenticatedAdminAssetsRoute,
   AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
-  AuthenticatedAdminLogosRoute: AuthenticatedAdminLogosRoute,
   AuthenticatedAdminLogsRoute: AuthenticatedAdminLogsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminVmixRoute: AuthenticatedAdminVmixRoute,
