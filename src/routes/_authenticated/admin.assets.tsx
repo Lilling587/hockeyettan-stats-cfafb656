@@ -8,8 +8,8 @@ import { toast } from "sonner";
 import { checkIsAdmin } from "@/lib/roles.functions";
 import { getTeamLogoCodes } from "@/lib/vmix.functions";
 import {
+  adminRefetchTeamLogo,
   clearTeamLogoCache,
-  ensureTeamLogo,
   listTeamLogoStatus,
   setTeamLogoOverride,
   type TeamLogoStatus,
@@ -60,7 +60,7 @@ function AdminAssetsPage() {
   const adminFn = useServerFn(checkIsAdmin);
   const codesFn = useServerFn(getTeamLogoCodes);
   const fetchStatus = useServerFn(listTeamLogoStatus);
-  const refetchOne = useServerFn(ensureTeamLogo);
+  const refetchOne = useServerFn(adminRefetchTeamLogo);
   const saveOverride = useServerFn(setTeamLogoOverride);
   const clearOne = useServerFn(clearTeamLogoCache);
   const queryClient = useQueryClient();
