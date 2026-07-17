@@ -83,3 +83,19 @@ export const clearTeamLogoCache = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Admin-only re-fetch that bypasses the anonymous allow-list and forces a
+ *  fresh Storage URL lookup regardless of what's currently cached. */
+export const adminRefetchTeamLogo = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .inputValidator((input: unknown) =>
+    z.object({ team: z.string().min(1) }).parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ team: string; url: string | null }> => {
+    const { deleteTeamLogoRow, ensureLogoForTeam } = await import(
+      "./team-logos.server"
+    );
+    // Clear first so ensureLogoForTeam does a fresh Supabase Storage lookup.
+    await deleteTeamLogoRow(context.supabase, data.team);
+    const url = await ensureLogoForTeam(data.team);
+    return { team: data.team, url };
+  });
