@@ -90,12 +90,16 @@ export const adminRefetchTeamLogo = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z.object({ team: z.string().min(1) }).parse(input),
   )
-  .handler(async ({ data, context }): Promise<{ team: string; url: string | null }> => {
+  .handler(async ({ data }): Promise<{ team: string; url: string | null }> => {
     const { deleteTeamLogoRow, ensureLogoForTeam } = await import(
       "./team-logos.server"
     );
-    // Clear first so ensureLogoForTeam does a fresh Supabase Storage lookup.
-    await deleteTeamLogoRow(context.supabase, data.team);
+    // Use service role to bypass RLS — a user-scoped client silently deletes
+    // 0 rows when RLS blocks it, leaving the old URL in place.
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    await deleteTeamLogoRow(supabaseAdmin, data.team);
     const url = await ensureLogoForTeam(data.team);
     return { team: data.team, url };
   });
