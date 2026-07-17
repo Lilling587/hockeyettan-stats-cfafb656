@@ -535,12 +535,6 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                  <Link to="/admin/logos">
-                    <Settings className="mr-2 h-4 w-4 shrink-0" />
-                    Logotyper
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                   <Link to="/admin/health">
                     <Settings className="mr-2 h-4 w-4 shrink-0" />
                     Hälsa
@@ -595,7 +589,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   size="sm"
                   className="w-full text-xs text-muted-foreground sm:w-auto"
                 >
-                  <Link to="/auth" search={{ next: "/admin/logos" }}>
+                  <Link to="/auth" search={{ next: "/admin/vmix" }}>
                     Admin
                   </Link>
                 </Button>
