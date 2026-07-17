@@ -91,15 +91,42 @@ export const adminRefetchTeamLogo = createServerFn({ method: "POST" })
     z.object({ team: z.string().min(1) }).parse(input),
   )
   .handler(async ({ data }): Promise<{ team: string; url: string | null }> => {
-    const { deleteTeamLogoRow, ensureLogoForTeam } = await import(
-      "./team-logos.server"
-    );
-    // Use service role to bypass RLS — a user-scoped client silently deletes
-    // 0 rows when RLS blocks it, leaving the old URL in place.
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
     );
-    await deleteTeamLogoRow(supabaseAdmin, data.team);
-    const url = await ensureLogoForTeam(data.team);
+
+    // Find this team's logo code from the vMix codes table.
+    const { data: codeRow } = await supabaseAdmin
+      .from("team_logo_codes")
+      .select("logo_code")
+      .eq("team_name", data.team)
+      .maybeSingle();
+
+    if (!codeRow?.logo_code) {
+      // No logo code means the team hasn't been synced in /admin/vmix yet.
+      return { team: data.team, url: null };
+    }
+
+    // Build the Supabase Storage URL for the large logo.
+    const { getVmixLogoUrl, getVmixAssetBaseUrl } = await import("./vmix-assets");
+    const assetBase = getVmixAssetBaseUrl(process.env.SUPABASE_URL ?? "");
+    const url = getVmixLogoUrl(assetBase, codeRow.logo_code, "large");
+
+    // Upsert directly via service role — no RPC, no silent failures, no
+    // RLS blocking. Replaces any existing entry including old hockeyettan.se URLs.
+    const { error } = await supabaseAdmin
+      .from("team_logos")
+      .upsert(
+        {
+          team_name: data.team,
+          logo_url: url,
+          status: "ok",
+          source: "scraped",
+          fetched_at: new Date().toISOString(),
+        },
+        { onConflict: "team_name" },
+      );
+    if (error) throw new Error(`Kunde inte spara logga: ${error.message}`);
+
     return { team: data.team, url };
   });
