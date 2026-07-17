@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const ALLOWED_NEXT = new Set(["/", "/notifications", "/admin/logos", "/admin/vmix", "/admin/health", "/admin/logs", "/admin/users"]);
+const ALLOWED_NEXT = new Set(["/", "/notifications", "/admin/vmix", "/admin/health", "/admin/logs", "/admin/users"]);
 const DEFAULT_NEXT = "/";
 
 const authSearchSchema = z.object({
@@ -42,7 +42,7 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   const next = safeNext(search.next);
-  const isAdminFlow = next === "/admin/logos";
+  const isAdminFlow = next.startsWith("/admin/");
 
   useEffect(() => {
     if (search.message === "password-reset") {
