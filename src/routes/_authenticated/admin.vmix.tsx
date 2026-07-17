@@ -2334,14 +2334,9 @@ function PublicationHistory({
                     size="sm"
                     variant="ghost"
                     className="h-6 px-2 text-xs"
-                    disabled={restoring}
-                    onClick={() => onRestore(pub.id)}
+                    onClick={() => onUse(pub)}
                   >
-                    {restoring ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      "Återställ"
-                    )}
+                    Använd
                   </Button>
                 )}
               </div>
