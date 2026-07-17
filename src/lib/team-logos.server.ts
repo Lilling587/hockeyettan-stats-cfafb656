@@ -1,12 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
-const SOURCE_URLS = [
-  "https://www.hockeyettan.se/stats/",
-  "https://www.hockeyettan.se/sodra/",
-];
-const NEGATIVE_TTL_MS = 24 * 60 * 60 * 1000;
-const HTML_TTL_MS = 60 * 60 * 1000;
+
 
 function publicClient() {
   return createClient<Database>(
@@ -37,100 +32,46 @@ export async function fetchAllCachedLogos(): Promise<Record<string, string>> {
   return out;
 }
 
-let htmlCache: { html: string; at: number } | null = null;
-
-async function getSourceHtml(): Promise<string> {
-  if (htmlCache && Date.now() - htmlCache.at < HTML_TTL_MS) {
-    return htmlCache.html;
-  }
-  const parts: string[] = [];
-  for (const url of SOURCE_URLS) {
-    try {
-      const res = await fetch(url, {
-        headers: { "user-agent": "lovable-team-logos/1.0" },
-      });
-      if (res.ok) parts.push(await res.text());
-    } catch {
-      // continue with remaining sources
-    }
-  }
-  if (parts.length === 0) throw new Error("hockeyettan sources unavailable");
-  const html = parts.join("\n");
-  htmlCache = { html, at: Date.now() };
-  return html;
-}
-
-function normalize(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-function findCandidate(team: string, html: string): string | null {
-  const urls = new Set<string>();
-  const rx =
-    /src="(https:\/\/www\.hockeyettan\.se\/wp-content\/uploads\/[^"]+\.(?:png|jpg|jpeg|webp))"/gi;
-  let m: RegExpExecArray | null;
-  while ((m = rx.exec(html))) urls.add(m[1]);
-
-  const tokens = normalize(team)
-    .split(" ")
-    .filter((t) => t.length >= 3);
-  if (tokens.length === 0) return null;
-
-  let best: { url: string; score: number } | null = null;
-  for (const url of urls) {
-    const filename = normalize(
-      decodeURIComponent(url.split("/").pop() ?? ""),
-    );
-    let score = 0;
-    for (const tok of tokens) {
-      if (filename.includes(tok)) score += tok.length;
-    }
-    if (score > 0 && (!best || score > best.score)) {
-      best = { url, score };
-    }
-  }
-  return best?.url ?? null;
-}
-
 export async function ensureLogoForTeam(team: string): Promise<string | null> {
   const supabase = publicClient();
+
+  // Return cached "ok" result immediately if we have one.
   const { data: existing } = await supabase
     .from("team_logos")
-    .select("logo_url, status, fetched_at")
+    .select("logo_url, status")
     .eq("team_name", team)
     .maybeSingle();
 
-  if (existing) {
-    if (existing.status === "ok" && existing.logo_url) {
-      return existing.logo_url;
-    }
-    const age = Date.now() - new Date(existing.fetched_at).getTime();
-    if (age < NEGATIVE_TTL_MS) return null;
+  if (existing?.status === "ok" && existing.logo_url) {
+    return existing.logo_url;
   }
 
-  let url: string | null = null;
-  try {
-    const html = await getSourceHtml();
-    url = findCandidate(team, html);
-  } catch {
-    url = null;
-  }
+  // Look up this team's logo code from the vMix codes table.
+  const { data: codeRow } = await supabase
+    .from("team_logo_codes")
+    .select("logo_code")
+    .eq("team_name", team)
+    .maybeSingle();
 
+  if (!codeRow?.logo_code) return null;
+
+  // Build the Supabase Storage URL for the large logo.
+  const { getVmixLogoUrl, getVmixAssetBaseUrl } = await import("./vmix-assets");
+  const assetBase = getVmixAssetBaseUrl(process.env.SUPABASE_URL ?? "");
+  const url = getVmixLogoUrl(assetBase, codeRow.logo_code, "large");
+
+  // Cache the result so the next call returns instantly.
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.rpc("cache_team_logo", {
       _team: team,
-      _url: url ?? "",
-      _status: url ? "ok" : "missing",
+      _url: url,
+      _status: "ok",
     });
   } catch {
-    // best-effort cache write
+    // best-effort — cache failure never blocks the caller
   }
+
   return url;
 }
 
