@@ -202,7 +202,7 @@ function AdminAssetsPage() {
         {/* ── vMix team logos ── */}
         <Card>
           <CardHeader>
-            <CardTitle>Lagslogotyper (vMix)</CardTitle>
+            <CardTitle>Logotyper (vMix)</CardTitle>
             <CardDescription>
               Ladda upp små (list) och stora (helskärm) logotyper per lagkod.
               Filnamn normaliseras för lagring, t.ex. <code>GRÄ</code> →{" "}
@@ -271,7 +271,7 @@ function AdminAssetsPage() {
         {/* ── Briefing logo cache ── */}
         <Card>
           <CardHeader>
-            <CardTitle>Cachelagda logotyper (statistiksida)</CardTitle>
+           <CardTitle>Logotyper (statistiksida)</CardTitle>
             <CardDescription>
               Logotyper som visas på statistiksidan. Hämtas automatiskt från
               Supabase Storage när den stora logotypen finns uppladdad ovan.
