@@ -1,12 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
 import { getTeamLogoCodes } from "@/lib/vmix.functions";
+import {
+  clearTeamLogoCache,
+  ensureTeamLogo,
+  listTeamLogoStatus,
+  setTeamLogoOverride,
+  type TeamLogoStatus,
+} from "@/lib/team-logos.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
   VMIX_BUCKET,
@@ -19,6 +26,7 @@ import {
 
 import { AdminNav } from "@/components/admin-nav";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -27,14 +35,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { TeamLogo } from "@/components/team-logo";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const ASSET_BASE = getVmixAssetBaseUrl(SUPABASE_URL);
 
+const LS_KEY = "lovable.teamlogos.v1";
+
 export const Route = createFileRoute("/_authenticated/admin/assets")({
   head: () => ({
     meta: [
-      { title: "Assets · Admin" },
+      { title: "Lagring · Admin" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -48,6 +59,11 @@ function withCacheBuster(url: string, v: number): string {
 function AdminAssetsPage() {
   const adminFn = useServerFn(checkIsAdmin);
   const codesFn = useServerFn(getTeamLogoCodes);
+  const fetchStatus = useServerFn(listTeamLogoStatus);
+  const refetchOne = useServerFn(ensureTeamLogo);
+  const saveOverride = useServerFn(setTeamLogoOverride);
+  const clearOne = useServerFn(clearTeamLogoCache);
+  const queryClient = useQueryClient();
 
   const adminQuery = useQuery({
     queryKey: ["admin-check"],
@@ -60,9 +76,64 @@ function AdminAssetsPage() {
     enabled: adminQuery.data?.isAdmin === true,
   });
 
+  const statusQuery = useQuery({
+    queryKey: ["team-logos-admin"],
+    queryFn: () => fetchStatus(),
+    enabled: adminQuery.data?.isAdmin === true,
+  });
+
   const [bump, setBump] = useState(() => Date.now());
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   const codes = useMemo(() => codesQuery.data ?? [], [codesQuery.data]);
+
+  const invalidateLogos = () => {
+    queryClient.invalidateQueries({ queryKey: ["team-logos-admin"] });
+    queryClient.invalidateQueries({ queryKey: ["team-logos"] });
+    if (typeof window !== "undefined") {
+      try { window.localStorage.removeItem(LS_KEY); } catch { /* ignore */ }
+    }
+  };
+
+  const refetchMutation = useMutation({
+    mutationFn: (team: string) => refetchOne({ data: { team } }),
+    onSuccess: (res) => {
+      invalidateLogos();
+      toast.success(
+        res.url
+          ? `Hittade logga för ${res.team}`
+          : `Ingen logga hittad för ${res.team}`,
+      );
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const clearMutation = useMutation({
+    mutationFn: (team: string) => clearOne({ data: { team } }),
+    onSuccess: () => {
+      invalidateLogos();
+      toast.success("Cache rensad");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (vars: { team: string; url: string }) =>
+      saveOverride({ data: vars }),
+    onSuccess: (_d, vars) => {
+      invalidateLogos();
+      setDrafts((d) => ({ ...d, [vars.team]: "" }));
+      toast.success(`Sparad override för ${vars.team}`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const setDraft = (team: string, url: string) =>
+    setDrafts((d) => ({ ...d, [team]: url }));
+
+  const rows: TeamLogoStatus[] = statusQuery.data?.rows ?? [];
+  const missing = rows.filter((r) => r.status !== "ok" || !r.logoUrl);
+  const ok = rows.filter((r) => r.status === "ok" && r.logoUrl);
 
   if (adminQuery.isLoading) {
     return (
@@ -74,9 +145,7 @@ function AdminAssetsPage() {
   if (!adminQuery.data?.isAdmin) {
     return (
       <div className="mx-auto max-w-2xl p-6">
-        <p className="text-sm text-muted-foreground">
-          Endast administratörer.
-        </p>
+        <p className="text-sm text-muted-foreground">Endast administratörer.</p>
       </div>
     );
   }
@@ -102,12 +171,14 @@ function AdminAssetsPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-6 py-3">
-          <h1 className="mr-4 text-lg font-semibold">Assets</h1>
+          <h1 className="mr-4 text-lg font-semibold">Lagring</h1>
           <AdminNav />
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl space-y-8 p-6">
+
+        {/* ── Broadcast templates ── */}
         <Card>
           <CardHeader>
             <CardTitle>Sändningsmallar</CardTitle>
@@ -128,13 +199,15 @@ function AdminAssetsPage() {
           </CardContent>
         </Card>
 
+        {/* ── vMix team logos ── */}
         <Card>
           <CardHeader>
             <CardTitle>Lagslogotyper (vMix)</CardTitle>
             <CardDescription>
               Ladda upp små (list) och stora (helskärm) logotyper per lagkod.
               Filnamn normaliseras för lagring, t.ex. <code>GRÄ</code> →{" "}
-              <code>GRA_small.png</code>.
+              <code>GRA_small.png</code>. Den stora loggan används även på
+              statistiksidan — ladda upp här för att uppdatera båda ställena.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -177,21 +250,210 @@ function AdminAssetsPage() {
                       path={getVmixLogoPath(c.logoCode, "large")}
                       url={getVmixLogoUrl(ASSET_BASE, c.logoCode, "large")}
                       bump={bump}
-                      onUpload={(file) =>
-                        uploadTo(getVmixLogoPath(c.logoCode, "large"), file)
-                      }
+                      onUpload={async (file) => {
+                        const ok = await uploadTo(
+                          getVmixLogoPath(c.logoCode, "large"),
+                          file,
+                        );
+                        // Uploading large logo also serves the stats page —
+                        // clear the briefing logo cache so it picks up the new file.
+                        if (ok) invalidateLogos();
+                        return ok;
+                      }}
                     />
-
                   </div>
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* ── Briefing logo cache ── */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Cachelagda logotyper (statistiksida)</CardTitle>
+            <CardDescription>
+              Logotyper som visas på statistiksidan. Hämtas automatiskt från
+              Supabase Storage när den stora logotypen finns uppladdad ovan.
+              Klicka "Hämta om" för att uppdatera cachen direkt efter en
+              uppladdning, eller om loggan visas fel.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {statusQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Laddar…</p>
+            ) : (
+              <>
+                <BulkSection
+                  title={`Saknar logga (${missing.length})`}
+                  rows={missing}
+                  drafts={drafts}
+                  setDraft={setDraft}
+                  onRefetch={(t) => refetchMutation.mutate(t)}
+                  onSave={(t, url) => saveMutation.mutate({ team: t, url })}
+                  onClear={(t) => clearMutation.mutate(t)}
+                  pendingTeam={
+                    refetchMutation.isPending
+                      ? (refetchMutation.variables as string)
+                      : null
+                  }
+                />
+                <BulkSection
+                  title={`Cachelagda (${ok.length})`}
+                  rows={ok}
+                  drafts={drafts}
+                  setDraft={setDraft}
+                  onRefetch={(t) => refetchMutation.mutate(t)}
+                  onSave={(t, url) => saveMutation.mutate({ team: t, url })}
+                  onClear={(t) => clearMutation.mutate(t)}
+                  pendingTeam={
+                    refetchMutation.isPending
+                      ? (refetchMutation.variables as string)
+                      : null
+                  }
+                  muted
+                />
+              </>
+            )}
+          </CardContent>
+        </Card>
+
       </main>
     </div>
   );
 }
+
+// ──────────────────────────────────────────────
+// Briefing logo cache section
+// ──────────────────────────────────────────────
+
+function BulkSection({
+  title,
+  rows,
+  drafts,
+  setDraft,
+  onRefetch,
+  onSave,
+  onClear,
+  pendingTeam,
+  muted,
+}: {
+  title: string;
+  rows: TeamLogoStatus[];
+  drafts: Record<string, string>;
+  setDraft: (team: string, url: string) => void;
+  onRefetch: (team: string) => void;
+  onSave: (team: string, url: string) => void;
+  onClear: (team: string) => void;
+  pendingTeam: string | null;
+  muted?: boolean;
+}) {
+  if (rows.length === 0) return null;
+  return (
+    <div className="mb-4">
+      <p className="mb-2 text-sm font-medium text-muted-foreground">{title}</p>
+      <div className="space-y-2">
+        {rows.map((row) => {
+          const draft = drafts[row.team] ?? "";
+          return (
+            <div
+              key={row.team}
+              className={`flex flex-wrap items-center gap-3 rounded-md border border-border px-3 py-2 ${
+                muted ? "opacity-90" : ""
+              }`}
+            >
+              <TeamLogo team={row.team} size="md" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm font-medium">
+                    {row.team}
+                  </span>
+                  <LogoCacheBadge status={row.status} />
+                </div>
+                {row.logoUrl ? (
+                  <a
+                    href={row.logoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block truncate text-xs text-muted-foreground hover:underline"
+                  >
+                    {row.logoUrl}
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted-foreground">
+                    Ingen URL cachad
+                  </span>
+                )}
+              </div>
+              <div className="flex w-full items-center gap-2 sm:w-auto">
+                <Input
+                  placeholder="https://…/logo.png (override)"
+                  value={draft}
+                  onChange={(e) => setDraft(row.team, e.target.value)}
+                  className="w-full text-xs sm:w-56"
+                />
+                <Button
+                  size="sm"
+                  onClick={() => onSave(row.team, draft.trim())}
+                  disabled={!draft.trim()}
+                >
+                  Spara
+                </Button>
+              </div>
+              <div className="flex gap-1">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  title="Hämta om från Supabase Storage"
+                  onClick={() => onRefetch(row.team)}
+                  disabled={pendingTeam === row.team}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 ${
+                      pendingTeam === row.team ? "animate-spin" : ""
+                    }`}
+                  />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  title="Rensa cache-raden"
+                  onClick={() => onClear(row.team)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function LogoCacheBadge({ status }: { status: TeamLogoStatus["status"] }) {
+  if (status === "ok")
+    return (
+      <Badge variant="secondary" className="text-[10px]">
+        cachad
+      </Badge>
+    );
+  if (status === "missing")
+    return (
+      <Badge variant="destructive" className="text-[10px]">
+        missing
+      </Badge>
+    );
+  return (
+    <Badge variant="outline" className="text-[10px]">
+      ohämtad
+    </Badge>
+  );
+}
+
+// ──────────────────────────────────────────────
+// vMix asset uploaders
+// ──────────────────────────────────────────────
 
 function ResourceTile({
   filename,
@@ -272,13 +534,11 @@ function LogoUploader({
   const [busy, setBusy] = useState(false);
   const previewUrl = withCacheBuster(url, bump);
 
-
   return (
     <div className="flex items-center gap-2">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-muted/40">
         <img
           src={previewUrl}
-
           alt={path}
           className="max-h-full max-w-full object-contain"
           onError={(e) => {
