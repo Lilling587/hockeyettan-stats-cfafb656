@@ -197,6 +197,101 @@ function LeagueOverviewView({
 
         <Card>
           <CardHeader>
+            <CardTitle className="text-base">Top 10 PIM</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {pimLoading ? (
+              <div className="space-y-2 p-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-4 w-full" />
+                ))}
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10">#</TableHead>
+                    <TableHead>Player</TableHead>
+                    <TableHead>Team</TableHead>
+                    <TableHead className="text-right">GP</TableHead>
+                    <TableHead className="text-right">PIM</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {topPim.map((p) => (
+                    <TableRow key={`${p.team}-${p.name}`}>
+                      <TableCell className="text-muted-foreground">{p.rank}</TableCell>
+                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{p.team}</TableCell>
+                      <TableCell className="text-right tabular-nums">{p.gamesPlayed ?? "—"}</TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums">{p.pim}</TableCell>
+                    </TableRow>
+                  ))}
+                  {topPim.length === 0 && !pimLoading && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">
+                        No PIM data available.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Scoring leaders</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 p-4">
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Highest scoring (goals for / game)
+              </p>
+              <Table>
+                <TableBody>
+                  {data.highestScoring.map((t) => (
+                    <TableRow key={`hs-${t.team}`}>
+                      <TableCell className="w-10 text-muted-foreground">{t.rank}</TableCell>
+                      <TableCell className="font-medium">{t.team}</TableCell>
+                      <TableCell className="text-right text-xs text-muted-foreground tabular-nums">
+                        {t.goalsFor} GF · {t.gamesPlayed} GP
+                      </TableCell>
+                      <TableCell className="w-16 text-right font-semibold tabular-nums">
+                        {t.perGame.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Best defenses (goals against / game)
+              </p>
+              <Table>
+                <TableBody>
+                  {data.bestDefenses.map((t) => (
+                    <TableRow key={`bd-${t.team}`}>
+                      <TableCell className="w-10 text-muted-foreground">{t.rank}</TableCell>
+                      <TableCell className="font-medium">{t.team}</TableCell>
+                      <TableCell className="text-right text-xs text-muted-foreground tabular-nums">
+                        {t.goalsAgainst} GA · {t.gamesPlayed} GP
+                      </TableCell>
+                      <TableCell className="w-16 text-right font-semibold tabular-nums">
+                        {t.perGame.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                 ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle className="text-base">Hottest teams · last 5</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -253,101 +348,6 @@ function LeagueOverviewView({
                 ) : null}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Scoring leaders</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 p-4">
-            <div>
-              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Highest scoring (goals for / game)
-              </p>
-              <Table>
-                <TableBody>
-                  {data.highestScoring.map((t) => (
-                    <TableRow key={`hs-${t.team}`}>
-                      <TableCell className="w-10 text-muted-foreground">{t.rank}</TableCell>
-                      <TableCell className="font-medium">{t.team}</TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground tabular-nums">
-                        {t.goalsFor} GF · {t.gamesPlayed} GP
-                      </TableCell>
-                      <TableCell className="w-16 text-right font-semibold tabular-nums">
-                        {t.perGame.toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <div>
-              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Best defenses (goals against / game)
-              </p>
-              <Table>
-                <TableBody>
-                  {data.bestDefenses.map((t) => (
-                    <TableRow key={`bd-${t.team}`}>
-                      <TableCell className="w-10 text-muted-foreground">{t.rank}</TableCell>
-                      <TableCell className="font-medium">{t.team}</TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground tabular-nums">
-                        {t.goalsAgainst} GA · {t.gamesPlayed} GP
-                      </TableCell>
-                      <TableCell className="w-16 text-right font-semibold tabular-nums">
-                        {t.perGame.toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                 ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Top 10 PIM</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {pimLoading ? (
-              <div className="space-y-2 p-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-4 w-full" />
-                ))}
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10">#</TableHead>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead className="text-right">GP</TableHead>
-                    <TableHead className="text-right">PIM</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {topPim.map((p) => (
-                    <TableRow key={`${p.team}-${p.name}`}>
-                      <TableCell className="text-muted-foreground">{p.rank}</TableCell>
-                      <TableCell className="font-medium">{p.name}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{p.team}</TableCell>
-                      <TableCell className="text-right tabular-nums">{p.gamesPlayed ?? "—"}</TableCell>
-                      <TableCell className="text-right font-semibold tabular-nums">{p.pim}</TableCell>
-                    </TableRow>
-                  ))}
-                  {topPim.length === 0 && !pimLoading && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">
-                        No PIM data available.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )}
           </CardContent>
         </Card>
       </div>
