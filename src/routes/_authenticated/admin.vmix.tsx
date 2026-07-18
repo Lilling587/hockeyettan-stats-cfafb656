@@ -479,7 +479,6 @@ const seasonsQuery = useQuery({
     },
   });
  const [showSavePreset, setShowSavePreset] = useState(false);
-  const [endpointsExpanded, setEndpointsExpanded] = useState(false);
   const [presetLabel, setPresetLabel] = useState("");
 
   const handleSavePreset = async () => {
