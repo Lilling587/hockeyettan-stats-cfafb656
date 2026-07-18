@@ -22,6 +22,8 @@ const searchSchema = z.object({
   sort: fallback(z.string(), "points").default("points"),
   season: fallback(z.string(), "").default(""),
 });
+type SearchParams = z.infer<typeof searchSchema>;
+
 
 export const Route = createFileRoute("/spelare")({
   validateSearch: zodValidator(searchSchema),
