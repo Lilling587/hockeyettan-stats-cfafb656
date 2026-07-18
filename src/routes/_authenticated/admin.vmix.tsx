@@ -2138,7 +2138,7 @@ function EndpointTester({
                   >
                     <Copy className="h-3 w-3" /> Kopiera
                   </Button>
-                  
+                  <a
                     href={e.url}
                     target="_blank"
                     rel="noreferrer"
