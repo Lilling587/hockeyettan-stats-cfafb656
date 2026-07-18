@@ -23,7 +23,7 @@ import { LeagueOverviewSection } from "@/components/league-overview-section";
 export const Route = createFileRoute("/compare")({
   head: () => ({
     meta: [
-      { title: "Compare teams · HockeyEttan Södra" },
+     { title: "Jämför lag · HockeyEttan Södra" },
       {
         name: "description",
         content:
@@ -111,10 +111,10 @@ function ComparePage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
-              Compare teams
+              Jämför lag
             </h1>
             <p className="text-sm text-muted-foreground">
-              HockeyEttan Södra · full standings
+              HockeyEttan Södra · fullständig tabell
             </p>
           </div>
           <Button asChild variant="outline" size="sm">
@@ -175,10 +175,11 @@ function ComparePage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              Standings{" "}
+              Tabell{" "}
               <span className="text-xs font-normal text-muted-foreground">
                 ({standingsQuery.data?.season ?? activeSeason})
               </span>
+            </CardTitle>
             </CardTitle>
           </CardHeader>
           <CardContent>
