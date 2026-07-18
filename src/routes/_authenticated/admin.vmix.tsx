@@ -1990,6 +1990,40 @@ type EndpointResult = {
   fetchedAt?: string;
 };
 
+      </CardContent>
+      )}
+    </Card>
+  );
+}
+```
+
+**Replace with:**
+```typescript
+async function copyToClipboard(text: string) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      throw new Error("Clipboard API unavailable");
+    }
+    toast.success("Kopierad");
+  } catch {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      toast.success("Kopierad");
+    } catch {
+      toast.error("Kunde inte kopiera – markera manuellt");
+    }
+    document.body.removeChild(ta);
+  }
+}
+
 function EndpointTester({
   endpoints,
   autoFetchTrigger,
@@ -2023,7 +2057,6 @@ function EndpointTester({
         fetchedAt: new Date().toISOString(),
         error: res.ok ? undefined : `HTTP ${res.status}`,
       };
-      // Alert when auto-refresh detects an endpoint going from ok → error.
       if (autoRefresh && prevResultsRef.current[url]?.status === "ok" && !res.ok) {
         const label = endpoints.find((e) => e.url === url)?.label ?? url;
         toast.error(`⚠ vMix-endpoint nere: ${label} (HTTP ${res.status})`);
@@ -2037,7 +2070,6 @@ function EndpointTester({
         error: (e as Error).message,
         fetchedAt: new Date().toISOString(),
       };
-      // Alert when auto-refresh detects a network failure after a previously ok state.
       if (autoRefresh && prevResultsRef.current[url]?.status === "ok") {
         const label = endpoints.find((e) => e.url === url)?.label ?? url;
         toast.error(`⚠ vMix-endpoint nere: ${label} – ${(e as Error).message}`);
@@ -2056,13 +2088,11 @@ function EndpointTester({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh, endpoints]);
 
-  // Automatically fetch all endpoints when parent signals a home game was detected.
   useEffect(() => {
     if (!autoFetchTrigger) return;
     runAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFetchTrigger]);
-
 
   return (
     <Card>
@@ -2070,86 +2100,110 @@ function EndpointTester({
         className="flex flex-row items-center justify-between space-y-0 cursor-pointer select-none"
         onClick={() => setExpanded((v) => !v)}
       >
-        <div>
-          <CardTitle className="text-base">Testa endpoints</CardTitle>
+        <CardTitle className="text-base">vMix-endpoints</CardTitle>
+        <div
+          className="flex items-center gap-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button
+            size="sm"
+            variant={autoRefresh ? "default" : "outline"}
+            onClick={() => setAutoRefresh((v) => !v)}
+          >
+            Auto 10s {autoRefresh ? "på" : "av"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={runAll}>
+            <RefreshCw className="h-3 w-3 mr-1" /> Testa alla
+          </Button>
+          <span className="text-xs text-muted-foreground w-8 text-right">
+            {expanded ? "Dölj" : "Visa"}
+          </span>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {expanded ? "Dölj" : "Visa"}
-        </span>
       </CardHeader>
       {expanded && (
-      <CardContent className="space-y-3">
-        <div className="flex items-center justify-between">
+        <CardContent className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            Hämtar varje JSON-feed live och visar status, svarstid och preview.
+            Klistra in URL:en i vMix Data Sources → Web (JSON). Poll-intervall
+            5–15 s rekommenderas.{" "}
+            <span className="font-mono">lineup.json</span> speglar det riktiga
+            Swehockey-API:t – byt bara domän för att växla till backup.
           </p>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant={autoRefresh ? "default" : "outline"}
-              onClick={(e) => { e.stopPropagation(); setAutoRefresh((v) => !v); }}
-            >
-              Auto 10s {autoRefresh ? "på" : "av"}
-            </Button>
-            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); runAll(); }}>
-              <RefreshCw className="h-3 w-3 mr-1" /> Testa alla
-            </Button>
-          </div>
-        </div>
-        {endpoints.map((e) => {
-          const r = results[e.url];
-          return (
-            <div
-              key={e.url}
-              className="rounded border bg-muted/30 p-2 text-xs"
-            >
-              <div className="flex items-center gap-2">
-                <StatusBadge result={r} />
-                <span className="font-mono font-medium">{e.label}</span>
-                {r?.ms !== undefined && (
-                  <span className="text-muted-foreground">{r.ms} ms</span>
-                )}
-                {r?.httpStatus !== undefined && (
-                  <span className="text-muted-foreground">
-                    HTTP {r.httpStatus}
+          {endpoints.map((e) => {
+            const r = results[e.url];
+            return (
+              <div key={e.url} className="rounded border bg-muted/30 p-2 text-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge result={r} />
+                  <span className="font-mono font-medium w-36 shrink-0">
+                    {e.label}
                   </span>
-                )}
-                {r?.fetchedAt && (
-                  <span className="text-muted-foreground ml-1">
-                    · {new Date(r.fetchedAt).toLocaleTimeString("sv-SE")}
+                  <span className="font-mono truncate flex-1 text-muted-foreground">
+                    {e.url}
                   </span>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="ml-auto h-6"
-                  onClick={() => runOne(e.url)}
-                  disabled={r?.status === "loading"}
-                >
-                  {r?.status === "loading" ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-3 w-3" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 gap-1 shrink-0"
+                    onClick={() => copyToClipboard(e.url)}
+                  >
+                    <Copy className="h-3 w-3" /> Kopiera
+                  </Button>
+                  <a
+                    href={e.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:underline text-xs inline-flex items-center gap-1 shrink-0"
+                  >
+                    <Download className="h-3 w-3" /> Öppna
+                  </a>
+                  {r?.ms !== undefined && (
+                    <span className="text-muted-foreground shrink-0">
+                      {r.ms} ms
+                    </span>
                   )}
-                </Button>
+                  {r?.httpStatus !== undefined && (
+                    <span className="text-muted-foreground shrink-0">
+                      HTTP {r.httpStatus}
+                    </span>
+                  )}
+                  {r?.fetchedAt && (
+                    <span className="text-muted-foreground shrink-0">
+                      · {new Date(r.fetchedAt).toLocaleTimeString("sv-SE")}
+                    </span>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 shrink-0"
+                    onClick={() => runOne(e.url)}
+                    disabled={r?.status === "loading"}
+                  >
+                    {r?.status === "loading" ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
+                {r?.error && (
+                  <p className="mt-1 text-destructive">{r.error}</p>
+                )}
+                {r?.body !== undefined && (
+                  <pre className="mt-2 max-h-96 overflow-auto rounded bg-background/60 p-2 font-mono text-[11px] leading-relaxed">
+                    {typeof r.body === "string"
+                      ? r.body
+                      : JSON.stringify(r.body, null, 2)}
+                  </pre>
+                )}
+                {!r && (
+                  <p className="mt-1 text-muted-foreground italic">
+                    Inte testad ännu — tryck på uppdateringsknappen.
+                  </p>
+                )}
               </div>
-              {r?.error && <p className="mt-1 text-destructive">{r.error}</p>}
-              {r?.body !== undefined && (
-                <pre className="mt-2 max-h-96 overflow-auto rounded bg-background/60 p-2 font-mono text-[11px] leading-relaxed">
-                  {typeof r.body === "string"
-                    ? r.body
-                    : JSON.stringify(r.body, null, 2)}
-                </pre>
-              )}
-              {!r && (
-                <p className="mt-1 text-muted-foreground italic">
-                  Inte testad ännu.
-                </p>
-              )}
-            </div>
-          );
-        })}
-      </CardContent>
+            );
+          })}
+        </CardContent>
       )}
     </Card>
   );
