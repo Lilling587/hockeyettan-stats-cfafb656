@@ -2073,7 +2073,7 @@ function EndpointTester({
 
   useEffect(() => {
     if (!autoRefresh) return;
-    const id = setInterval(runAll, 10_000);
+    const id = setInterval(runAll, 60_000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh, endpoints]);
@@ -2100,7 +2100,7 @@ function EndpointTester({
             variant={autoRefresh ? "default" : "outline"}
             onClick={() => setAutoRefresh((v) => !v)}
           >
-            Auto 10s {autoRefresh ? "på" : "av"}
+            Auto 60s {autoRefresh ? "på" : "av"}
           </Button>
           <Button size="sm" variant="outline" onClick={runAll}>
             <RefreshCw className="h-3 w-3 mr-1" /> Testa alla
