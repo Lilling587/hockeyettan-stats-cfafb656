@@ -7,7 +7,7 @@ import {
   getTeamLogos,
 } from "@/lib/team-logos.functions";
 
-const STORAGE_KEY = "lovable.teamlogos.v1";
+const STORAGE_KEY = "lovable.teamlogos.v2";
 const STORAGE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const STALE_MS = 24 * 60 * 60 * 1000;
 const GC_MS = 7 * 24 * 60 * 60 * 1000;
