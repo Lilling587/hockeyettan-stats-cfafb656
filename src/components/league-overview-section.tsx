@@ -241,7 +241,7 @@ function LeagueOverviewView({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Gjorda/insläppta mål</CardTitle>
+            <CardTitle className="text-base">Gjorda/insläppta mål - snitt</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 p-4">
             <div>
