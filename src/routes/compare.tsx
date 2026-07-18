@@ -114,7 +114,7 @@ function ComparePage() {
               Jämför lag
             </h1>
             <p className="text-sm text-muted-foreground">
-              HockeyEttan Södra · fullständig tabell
+              HockeyEttan Södra
             </p>
           </div>
           <Button asChild variant="outline" size="sm">
