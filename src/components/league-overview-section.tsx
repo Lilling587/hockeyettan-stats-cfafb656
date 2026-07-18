@@ -114,7 +114,7 @@ function LeagueOverviewView({
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Top scorers</CardTitle>
+            <CardTitle className="text-base">Poängliga</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
@@ -153,7 +153,7 @@ function LeagueOverviewView({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Top goalies</CardTitle>
+            <CardTitle className="text-base">Målvaktsliga</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
@@ -196,7 +196,7 @@ function LeagueOverviewView({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Top 10 PIM</CardTitle>
+            <CardTitle className="text-base">Utvisningsliga</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {pimLoading ? (
