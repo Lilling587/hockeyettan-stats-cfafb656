@@ -21,7 +21,7 @@ import type { Briefing } from "@/lib/stats.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, CalendarDays, Check, FolderUp, Info, Loader2, LogOut, Monitor, RefreshCw, Scale, Settings, Star, Tv, Users, X } from "lucide-react";
+import { Activity, AlertCircle, CalendarDays, FolderUp, Info, Loader2, LogOut, Monitor, RefreshCw, Scale, ScrollText, Settings, Star, Tv, Users, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -506,11 +506,10 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                 Spelare
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+           <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
               <Link to="/compare">
                 <Scale className="mr-2 h-4 w-4 shrink-0" />
-                <span className="sm:hidden">HockeyEttan stats</span>
-                <span className="hidden sm:inline">HockeyEttan stats</span>
+                HockeyEttan stats
               </Link>
             </Button>
             {user ? (
@@ -521,15 +520,15 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                     Notiser
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+               <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                   <Link to="/admin/logs">
-                    <Settings className="mr-2 h-4 w-4 shrink-0" />
+                    <ScrollText className="mr-2 h-4 w-4 shrink-0" />
                     Loggbok
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                   <Link to="/admin/health">
-                    <Settings className="mr-2 h-4 w-4 shrink-0" />
+                    <Activity className="mr-2 h-4 w-4 shrink-0" />
                     Hälsa
                   </Link>
                 </Button>
@@ -643,10 +642,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
 
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Välj lag</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <div className="max-w-xs">
               <SeasonPicker
                 value={activeSeason}
@@ -737,11 +733,6 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Laddar laglista…
-              </div>
-            ) : teamsQuery.isSuccess ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Check className="h-4 w-4 text-green-500" />
-                {teamsQuery.data?.teams.length ?? 0} lag laddade
               </div>
             ) : null}
             {todaysMatchupQuery.data?.match &&
