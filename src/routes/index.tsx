@@ -816,11 +816,11 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
             {error ? (
               <p className="mt-3 text-sm text-destructive">{error}</p>
             ) : null}
-          </CardContent>
+         </CardContent>
         </Card>
+        )}
 
         {briefingMut.isPending ? <BriefingSkeleton /> : null}
-
         <TabsContent value="briefing" className="mt-0">
           {briefing ? (
             <BriefingView
