@@ -493,14 +493,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
             </p>
           </div>
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-            <TabsList className="hidden sm:flex w-full sm:w-auto">
-              <TabsTrigger value="briefing" className="flex-1 sm:flex-initial">
-                Matchgenomgång
-              </TabsTrigger>
-              <TabsTrigger value="recap" className="flex-1 sm:flex-initial">
-                Matchsammanfattning
-              </TabsTrigger>
-            </TabsList>
+            
             <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
               <Link to="/schema">
                 <CalendarDays className="mr-2 h-4 w-4 shrink-0" />
@@ -632,6 +625,17 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
             qc.invalidateQueries({ queryKey: ["seasons"] });
           }}
         />
+
+        <div className="hidden sm:flex">
+          <TabsList>
+            <TabsTrigger value="briefing">
+              Matchgenomgång
+            </TabsTrigger>
+            <TabsTrigger value="recap">
+              Matchsammanfattning
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {favorite && activeSeason ? (
           <NextMatchCard team={favorite} season={activeSeason} />
