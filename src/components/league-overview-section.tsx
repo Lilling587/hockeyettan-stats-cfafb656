@@ -291,7 +291,7 @@ function LeagueOverviewView({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Hottest teams · last 5</CardTitle>
+           <CardTitle className="text-base">Hetaste lag · senaste 5</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
