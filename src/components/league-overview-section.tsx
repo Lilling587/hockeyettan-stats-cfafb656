@@ -106,8 +106,7 @@ function LeagueOverviewView({
 
   return (
     <section className="space-y-3">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-semibold tracking-tight">League-wide</h2>
+      <div className="flex items-baseline justify-end">
         <p className="text-xs text-muted-foreground">
           HockeyEttan Södra · {data.seasonLabel}
         </p>
