@@ -2113,10 +2113,7 @@ function EndpointTester({
       {expanded && (
         <CardContent className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            Klistra in URL:en i vMix Data Sources → Web (JSON). Poll-intervall
-            5–15 s rekommenderas.{" "}
-            <span className="font-mono">lineup.json</span> speglar det riktiga
-            Swehockey-API:t – byt bara domän för att växla till backup.
+            Klistra in URL:en i vMix Data Sources → Web (JSON).
           </p>
           {endpoints.map((e) => {
             const r = results[e.url];
