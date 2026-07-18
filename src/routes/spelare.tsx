@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { ArrowLeft, Loader2, RotateCcw, Search, Users, X } from "lucide-react";
 
 import { listSeasons, getLeaguePlayers } from "@/lib/stats.functions";
@@ -14,7 +16,17 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { TeamLogo } from "@/components/team-logo";
 import { translateError } from "@/lib/error-messages";
 
+const searchSchema = z.object({
+  q: fallback(z.string(), "").default(""),
+  pos: fallback(z.string(), "all").default("all"),
+  sort: fallback(z.string(), "points").default("points"),
+  season: fallback(z.string(), "").default(""),
+});
+type SearchParams = z.infer<typeof searchSchema>;
+
+
 export const Route = createFileRoute("/spelare")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Spelare — HockeyEttan Södra" },
@@ -43,6 +55,9 @@ export const Route = createFileRoute("/spelare")({
 type SortKey = "points" | "goals" | "assists" | "pim";
 type PosFilter = "all" | "F" | "D" | "G";
 
+const SORT_KEYS: SortKey[] = ["points", "goals", "assists", "pim"];
+const POS_KEYS: PosFilter[] = ["all", "F", "D", "G"];
+
 function matchPosition(filter: PosFilter, pos: string): boolean {
   if (filter === "all") return true;
   if (filter === "G") return /g/i.test(pos);
@@ -54,6 +69,27 @@ function matchPosition(filter: PosFilter, pos: string): boolean {
 function PlayersPage() {
   const fetchSeasons = useServerFn(listSeasons);
   const fetchPlayers = useServerFn(getLeaguePlayers);
+  const navigate = useNavigate({ from: "/spelare" });
+  const rawSearch = Route.useSearch();
+
+  const query = rawSearch.q;
+  const pos: PosFilter = (POS_KEYS as string[]).includes(rawSearch.pos)
+    ? (rawSearch.pos as PosFilter)
+    : "all";
+  const sort: SortKey = (SORT_KEYS as string[]).includes(rawSearch.sort)
+    ? (rawSearch.sort as SortKey)
+    : "points";
+  const season = rawSearch.season;
+
+  const setQuery = (v: string) =>
+    navigate({ search: (p: SearchParams) => ({ ...p, q: v }), replace: true });
+  const setPos = (v: PosFilter) =>
+    navigate({ search: (p: SearchParams) => ({ ...p, pos: v }), replace: true });
+  const setSort = (v: SortKey) =>
+    navigate({ search: (p: SearchParams) => ({ ...p, sort: v }), replace: true });
+  const setSeason = (v: string) =>
+    navigate({ search: (p: SearchParams) => ({ ...p, season: v }), replace: true });
+
 
   const seasonsQuery = useQuery({
     queryKey: ["seasons"],
@@ -62,11 +98,7 @@ function PlayersPage() {
   });
 
   const defaultSeason = seasonsQuery.data?.default.label ?? "";
-  const [season, setSeason] = useState<string>("");
   const activeSeason = season || defaultSeason;
-  const [query, setQuery] = useState("");
-  const [pos, setPos] = useState<PosFilter>("all");
-  const [sort, setSort] = useState<SortKey>("points");
 
   const playersQuery = useQuery({
     queryKey: ["league-players", activeSeason],
@@ -74,6 +106,7 @@ function PlayersPage() {
     enabled: !!activeSeason,
     staleTime: 60 * 60 * 1000,
   });
+
 
   const filtered = useMemo(() => {
     const all = playersQuery.data?.players ?? [];
@@ -100,7 +133,7 @@ function PlayersPage() {
       const combined = `${raw} ${normalized}`;
       const words = q.split(/\s+/).filter(Boolean);
 
-      return words.every((w) => combined.includes(w)) || p.team.toLowerCase().includes(q);
+      return words.every((w: string) => combined.includes(w)) || p.team.toLowerCase().includes(q);
     });
     const key = sort;
     const get = (p: LeaguePlayer): number => {
