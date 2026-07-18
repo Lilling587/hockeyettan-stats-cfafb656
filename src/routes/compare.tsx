@@ -180,7 +180,7 @@ function ComparePage() {
                 ({standingsQuery.data?.season ?? activeSeason})
               </span>
             </CardTitle>
-            </CardTitle>
+          </CardHeader>
           </CardHeader>
           <CardContent>
             {standingsQuery.isLoading ? (
