@@ -133,7 +133,7 @@ function PlayersPage() {
       const combined = `${raw} ${normalized}`;
       const words = q.split(/\s+/).filter(Boolean);
 
-      return words.every((w) => combined.includes(w)) || p.team.toLowerCase().includes(q);
+      return words.every((w: string) => combined.includes(w)) || p.team.toLowerCase().includes(q);
     });
     const key = sort;
     const get = (p: LeaguePlayer): number => {
