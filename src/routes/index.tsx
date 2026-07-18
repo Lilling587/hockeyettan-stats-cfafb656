@@ -20,6 +20,13 @@ import type { Briefing } from "@/lib/stats.functions";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Activity, AlertCircle, CalendarDays, FolderUp, Info, Loader2, LogOut, Monitor, RefreshCw, Scale, ScrollText, Settings, Star, Tv, Users, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -512,64 +519,71 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                 HockeyEttan stats
               </Link>
             </Button>
-            {user ? (
-              <>
-                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                  <Link to="/notifications">
-                    <Star className="mr-2 h-4 w-4 shrink-0" />
-                    Notiser
-                  </Link>
-                </Button>
-               <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                  <Link to="/admin/logs">
-                    <ScrollText className="mr-2 h-4 w-4 shrink-0" />
-                    Loggbok
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                  <Link to="/admin/health">
-                    <Activity className="mr-2 h-4 w-4 shrink-0" />
-                    Hälsa
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                  <Link to="/admin/vmix">
-                    <Tv className="mr-2 h-4 w-4 shrink-0" />
-                    vMix
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                  <Link to="/admin/users">
-                    <Users className="mr-2 h-4 w-4 shrink-0" />
-                    Användare
-                  </Link>
-                </Button>
-                {adminQuery.data?.isAdmin ? (
-                  <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                    <Link to="/admin/assets">
-                      <FolderUp className="mr-2 h-4 w-4 shrink-0" />
-                      Lagring
-                    </Link>
+           {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                    <Settings className="mr-2 h-4 w-4 shrink-0" />
+                    Admin
                   </Button>
-                ) : null}
-                {adminQuery.data?.isAdmin ? (
-                  <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                    <Link to="/connect">
-                      <Info className="mr-2 h-4 w-4 shrink-0" />
-                      Anslut AI
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link to="/notifications" className="flex items-center">
+                      <Star className="mr-2 h-4 w-4" />
+                      Notiser
                     </Link>
-                  </Button>
-                ) : null}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                  onClick={handleSignOut}
-                >
-                  <LogOut className="mr-2 h-4 w-4 shrink-0" />
-                  Logga ut
-                </Button>
-              </>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/logs" className="flex items-center">
+                      <ScrollText className="mr-2 h-4 w-4" />
+                      Loggbok
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/health" className="flex items-center">
+                      <Activity className="mr-2 h-4 w-4" />
+                      Hälsa
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/vmix" className="flex items-center">
+                      <Tv className="mr-2 h-4 w-4" />
+                      vMix
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/users" className="flex items-center">
+                      <Users className="mr-2 h-4 w-4" />
+                      Användare
+                    </Link>
+                  </DropdownMenuItem>
+                  {adminQuery.data?.isAdmin ? (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/assets" className="flex items-center">
+                        <FolderUp className="mr-2 h-4 w-4" />
+                        Lagring
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
+                  {adminQuery.data?.isAdmin ? (
+                    <DropdownMenuItem asChild>
+                      <Link to="/connect" className="flex items-center">
+                        <Info className="mr-2 h-4 w-4" />
+                        Anslut AI
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logga ut
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
                 <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
@@ -587,6 +601,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                 </Button>
               </>
             )}
+
            <Button
               variant={tabletMode ? "default" : "ghost"}
               size="sm"
@@ -643,15 +658,15 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
 
         <Card>
           <CardContent className="space-y-4 pt-6">
-            <div className="max-w-xs">
-              <SeasonPicker
-                value={activeSeason}
-                onChange={setSeason}
-                seasons={(seasonsQuery.data?.seasons ?? []).map((s: { label: string }) => s.label)}
-                loading={seasonsQuery.isLoading}
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] items-end">
+            <div className="grid gap-4 sm:grid-cols-[auto_1fr_1fr_auto] items-end">
+              <div>
+                <SeasonPicker
+                  value={activeSeason}
+                  onChange={setSeason}
+                  seasons={(seasonsQuery.data?.seasons ?? []).map((s: { label: string }) => s.label)}
+                  loading={seasonsQuery.isLoading}
+                />
+              </div>
               <div className="flex flex-col gap-1">
                 <div className="flex items-end gap-2">
                   <div className="flex-1">
@@ -728,6 +743,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   </Button>
                 )}
               </div>
+            </div>
             </div>
             {teamsQuery.isLoading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
