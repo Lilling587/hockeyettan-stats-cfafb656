@@ -694,8 +694,9 @@ const restoreMut = useMutation({
         status: filledHome.goalies > 0 && filledHome.skaters >= 6 ? "ok" : filledHome.goalies > 0 ? "warn" : "error",
       },
       {
+        {
         label: `Borta-lineup · ${filledAway.goalies} MV · ${filledAway.skaters} utespel.`,
-        status: !awayTeam ? "warn" : filledAway.goalies > 0 && filledAway.skaters >= 6 ? "ok" : filledAway.goalies > 0 ? "warn" : "error",
+        status: !awayTeam ? "error" : filledAway.goalies > 0 && filledAway.skaters >= 6 ? "ok" : filledAway.goalies > 0 ? "warn" : "error",
       },
       {
         label: `Logotypkoder · ${codesQuery.data?.length ?? 0} lag`,
