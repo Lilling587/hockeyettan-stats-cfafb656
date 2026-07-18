@@ -486,7 +486,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
-              {favorite || "Grästorps IK"} — Producent-statistik
+              {favorite || "Grästorps IK"}
             </h1>
             <p className="text-sm text-muted-foreground">
               HockeyEttan Södra · matchstatistik för kommentatorer
