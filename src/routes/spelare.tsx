@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+
 import { useQuery } from "@tanstack/react-query";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
@@ -81,6 +82,59 @@ function PlayersPage() {
     : "points";
   const season = rawSearch.season;
 
+  const SPELARE_STATE_KEY = "spelare.search.v1";
+
+  // Restore last state from sessionStorage when arriving with default/empty params
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isDefault =
+      (rawSearch.q ?? "") === "" &&
+      (rawSearch.pos ?? "all") === "all" &&
+      (rawSearch.sort ?? "points") === "points" &&
+      (rawSearch.season ?? "") === "";
+    if (!isDefault) return;
+    try {
+      const saved = window.sessionStorage.getItem(SPELARE_STATE_KEY);
+      if (!saved) return;
+      const parsed = JSON.parse(saved) as Partial<SearchParams>;
+      const next: SearchParams = {
+        q: parsed.q ?? "",
+        pos: parsed.pos ?? "all",
+        sort: parsed.sort ?? "points",
+        season: parsed.season ?? "",
+      };
+      if (
+        next.q === "" &&
+        next.pos === "all" &&
+        next.sort === "points" &&
+        next.season === ""
+      )
+        return;
+      navigate({ search: () => next, replace: true });
+    } catch {
+      // ignore
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist current state
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(
+        SPELARE_STATE_KEY,
+        JSON.stringify({
+          q: rawSearch.q,
+          pos: rawSearch.pos,
+          sort: rawSearch.sort,
+          season: rawSearch.season,
+        }),
+      );
+    } catch {
+      // ignore
+    }
+  }, [rawSearch.q, rawSearch.pos, rawSearch.sort, rawSearch.season]);
+
   const setQuery = (v: string) =>
     navigate({ search: (p: SearchParams) => ({ ...p, q: v }), replace: true });
   const setPos = (v: PosFilter) =>
@@ -89,6 +143,7 @@ function PlayersPage() {
     navigate({ search: (p: SearchParams) => ({ ...p, sort: v }), replace: true });
   const setSeason = (v: string) =>
     navigate({ search: (p: SearchParams) => ({ ...p, season: v }), replace: true });
+
 
 
   const seasonsQuery = useQuery({
