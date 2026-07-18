@@ -1,10 +1,12 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertCircle, RefreshCw } from "lucide-react";
-
 import {
   getLeagueOverview,
+  getLeaguePlayers,
   type LeagueOverviewResult,
+  type LeaguePlayer,
 } from "@/lib/stats.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,8 @@ import {
 
 export function LeagueOverviewSection({ season }: { season: string }) {
   const fetchLeagueOverview = useServerFn(getLeagueOverview);
+  const fetchPlayers = useServerFn(getLeaguePlayers);
+
   const query = useQuery({
     queryKey: ["league-overview", season],
     queryFn: () => fetchLeagueOverview({ data: { season } }),
@@ -27,12 +31,30 @@ export function LeagueOverviewSection({ season }: { season: string }) {
     staleTime: 60 * 60 * 1000,
   });
 
+  const playersQuery = useQuery({
+    queryKey: ["league-players", season],
+    queryFn: () => fetchPlayers({ data: { season } }),
+    enabled: !!season,
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const topPim = useMemo((): (LeaguePlayer & { rank: number })[] => {
+    const players = playersQuery.data?.players ?? [];
+    return players
+      .filter((p) => p.pim != null && p.pim > 0)
+      .sort((a, b) => (b.pim ?? 0) - (a.pim ?? 0))
+      .slice(0, 10)
+      .map((p, i) => ({ rank: i + 1, ...p }));
+  }, [playersQuery.data]);
+
   return (
     <LeagueOverviewView
       data={query.data ?? null}
       loading={query.isLoading}
       error={query.isError ? (query.error as Error).message : null}
       onRetry={() => query.refetch()}
+      topPim={topPim}
+      pimLoading={playersQuery.isLoading}
     />
   );
 }
@@ -42,11 +64,15 @@ function LeagueOverviewView({
   loading,
   error,
   onRetry,
+  topPim,
+  pimLoading,
 }: {
   data: LeagueOverviewResult | null;
   loading: boolean;
   error: string | null;
   onRetry: () => void;
+  topPim: (LeaguePlayer & { rank: number })[];
+  pimLoading: boolean;
 }) {
   if (loading && !data) {
     return (
@@ -273,10 +299,55 @@ function LeagueOverviewView({
                         {t.perGame.toFixed(2)}
                       </TableCell>
                     </TableRow>
-                  ))}
+                 ))}
                 </TableBody>
               </Table>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Top 10 PIM</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {pimLoading ? (
+              <div className="space-y-2 p-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-4 w-full" />
+                ))}
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10">#</TableHead>
+                    <TableHead>Player</TableHead>
+                    <TableHead>Team</TableHead>
+                    <TableHead className="text-right">GP</TableHead>
+                    <TableHead className="text-right">PIM</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {topPim.map((p) => (
+                    <TableRow key={`${p.team}-${p.name}`}>
+                      <TableCell className="text-muted-foreground">{p.rank}</TableCell>
+                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{p.team}</TableCell>
+                      <TableCell className="text-right tabular-nums">{p.gamesPlayed ?? "—"}</TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums">{p.pim}</TableCell>
+                    </TableRow>
+                  ))}
+                  {topPim.length === 0 && !pimLoading && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">
+                        No PIM data available.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
