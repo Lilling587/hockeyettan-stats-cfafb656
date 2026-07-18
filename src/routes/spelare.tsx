@@ -164,7 +164,9 @@ function PlayersPage() {
 
 
   const filtered = useMemo(() => {
-    const all = playersQuery.data?.players ?? [];
+    const all = (playersQuery.data?.players ?? []).filter(
+      (p) => p.position?.toUpperCase() !== "G",
+    );
     const q = query.trim().toLowerCase();
     const matched = all.filter((p) => {
       if (!matchPosition(pos, p.position)) return false;
