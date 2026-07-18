@@ -660,8 +660,28 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
         ) : null}
 
 
-        <Card>
-          <CardContent className="space-y-4 pt-6">
+        {briefing && !selectorExpanded ? (
+          <div className="flex items-center justify-between rounded-lg border bg-muted/40 px-4 py-3">
+            <div className="min-w-0">
+              <span className="font-medium">
+                {briefing.briefing.home.name} vs {briefing.briefing.away.name}
+              </span>
+              <span className="ml-2 text-sm text-muted-foreground">
+                · {activeSeason}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 text-xs"
+              onClick={() => setSelectorExpanded(true)}
+            >
+              Ändra matchval
+            </Button>
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="space-y-4 pt-6">
             <div className="grid gap-4 sm:grid-cols-[auto_1fr_1fr_auto] items-end">
               <div>
                 <SeasonPicker
