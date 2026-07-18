@@ -80,13 +80,14 @@ function PlayersPage() {
   const season = rawSearch.season;
 
   const setQuery = (v: string) =>
-    navigate({ search: (p) => ({ ...p, q: v }), replace: true });
+    navigate({ search: (p: SearchParams) => ({ ...p, q: v }), replace: true });
   const setPos = (v: PosFilter) =>
-    navigate({ search: (p) => ({ ...p, pos: v }), replace: true });
+    navigate({ search: (p: SearchParams) => ({ ...p, pos: v }), replace: true });
   const setSort = (v: SortKey) =>
-    navigate({ search: (p) => ({ ...p, sort: v }), replace: true });
+    navigate({ search: (p: SearchParams) => ({ ...p, sort: v }), replace: true });
   const setSeason = (v: string) =>
-    navigate({ search: (p) => ({ ...p, season: v }), replace: true });
+    navigate({ search: (p: SearchParams) => ({ ...p, season: v }), replace: true });
+
 
   const seasonsQuery = useQuery({
     queryKey: ["seasons"],
