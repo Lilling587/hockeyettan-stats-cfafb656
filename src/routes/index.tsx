@@ -272,6 +272,9 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
   const [briefing, setBriefingState] = useState<BriefingCache | null>(() =>
     qc.getQueryData<BriefingCache>(briefingCacheKey(home, selectedAway, activeSeason)) ?? null,
   );
+  const [selectorExpanded, setSelectorExpanded] = useState<boolean>(
+    () => !qc.getQueryData<BriefingCache>(briefingCacheKey(home, selectedAway, activeSeason)),
+  );
   const setBriefing = (data: BriefingCache | null) => {
     setBriefingState(data);
     if (data) {
@@ -329,10 +332,11 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
   const briefingMut = useMutation({
     mutationFn: (vars: { home: string; away: string; force?: boolean }) =>
       fetchBriefing({ data: { ...vars, season: activeSeason } }),
-    onSuccess: (data) => {
+   onSuccess: (data) => {
       setBriefing(data);
       setActiveTab("briefing");
       setError(null);
+      setSelectorExpanded(false);
     },
     onError: (e: Error, vars) => {
       console.error("[briefing refresh failed]", {
