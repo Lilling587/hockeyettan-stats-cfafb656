@@ -181,7 +181,6 @@ function ComparePage() {
               </span>
             </CardTitle>
           </CardHeader>
-          </CardHeader>
           <CardContent>
             {standingsQuery.isLoading ? (
               <Skeleton className="h-72 w-full" />
