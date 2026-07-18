@@ -40,7 +40,7 @@ export const Route = createFileRoute("/spelare")({
   ),
 });
 
-type SortKey = "points" | "goals" | "assists";
+type SortKey = "points" | "goals" | "assists" | "pim";
 type PosFilter = "all" | "F" | "D" | "G";
 
 function matchPosition(filter: PosFilter, pos: string): boolean {
@@ -106,6 +106,7 @@ function PlayersPage() {
     const get = (p: LeaguePlayer): number => {
       if (key === "goals") return p.goals ?? -1;
       if (key === "assists") return p.assists ?? -1;
+      if (key === "pim") return p.pim ?? -1;
       return p.points ?? -1;
     };
     return matched.slice().sort((a, b) => get(b) - get(a));
@@ -121,6 +122,7 @@ function PlayersPage() {
     points: "poäng",
     goals: "mål",
     assists: "assist",
+    pim: "utvisningsminuter",
   };
 
   const filtersDirty = query.trim().length > 0 || pos !== "all" || sort !== "points";
@@ -232,6 +234,7 @@ function PlayersPage() {
                     ["points", "P"],
                     ["goals", "G"],
                     ["assists", "A"],
+                    ["pim", "PIM"],
                   ] as Array<[SortKey, string]>
                 ).map(([key, label]) => (
                   <Button key={key} size="sm" variant={sort === key ? "default" : "ghost"} onClick={() => setSort(key)}>
