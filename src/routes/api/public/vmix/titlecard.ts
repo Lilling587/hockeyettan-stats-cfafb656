@@ -55,7 +55,7 @@ export const Route = createFileRoute("/api/public/vmix/titlecard")({
           "HomeTeamShort.Text": pub.homeSlots.teamCode,
           "AwayTeamShort.Text": pub.awaySlots.teamCode,
           "GameDate.Text": formatGameDate(pub.gameDate),
-          "Venue.Text": pub.venue ?? "",
+          "Venue.Text": "Åse & Viste Arena",
           "League.Text": "HOCKEYETTAN SÖDRA",
         };
 
