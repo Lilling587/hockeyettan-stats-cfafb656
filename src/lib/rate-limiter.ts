@@ -10,6 +10,9 @@ type Bucket = { count: number; resetAt: number };
 const buckets = new Map<string, Bucket>();
 
 export function checkRateLimit(ip: string): { allowed: boolean } {
+  // Internal server-to-server requests have no real IP — always allow them.
+  if (ip === "unknown") return { allowed: true };
+
   const now = Date.now();
   let bucket = buckets.get(ip);
 
