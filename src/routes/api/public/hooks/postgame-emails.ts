@@ -49,6 +49,12 @@ export const Route = createFileRoute("/api/public/hooks/postgame-emails")({
           day: "2-digit",
         }).format(new Date());
 
+        // Early exit: no matches today = no postgame work.
+        const globalMatch = await findMatchupOnDate(DEFAULT_SEASON, today);
+        if (!globalMatch) {
+          return Response.json({ date: today, total: 0, results: [], reason: "no-games-today" });
+        }
+
         const { data: prefs, error } = await supabaseAdmin
           .from("notification_prefs")
           .select("user_id, email, favorite_team, enabled")
@@ -56,6 +62,7 @@ export const Route = createFileRoute("/api/public/hooks/postgame-emails")({
         if (error) {
           return Response.json({ error: error.message }, { status: 500 });
         }
+
 
         const origin = new URL(request.url).origin;
         const results: Array<{
