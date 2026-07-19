@@ -58,10 +58,10 @@ export type VmixHealthReport = {
 const DEFAULT_CLUB_ID = "570";
 
 const ENDPOINTS: { name: string; path: string }[] = [
-  { name: "Current match", path: "/api/public/vmix/current" },
-  { name: "Lineup v0", path: `/api/public/vmix/lineup/0?ClubId=${DEFAULT_CLUB_ID}` },
-  { name: "Lineup v1", path: `/api/public/vmix/lineup/1?ClubId=${DEFAULT_CLUB_ID}` },
-  { name: "Standings", path: `/api/public/vmix/standings?ClubId=${DEFAULT_CLUB_ID}` },
+  { name: "Standings", path: "/api/public/vmix/standings" },
+  { name: "Lineup", path: `/api/public/vmix/lineup/0?ClubId=${DEFAULT_CLUB_ID}` },
+  { name: "Titlecard", path: "/api/public/vmix/titlecard" },
+  { name: "Dagens matcher", path: "/api/public/vmix/todays-games" },
 ];
 
 export const checkVmixHealth = createServerFn({ method: "POST" })
