@@ -523,9 +523,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                 HockeyEttan stats
               </Link>
             </Button>
-           {user ? (
-              <DropdownMenu>
-                {user && isAdmin ? (
+            {user && isAdmin ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="w-full sm:w-auto">
