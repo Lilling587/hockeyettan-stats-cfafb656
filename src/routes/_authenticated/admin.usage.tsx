@@ -113,8 +113,32 @@ function UsagePage() {
         </div>
 
         <p className="text-sm text-muted-foreground">
-          Sammanställer databastrafik som driver kostnaden: scraper-anrop, e-postjobb, felhändelser och vMix-åtgärder. Källa: Lovable Cloud (RLS-skyddad, endast admin).
+          Sammanställer databastrafik som driver kostnaden: scraper-anrop, e-postjobb, felhändelser och vMix-åtgärder. Credit-siffrorna är en <strong>uppskattning</strong> baserad på antal händelser × vikter — inte fakturerade siffror. Exakta credits finns i Lovable workspace-billing.
         </p>
+
+        {snap && (
+          <Card className="border-primary/40">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Coins className="h-5 w-5" /> Uppskattade credits
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <CreditStat label="Totalt (fönster)" value={snap.credits.total} />
+                <CreditStat label="Per timme" value={snap.credits.perHour} />
+                <CreditStat label="Prognos / dygn" value={snap.credits.projectedPerDay} />
+                <CreditStat label="Prognos / månad" value={snap.credits.projectedPerMonth} />
+              </div>
+              <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-4">
+                <div>Scraper: <span className="font-mono">{snap.credits.scrape}</span></div>
+                <div>E-post: <span className="font-mono">{snap.credits.email}</span></div>
+                <div>Fel: <span className="font-mono">{snap.credits.error}</span></div>
+                <div>vMix: <span className="font-mono">{snap.credits.vmix}</span></div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {snap && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
