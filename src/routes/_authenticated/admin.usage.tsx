@@ -253,6 +253,7 @@ function JobTable({ title, rows }: { title: string; rows?: { name: string; total
             <TableHead>Namn</TableHead>
             <TableHead className="text-right">Antal</TableHead>
             <TableHead className="text-right">Fel</TableHead>
+            <TableHead className="text-right">Credits</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -261,10 +262,20 @@ function JobTable({ title, rows }: { title: string; rows?: { name: string; total
               <TableCell className="font-mono text-xs">{r.name}</TableCell>
               <TableCell className="text-right">{r.total}</TableCell>
               <TableCell className="text-right">{r.errors || "–"}</TableCell>
+              <TableCell className="text-right font-mono text-xs">{r.credits.toFixed(4)}</TableCell>
             </TableRow>
-          )) : <EmptyRow cols={3} />}
+          )) : <EmptyRow cols={4} />}
         </TableBody>
       </Table>
+    </div>
+  );
+}
+
+function CreditStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-md border bg-muted/30 p-3">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-xl font-semibold tabular-nums">{value.toLocaleString("sv-SE", { maximumFractionDigits: 4 })}</div>
     </div>
   );
 }
