@@ -50,6 +50,8 @@ function HealthPage() {
   const fetchVmixHealth = useServerFn(checkVmixHealth);
   const logVmixTransition = useServerFn(logVmixHeartbeatTransition);
   const prevVmixStateRef = useRef<"ok" | "fel" | null>(null);
+  const pendingVmixStateRef = useRef<{ state: "ok" | "fel"; count: number } | null>(null);
+
   const navigate = useNavigate();
 
   const adminQuery = useQuery({
