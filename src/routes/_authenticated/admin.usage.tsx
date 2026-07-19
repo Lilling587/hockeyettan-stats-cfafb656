@@ -243,7 +243,7 @@ function StatCard({ icon: Icon, label, value, sub }: { icon: any; label: string;
   );
 }
 
-function JobTable({ title, rows }: { title: string; rows?: { name: string; total: number; errors: number }[] }) {
+function JobTable({ title, rows }: { title: string; rows?: { name: string; total: number; errors: number; credits: number }[] }) {
   return (
     <div>
       <h3 className="mb-2 text-sm font-semibold">{title}</h3>
