@@ -68,7 +68,13 @@ export const checkVmixHealth = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .handler(async (): Promise<VmixHealthReport> => {
     const reqUrl = new URL(getRequestUrl());
+    // Local dev serves plain HTTP on localhost; getRequestUrl() may report
+    // https which fails with "fetch failed" for the internal roundtrip.
+    if (reqUrl.hostname === "localhost" || reqUrl.hostname === "127.0.0.1") {
+      reqUrl.protocol = "http:";
+    }
     const origin = reqUrl.origin;
+
 
     const results = await Promise.all(
       ENDPOINTS.map(async ({ name, path }): Promise<VmixEndpointStatus> => {
