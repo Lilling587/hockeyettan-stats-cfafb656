@@ -31,7 +31,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type Mode = "signin" | "forgot";
+type Mode = "signin" | "signup" | "forgot";
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -72,6 +72,11 @@ function AuthPage() {
         if (error) throw error;
         toast.success("Check your inbox for a reset link");
         setMode("signin");
+      } else if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        toast.success("Kontot skapat! Kontrollera din e-post för att bekräfta.");
+        setMode("signin");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -88,11 +93,13 @@ function AuthPage() {
   };
 
   const title =
-    mode === "signin"
-      ? isAdminFlow
-        ? "Admin sign in"
-        : "Logga in för notiser"
-      : "Reset password";
+    mode === "signup"
+      ? "Skapa konto"
+      : mode === "forgot"
+        ? "Återställ lösenord"
+        : isAdminFlow
+          ? "Admin – logga in"
+          : "Logga in";
 
 
   return (
@@ -139,26 +146,63 @@ function AuthPage() {
                 />
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={busy}>
+           <Button type="submit" className="w-full" disabled={busy}>
               {busy
-                ? "Please wait…"
-                : mode === "signin"
-                  ? "Sign in"
-                  : "Send reset link"}
+                ? "Vänta…"
+                : mode === "signup"
+                  ? "Skapa konto"
+                  : mode === "forgot"
+                    ? "Skicka återställningslänk"
+                    : "Logga in"}
             </Button>
+
             {mode === "forgot" && (
               <button
                 type="button"
-                className="text-xs text-muted-foreground hover:underline w-full"
+                className="text-xs text-muted-foreground hover:underline w-full text-center"
                 onClick={() => setMode("signin")}
               >
-                ← Back to sign in
+                ← Tillbaka till inloggning
               </button>
+            )}
+
+            {!isAdminFlow && mode !== "forgot" && (
+              <p className="text-center text-xs text-muted-foreground">
+                {mode === "signin" ? (
+                  <>
+                    Inget konto?{" "}
+                    <button
+                      type="button"
+                      className="hover:underline font-medium"
+                      onClick={() => setMode("signup")}
+                    >
+                      Skapa konto
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Har du redan ett konto?{" "}
+                    <button
+                      type="button"
+                      className="hover:underline font-medium"
+                      onClick={() => setMode("signin")}
+                    >
+                      Logga in
+                    </button>
+                  </>
+                )}
+              </p>
+            )}
+
+            {isAdminFlow && (
+              <p className="text-center text-xs text-muted-foreground">
+                Adminbehörighet krävs. Kontakta en befintlig admin för att få åtkomst.
+              </p>
             )}
 
             <div className="text-center">
               <Link to="/" className="text-xs text-muted-foreground hover:underline">
-                ← Back to briefing
+                ← Tillbaka till matchstatistik
               </Link>
             </div>
           </form>
