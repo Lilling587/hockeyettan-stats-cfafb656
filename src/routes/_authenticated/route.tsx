@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
-const ALLOWED_NEXT = new Set(["/", "/notifications", "/admin/vmix", "/admin/health", "/admin/logs", "/admin/users", "/admin/assets", "/connect"]);
+const ALLOWED_NEXT = new Set(["/", "/notifications", "/admin/vmix", "/admin/health", "/admin/logs", "/admin/usage", "/admin/users", "/admin/assets", "/connect"]);
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
