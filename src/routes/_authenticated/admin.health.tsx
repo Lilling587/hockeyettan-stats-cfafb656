@@ -122,27 +122,41 @@ function HealthPage() {
     const prev = prevVmixStateRef.current;
     if (prev === null) {
       prevVmixStateRef.current = nextState;
+      pendingVmixStateRef.current = null;
       return;
     }
-    if (prev !== nextState) {
-      prevVmixStateRef.current = nextState;
-      const failing = report.endpoints
-        .filter((e) => !e.ok)
-        .map((e) => `${e.name}${e.error ? `: ${e.error}` : ""}`)
-        .join(" · ");
-      logVmixTransition({
-        data: {
-          from: prev,
-          to: nextState,
-          okCount,
-          total,
-          reason: failing || undefined,
-        },
-      }).catch(() => {
-        // best-effort logging; ignore failures
-      });
+    if (prev === nextState) {
+      pendingVmixStateRef.current = null;
+      return;
     }
+    // Hysteresis: require 2 consecutive readings of the new state before
+    // logging a transition. Avoids noisy writes on single-tick flaps.
+    const pending = pendingVmixStateRef.current;
+    if (!pending || pending.state !== nextState) {
+      pendingVmixStateRef.current = { state: nextState, count: 1 };
+      return;
+    }
+    pending.count += 1;
+    if (pending.count < 2) return;
+    pendingVmixStateRef.current = null;
+    prevVmixStateRef.current = nextState;
+    const failing = report.endpoints
+      .filter((e) => !e.ok)
+      .map((e) => `${e.name}${e.error ? `: ${e.error}` : ""}`)
+      .join(" · ");
+    logVmixTransition({
+      data: {
+        from: prev,
+        to: nextState,
+        okCount,
+        total,
+        reason: failing || undefined,
+      },
+    }).catch(() => {
+      // best-effort logging; ignore failures
+    });
   }, [vmixHealthQuery.data, logVmixTransition]);
+
 
   const data = healthQuery.data;
 
