@@ -22,9 +22,12 @@ function topScorerLine(team: Briefing["home"]): string {
 }
 
 function topGoalieLine(team: Briefing["home"]): string {
-  const g = team.goalies?.[0];
-  if (!g) return "—";
-  return `${g.name} (SV% ${fmtPct(g.savePct)}, GAA ${fmtNum(g.gaa)})`;
+  const best = (team.goalies ?? [])
+    .filter((g) => g.savePct != null)
+    .sort((a, b) => (b.savePct ?? 0) - (a.savePct ?? 0))[0]
+    ?? team.goalies?.[0];
+  if (!best) return "—";
+  return `${best.name} (SV% ${fmtPct(best.savePct)}, GAA ${fmtNum(best.gaa)})`;
 }
 
 /**
