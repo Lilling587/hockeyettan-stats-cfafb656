@@ -185,11 +185,11 @@ function HealthPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="15000">Var 15:e sekund</SelectItem>
-                  <SelectItem value="30000">Var 30:e sekund</SelectItem>
                   <SelectItem value="60000">Varje minut</SelectItem>
                   <SelectItem value="300000">Var 5:e minut</SelectItem>
+                  <SelectItem value="900000">Var 15:e minut</SelectItem>
                 </SelectContent>
+
               </Select>
               <Button
                 variant="default"
