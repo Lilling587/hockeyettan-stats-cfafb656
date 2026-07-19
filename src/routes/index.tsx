@@ -236,8 +236,8 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
     queryKey: ["admin-check"],
     queryFn: () => adminFn(),
     enabled: !!user,
+    staleTime: 60 * 60 * 1000,
   });
-
   const isAdmin = !!adminQuery.data?.isAdmin;
 
   const pendingQuery = useQuery({
@@ -525,6 +525,8 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
             </Button>
            {user ? (
               <DropdownMenu>
+                {user && isAdmin ? (
+              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="w-full sm:w-auto">
                     <Settings className="mr-2 h-4 w-4 shrink-0" />
@@ -562,22 +564,18 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                       Användare
                     </Link>
                   </DropdownMenuItem>
-                  {adminQuery.data?.isAdmin ? (
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/assets" className="flex items-center">
-                        <FolderUp className="mr-2 h-4 w-4" />
-                        Lagring
-                      </Link>
-                    </DropdownMenuItem>
-                  ) : null}
-                  {adminQuery.data?.isAdmin ? (
-                    <DropdownMenuItem asChild>
-                      <Link to="/connect" className="flex items-center">
-                        <Info className="mr-2 h-4 w-4" />
-                        Anslut AI
-                      </Link>
-                    </DropdownMenuItem>
-                  ) : null}
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/assets" className="flex items-center">
+                      <FolderUp className="mr-2 h-4 w-4" />
+                      Lagring
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/connect" className="flex items-center">
+                      <Info className="mr-2 h-4 w-4" />
+                      Anslut AI
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleSignOut}
@@ -588,6 +586,24 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+            ) : user ? (
+              <>
+                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+                  <Link to="/notifications">
+                    <Star className="mr-2 h-4 w-4 shrink-0" />
+                    Notiser
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="mr-2 h-4 w-4 shrink-0" />
+                  Logga ut
+                </Button>
+              </>
             ) : (
               <>
                 <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
