@@ -88,6 +88,8 @@ function HealthPage() {
     queryFn: () => fetchHealth({ data: { windowHours: 24 } }),
     enabled: adminQuery.data?.isAdmin === true,
     refetchInterval: refreshInterval,
+    refetchIntervalInBackground: false,
+    staleTime: 30_000,
   });
 
   const supabaseHealthQuery = useQuery({
@@ -95,6 +97,8 @@ function HealthPage() {
     queryFn: () => fetchSupabaseHealth(),
     enabled: adminQuery.data?.isAdmin === true,
     refetchInterval: refreshInterval,
+    refetchIntervalInBackground: false,
+    staleTime: 30_000,
   });
 
   const vmixHealthQuery = useQuery({
@@ -102,7 +106,10 @@ function HealthPage() {
     queryFn: () => fetchVmixHealth(),
     enabled: adminQuery.data?.isAdmin === true,
     refetchInterval: refreshInterval,
+    refetchIntervalInBackground: false,
+    staleTime: 30_000,
   });
+
 
   useEffect(() => {
     const report = vmixHealthQuery.data;
