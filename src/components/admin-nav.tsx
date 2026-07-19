@@ -7,6 +7,7 @@ const items = [
   { label: "Hem", to: "/", icon: Home },
   { label: "Hälsa", to: "/admin/health", icon: Activity },
   { label: "Loggbok", to: "/admin/logs", icon: ScrollText },
+  { label: "Användning", to: "/admin/usage", icon: Gauge },
   { label: "Lagring", to: "/admin/assets", icon: FolderUp },
   { label: "vMix", to: "/admin/vmix", icon: Tv },
   { label: "Användare", to: "/admin/users", icon: Users },
