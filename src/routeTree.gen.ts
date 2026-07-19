@@ -26,6 +26,7 @@ import { Route as TvHomeAwayRouteImport } from './routes/tv.$home.$away'
 import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
 import { Route as AuthenticatedAdminVmixRouteImport } from './routes/_authenticated/admin.vmix'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
+import { Route as AuthenticatedAdminUsageRouteImport } from './routes/_authenticated/admin.usage'
 import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin.logs'
 import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
 import { Route as AuthenticatedAdminAssetsRouteImport } from './routes/_authenticated/admin.assets'
@@ -128,6 +129,11 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminUsageRoute = AuthenticatedAdminUsageRouteImport.update({
+  id: '/admin/usage',
+  path: '/admin/usage',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminLogsRoute = AuthenticatedAdminLogsRouteImport.update({
   id: '/admin/logs',
   path: '/admin/logs',
@@ -225,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
+  '/admin/usage': typeof AuthenticatedAdminUsageRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vmix': typeof AuthenticatedAdminVmixRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
@@ -257,6 +264,7 @@ export interface FileRoutesByTo {
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
+  '/admin/usage': typeof AuthenticatedAdminUsageRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vmix': typeof AuthenticatedAdminVmixRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
   '/_authenticated/admin/logs': typeof AuthenticatedAdminLogsRoute
+  '/_authenticated/admin/usage': typeof AuthenticatedAdminUsageRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/vmix': typeof AuthenticatedAdminVmixRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
@@ -325,6 +334,7 @@ export interface FileRouteTypes {
     | '/admin/assets'
     | '/admin/health'
     | '/admin/logs'
+    | '/admin/usage'
     | '/admin/users'
     | '/admin/vmix'
     | '/api/public/unsubscribe'
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/admin/assets'
     | '/admin/health'
     | '/admin/logs'
+    | '/admin/usage'
     | '/admin/users'
     | '/admin/vmix'
     | '/api/public/unsubscribe'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/assets'
     | '/_authenticated/admin/health'
     | '/_authenticated/admin/logs'
+    | '/_authenticated/admin/usage'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/vmix'
     | '/api/public/unsubscribe'
@@ -554,6 +566,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/usage': {
+      id: '/_authenticated/admin/usage'
+      path: '/admin/usage'
+      fullPath: '/admin/usage'
+      preLoaderRoute: typeof AuthenticatedAdminUsageRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/logs': {
       id: '/_authenticated/admin/logs'
       path: '/admin/logs'
@@ -661,6 +680,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminAssetsRoute: typeof AuthenticatedAdminAssetsRoute
   AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
   AuthenticatedAdminLogsRoute: typeof AuthenticatedAdminLogsRoute
+  AuthenticatedAdminUsageRoute: typeof AuthenticatedAdminUsageRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVmixRoute: typeof AuthenticatedAdminVmixRoute
 }
@@ -671,6 +691,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminAssetsRoute: AuthenticatedAdminAssetsRoute,
   AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
   AuthenticatedAdminLogsRoute: AuthenticatedAdminLogsRoute,
+  AuthenticatedAdminUsageRoute: AuthenticatedAdminUsageRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminVmixRoute: AuthenticatedAdminVmixRoute,
 }
