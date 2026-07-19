@@ -58,18 +58,19 @@ function HealthPage() {
     retry: false,
   });
 
-  const [refreshInterval, setRefreshInterval] = useState<number>(60_000);
+  const [refreshInterval, setRefreshInterval] = useState<number>(300_000);
   const isInitialMount = useRef(true);
 
   useEffect(() => {
     const stored = localStorage.getItem("health-refresh-interval");
     if (stored) {
       const parsed = Number(stored);
-      if ([15_000, 30_000, 60_000, 300_000].includes(parsed)) {
+      if ([60_000, 300_000, 900_000].includes(parsed)) {
         setRefreshInterval(parsed);
       }
     }
   }, []);
+
 
   useEffect(() => {
     localStorage.setItem("health-refresh-interval", String(refreshInterval));
