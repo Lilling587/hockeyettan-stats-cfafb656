@@ -50,6 +50,8 @@ function HealthPage() {
   const fetchVmixHealth = useServerFn(checkVmixHealth);
   const logVmixTransition = useServerFn(logVmixHeartbeatTransition);
   const prevVmixStateRef = useRef<"ok" | "fel" | null>(null);
+  const pendingVmixStateRef = useRef<{ state: "ok" | "fel"; count: number } | null>(null);
+
   const navigate = useNavigate();
 
   const adminQuery = useQuery({
@@ -58,18 +60,19 @@ function HealthPage() {
     retry: false,
   });
 
-  const [refreshInterval, setRefreshInterval] = useState<number>(60_000);
+  const [refreshInterval, setRefreshInterval] = useState<number>(300_000);
   const isInitialMount = useRef(true);
 
   useEffect(() => {
     const stored = localStorage.getItem("health-refresh-interval");
     if (stored) {
       const parsed = Number(stored);
-      if ([15_000, 30_000, 60_000, 300_000].includes(parsed)) {
+      if ([60_000, 300_000, 900_000].includes(parsed)) {
         setRefreshInterval(parsed);
       }
     }
   }, []);
+
 
   useEffect(() => {
     localStorage.setItem("health-refresh-interval", String(refreshInterval));
@@ -87,6 +90,8 @@ function HealthPage() {
     queryFn: () => fetchHealth({ data: { windowHours: 24 } }),
     enabled: adminQuery.data?.isAdmin === true,
     refetchInterval: refreshInterval,
+    refetchIntervalInBackground: false,
+    staleTime: 30_000,
   });
 
   const supabaseHealthQuery = useQuery({
@@ -94,6 +99,8 @@ function HealthPage() {
     queryFn: () => fetchSupabaseHealth(),
     enabled: adminQuery.data?.isAdmin === true,
     refetchInterval: refreshInterval,
+    refetchIntervalInBackground: false,
+    staleTime: 30_000,
   });
 
   const vmixHealthQuery = useQuery({
@@ -101,7 +108,10 @@ function HealthPage() {
     queryFn: () => fetchVmixHealth(),
     enabled: adminQuery.data?.isAdmin === true,
     refetchInterval: refreshInterval,
+    refetchIntervalInBackground: false,
+    staleTime: 30_000,
   });
+
 
   useEffect(() => {
     const report = vmixHealthQuery.data;
@@ -112,27 +122,41 @@ function HealthPage() {
     const prev = prevVmixStateRef.current;
     if (prev === null) {
       prevVmixStateRef.current = nextState;
+      pendingVmixStateRef.current = null;
       return;
     }
-    if (prev !== nextState) {
-      prevVmixStateRef.current = nextState;
-      const failing = report.endpoints
-        .filter((e) => !e.ok)
-        .map((e) => `${e.name}${e.error ? `: ${e.error}` : ""}`)
-        .join(" · ");
-      logVmixTransition({
-        data: {
-          from: prev,
-          to: nextState,
-          okCount,
-          total,
-          reason: failing || undefined,
-        },
-      }).catch(() => {
-        // best-effort logging; ignore failures
-      });
+    if (prev === nextState) {
+      pendingVmixStateRef.current = null;
+      return;
     }
+    // Hysteresis: require 2 consecutive readings of the new state before
+    // logging a transition. Avoids noisy writes on single-tick flaps.
+    const pending = pendingVmixStateRef.current;
+    if (!pending || pending.state !== nextState) {
+      pendingVmixStateRef.current = { state: nextState, count: 1 };
+      return;
+    }
+    pending.count += 1;
+    if (pending.count < 2) return;
+    pendingVmixStateRef.current = null;
+    prevVmixStateRef.current = nextState;
+    const failing = report.endpoints
+      .filter((e) => !e.ok)
+      .map((e) => `${e.name}${e.error ? `: ${e.error}` : ""}`)
+      .join(" · ");
+    logVmixTransition({
+      data: {
+        from: prev,
+        to: nextState,
+        okCount,
+        total,
+        reason: failing || undefined,
+      },
+    }).catch(() => {
+      // best-effort logging; ignore failures
+    });
   }, [vmixHealthQuery.data, logVmixTransition]);
+
 
   const data = healthQuery.data;
 
@@ -177,11 +201,11 @@ function HealthPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="15000">Var 15:e sekund</SelectItem>
-                  <SelectItem value="30000">Var 30:e sekund</SelectItem>
                   <SelectItem value="60000">Varje minut</SelectItem>
                   <SelectItem value="300000">Var 5:e minut</SelectItem>
+                  <SelectItem value="900000">Var 15:e minut</SelectItem>
                 </SelectContent>
+
               </Select>
               <Button
                 variant="default"
