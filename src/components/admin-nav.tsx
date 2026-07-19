@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderUp, Home, ScrollText, Tv, Users } from "lucide-react";
+import { Activity, FolderUp, Gauge, Home, ScrollText, Tv, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
