@@ -56,19 +56,19 @@ function UsagePage() {
   });
 
   useEffect(() => {
-    if (adminQuery.isSuccess && !adminQuery.data) {
+    if (adminQuery.isError || (adminQuery.data && !adminQuery.data.isAdmin)) {
       navigate({ to: "/" });
     }
-  }, [adminQuery.isSuccess, adminQuery.data, navigate]);
+  }, [adminQuery.isError, adminQuery.data, navigate]);
 
   const usageQuery = useQuery({
     queryKey: ["usage-snapshot", hours],
     queryFn: () => fetchUsage({ data: { windowHours: hours } }),
-    enabled: adminQuery.data === true,
+    enabled: adminQuery.data?.isAdmin === true,
     staleTime: 60_000,
   });
 
-  if (!adminQuery.data) return null;
+  if (!adminQuery.data?.isAdmin) return null;
 
   const snap = usageQuery.data;
 
