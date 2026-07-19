@@ -1,18 +1,36 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+/**
+ * Grov uppskattning av credits per händelse. Detta är INTE fakturerade siffror
+ * (de finns bara i Lovable workspace-billing) — det är en jämförbar trend
+ * baserad på antal databashändelser. Justera vikterna om du kalibrerar mot
+ * verklig faktura.
+ */
+export const CREDIT_WEIGHTS = {
+  scrapeCall: 0.0002,      // server-fn + DB-läsning
+  scrapeCacheHit: 0.00005, // cache-träff, i princip gratis
+  scrapeError: 0.0003,     // fel = extra loggskrivning
+  emailSent: 0.005,        // Resend-anrop + logg
+  emailFailed: 0.002,
+  errorEvent: 0.0001,      // insert i error_log
+  vmixAction: 0.001,       // vMix-anrop + audit-log insert
+} as const;
+
 export type EndpointRow = {
   endpoint: string;
   total: number;
   errors: number;
   cacheHits: number;
   avgLatencyMs: number;
+  credits: number;
 };
 
 export type JobRow = {
   name: string;
   total: number;
   errors: number;
+  credits: number;
 };
 
 export type RecentEvent = {
@@ -38,6 +56,17 @@ export type UsageSnapshot = {
     errorEvents: number;
     vmixEvents: number;
   };
+  credits: {
+    scrape: number;
+    email: number;
+    error: number;
+    vmix: number;
+    total: number;
+    perHour: number;
+    projectedPerDay: number;
+    projectedPerMonth: number;
+    weights: typeof CREDIT_WEIGHTS;
+  };
   recent: RecentEvent[];
 };
 
@@ -49,6 +78,8 @@ async function assertAdmin(supabase: any, userId: string) {
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Forbidden");
 }
+
+const round = (n: number) => Math.round(n * 10000) / 10000;
 
 export const getUsageSnapshot = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -102,45 +133,75 @@ export const getUsageSnapshot = createServerFn({ method: "POST" })
         errors: 0,
         cacheHits: 0,
         avgLatencyMs: 0,
+        credits: 0,
       };
       cur.total += 1;
       if (r.status === "error") cur.errors += 1;
       if (r.cache_hit) cur.cacheHits += 1;
       cur.avgLatencyMs += r.latency_ms ?? 0;
+      const w =
+        r.status === "error"
+          ? CREDIT_WEIGHTS.scrapeError
+          : r.cache_hit
+          ? CREDIT_WEIGHTS.scrapeCacheHit
+          : CREDIT_WEIGHTS.scrapeCall;
+      cur.credits += w;
       epMap.set(r.endpoint, cur);
     }
     const endpoints = [...epMap.values()]
-      .map((r) => ({ ...r, avgLatencyMs: Math.round(r.avgLatencyMs / Math.max(r.total, 1)) }))
-      .sort((a, b) => b.total - a.total);
+      .map((r) => ({
+        ...r,
+        avgLatencyMs: Math.round(r.avgLatencyMs / Math.max(r.total, 1)),
+        credits: round(r.credits),
+      }))
+      .sort((a, b) => b.credits - a.credits);
 
     // Email jobs by template
     const emailMap = new Map<string, JobRow>();
     for (const r of emails) {
-      const cur = emailMap.get(r.template_name) ?? { name: r.template_name, total: 0, errors: 0 };
+      const cur = emailMap.get(r.template_name) ?? { name: r.template_name, total: 0, errors: 0, credits: 0 };
       cur.total += 1;
-      if (r.status === "failed" || r.status === "bounced" || r.status === "dlq") cur.errors += 1;
+      const failed = r.status === "failed" || r.status === "bounced" || r.status === "dlq";
+      if (failed) cur.errors += 1;
+      cur.credits += failed ? CREDIT_WEIGHTS.emailFailed : CREDIT_WEIGHTS.emailSent;
       emailMap.set(r.template_name, cur);
     }
-    const emailJobs = [...emailMap.values()].sort((a, b) => b.total - a.total);
+    const emailJobs = [...emailMap.values()]
+      .map((r) => ({ ...r, credits: round(r.credits) }))
+      .sort((a, b) => b.credits - a.credits);
 
     // Error sources
     const srcMap = new Map<string, JobRow>();
     for (const r of errors) {
-      const cur = srcMap.get(r.source) ?? { name: r.source, total: 0, errors: 0 };
+      const cur = srcMap.get(r.source) ?? { name: r.source, total: 0, errors: 0, credits: 0 };
       cur.total += 1;
       if (r.level === "error" || r.level === "fatal") cur.errors += 1;
+      cur.credits += CREDIT_WEIGHTS.errorEvent;
       srcMap.set(r.source, cur);
     }
-    const errorSources = [...srcMap.values()].sort((a, b) => b.total - a.total);
+    const errorSources = [...srcMap.values()]
+      .map((r) => ({ ...r, credits: round(r.credits) }))
+      .sort((a, b) => b.credits - a.credits);
 
     // vMix actions
     const vmixMap = new Map<string, JobRow>();
     for (const r of vmix) {
-      const cur = vmixMap.get(r.action) ?? { name: r.action, total: 0, errors: 0 };
+      const cur = vmixMap.get(r.action) ?? { name: r.action, total: 0, errors: 0, credits: 0 };
       cur.total += 1;
+      cur.credits += CREDIT_WEIGHTS.vmixAction;
       vmixMap.set(r.action, cur);
     }
-    const vmixActions = [...vmixMap.values()].sort((a, b) => b.total - a.total);
+    const vmixActions = [...vmixMap.values()]
+      .map((r) => ({ ...r, credits: round(r.credits) }))
+      .sort((a, b) => b.credits - a.credits);
+
+    // Credit totals
+    const scrapeCredits = endpoints.reduce((s, r) => s + r.credits, 0);
+    const emailCredits = emailJobs.reduce((s, r) => s + r.credits, 0);
+    const errorCredits = errorSources.reduce((s, r) => s + r.credits, 0);
+    const vmixCredits = vmixActions.reduce((s, r) => s + r.credits, 0);
+    const totalCredits = scrapeCredits + emailCredits + errorCredits + vmixCredits;
+    const perHour = totalCredits / Math.max(data.windowHours, 1);
 
     // Recent unified feed (top 60)
     const recent: RecentEvent[] = [
@@ -190,6 +251,17 @@ export const getUsageSnapshot = createServerFn({ method: "POST" })
         emailsFailed: emails.filter((r: any) => ["failed", "bounced", "dlq"].includes(r.status)).length,
         errorEvents: errors.length,
         vmixEvents: vmix.length,
+      },
+      credits: {
+        scrape: round(scrapeCredits),
+        email: round(emailCredits),
+        error: round(errorCredits),
+        vmix: round(vmixCredits),
+        total: round(totalCredits),
+        perHour: round(perHour),
+        projectedPerDay: round(perHour * 24),
+        projectedPerMonth: round(perHour * 24 * 30),
+        weights: CREDIT_WEIGHTS,
       },
       recent,
     };
