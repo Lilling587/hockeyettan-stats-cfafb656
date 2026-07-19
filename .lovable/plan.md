@@ -1,84 +1,59 @@
-Three connected features that all pull from the swehockey game-event pages we already parse for last-meeting recaps. One shared scraper, three cards on the briefing.
+# Minska credit-användning för Lovable Cloud
 
-## 1. Shot timeline (not a shot map)
+Baserat på tidigare kartläggning är de största drivarna: admin health-polling, vMix endpoints som pollas, `pg_cron`-jobb (särskilt 5-sekunders email queue processor), och heartbeat/error-loggskrivningar. Nedan är åtgärder ordnade från störst till minst effekt.
 
-Reality check first: swehockey.se for HockeyEttan does NOT publish shot x/y coordinates, so a real heat-map / rink chart isn't possible without a different data source. What we can build is a **shot timeline card**:
+## 1. Bromsa admin health-pollingen (störst effekt)
 
-- Per period bars: shots for / shots against for the last 5 played games and season averages.
-- "Shot differential" mini-line per game (SF − SA over last 10 games).
-- Season totals: SF/60, SA/60, SF% (Corsi-lite, using shots not attempts).
+I `src/routes/_authenticated/admin.health.tsx` körs tre queries (`scrape-health`, `supabase-health`, `vmix-health`) på samma intervall, default 60 s, men valbart ner till 15 s. Varje tick = 3 server-fn-anrop + DB-läsningar + eventuell heartbeat-INSERT i `error_log`.
 
-Card placement: new `ShotTimelineCard` in `src/components/dashboard/cards/`, rendered per team in the briefing (below `ShotVolumeCard`).
+Ändringar:
 
-## 2. Special-teams timeline
+- Höj default till **300 s** (5 min) istället för 60 s.
+- Ta bort 15 s och 30 s som val – lämna 60 s / 5 min / 15 min.
+- Pausa refetch när fliken inte är synlig: sätt `refetchIntervalInBackground: false` på alla tre queries.
+- Endast pinga vMix-endpoints när kortet är i viewport (IntersectionObserver) eller kräv manuell "Kontrollera nu".
 
-Today `SpecialTeamsCard` shows only season PP% / PK%. Add a trend:
+## 2. Gör email-queue processorn on-demand istället för var 5:e sekund
 
-- Last 10 games: PP goals for, PP opportunities, PPG allowed, PK opportunities.
-- Rolling PP% and PK% (5-game window) rendered as sparklines.
-- "vs. season average" delta badge (e.g. PP hot: +6.2%).
-- Flag PP-heavy referees if referee data is present on the game page (nice-to-have; skip if absent).
+`process-email-queue` schemaläggs var 5:e sekund = 17 280 körningar/dygn även när kön är tom. Enligt `email-infrastructure-guide` är on-demand-schemaläggning stödd: triggers på kötabellerna schemalägger jobbet när ett mail läggs in och avschemalägger sig själv när båda köerna är tomma.
 
-Replaces the current card body but keeps the same slot.
+Åtgärd: verifiera att on-demand wake-triggers är aktiva; om jobbet ligger kvar statiskt var 5:e sekund, kör `email_domain--setup_email_infra` igen så det byggs om till on-demand-mönstret.
 
-## 3. Lineup diff
+## 3. Sänk frekvensen på pg_cron email-jobben (om acceptabelt)
 
-- Scrape each team's roster page (`/Teams/Info/TeamRoster/<compId>`) — the URL is already built in `stats.server.ts`.
-- Scrape the last played game's box score to get who dressed.
-- Diff: **In tonight's expected lineup but didn't play last game** (returning) vs **played last game but not on current roster / marked injured** (out).
-- Because swehockey doesn't publish confirmed tonight-lineups, label the card clearly: "Senast spelade laguppställning · avvikelser mot truppen".
-- New `LineupDiffCard` shown per team.
+Nuvarande: pregame 11:00 UTC dagligen, postgame 21:00 UTC dagligen, weekly-digest 07:00 UTC dagligen. Om det inte finns match varje dag kan pregame/postgame ändras till att köra endast på matchdagar (t.ex. gatea internt i endpointen på "finns match idag" innan queue-arbete). Det sparar inte cron-triggers men eliminerar dyra queries/inserts på tomma dagar.
 
-## Technical section
+## 4. Minska heartbeat-loggningen
 
-**New server function** (`src/lib/stats.functions.ts`):
-- `getGameFlow({ team, season })` → returns `{ shotSeries, specialTeamsSeries, lineupDiff }` for one team.
-- Cached 6h in `cached_briefings`-style key: `gameFlow:v1:<season>:<team>`.
+`logVmixHeartbeatTransition` skriver till `error_log` vid varje grön↔röd övergång. Kombinerat med tät polling kan detta bli många skrivningar om vMix "flappar". Åtgärder:
 
-**New server helpers** (`src/lib/stats.server.ts` or a new `game-flow.server.ts`):
-- `fetchGameEventPage(gameId)` — one parser that returns `{ shotsForHome, shotsForAway, shotsByPeriod, ppGoalsFor/Against, ppOpportunities, penalties, goals, dressedPlayers[] }`. Reuses the existing `Game/Events/<id>` fetch and regex patterns.
-- `fetchLastNGamesForTeam(team, season, n=10)` — walks schedule, calls `fetchGameEventPage` for each, coalesces concurrent calls.
-- `fetchCurrentRoster(team, season)` — parses the roster markdown we already scrape.
+- Kräv N stabila fel i rad (t.ex. 2) innan tillstånd byts – undviker skrivning vid enstaka timeouts.
+- Behåll skrivningen men se till att den bara körs efter #1 ovan (5 min polling ⇒ max 288 potentiella transitions/dygn istället för 5 760 vid 15 s).
 
-**Coalescing / cost control:**
-- Wrap each `fetchGameEventPage(id)` in an in-memory promise map so a single briefing render doesn't fetch the same game twice.
-- Persist per-game parsed JSON in a new `game_events_cache` table keyed by `game_id` (immutable once played) — future briefings and post-game recap all reuse it, no re-scrape.
+## 5. Cachea vMix-endpoint-läsningar
 
-**Migration:**
-```sql
-CREATE TABLE public.game_events_cache (
-  game_id text PRIMARY KEY,
-  season text NOT NULL,
-  parsed jsonb NOT NULL,
-  fetched_at timestamptz NOT NULL DEFAULT now()
-);
-GRANT SELECT ON public.game_events_cache TO authenticated;
-GRANT ALL ON public.game_events_cache TO service_role;
-ALTER TABLE public.game_events_cache ENABLE ROW LEVEL SECURITY;
--- read: no policy needed for server-only access via service_role; add anon SELECT only if the client reads it directly.
-CREATE INDEX game_events_cache_season_idx ON public.game_events_cache (season);
-```
+`admin/vmix`-sidan och externa vMix-anrop läser `vmix_publications`, `cached_briefings` och `team_logos` ofta. Lägg till `staleTime` (t.ex. 60 s) på TanStack Query-läsningarna i admin-vyerna så samma användare inte återhämtar samma data flera gånger vid navigering.
 
-**UI:**
-- `src/components/dashboard/cards/shot-timeline-card.tsx`
-- `src/components/dashboard/cards/special-teams-timeline-card.tsx` (replaces contents of `special-teams-card.tsx`, keeping season snapshot on top)
-- `src/components/dashboard/cards/lineup-diff-card.tsx`
-- Wired into `briefing-view.tsx` in the existing per-team grid pattern.
-- Sparklines: reuse `recharts` (already in the project via other cards) — no new dependency.
+## 6. Storage och publika listningar
 
-**Fallbacks:**
-- If a game-event page is missing or times out, render "Data saknas" placeholder for that row, never crash the briefing.
-- Log parse failures via `recordScrape` so `/admin/health` shows the miss rate.
+Publika bucket-listningar är avstängda (bra). Kontrollera att `vmix-assets`-buckets logotypanrop cachas i browser (via `use-team-logos.ts` – redan localStorage-cachat med `lovable.teamlogos.v2`). Ingen extra åtgärd förutom att låta cachen leva längre om möjligt.
 
-**Out of scope (call out to user):**
-- True shot heat-map with x/y coordinates — not available in swehockey markup.
-- Confirmed tonight's starting lineup — swehockey doesn't publish it; the diff is "last-played vs current roster".
+## Föreslagen ordning
 
-## Rollout order
+1. Ändra health-page polling (fil: `src/routes/_authenticated/admin.health.tsx`).
+2. Kör `email_domain--setup_email_infra` igen för att säkerställa on-demand queue processor.
+3. Lägg debounce (2 misslyckade i rad) i vMix heartbeat-transition-logiken.
+4. Lägg `staleTime` på admin-queries där lämpligt.
+5. (Valfritt) Gate pregame/postgame-endpoints på "match idag".
 
-1. Migration + `game_events_cache` + `fetchGameEventPage` + coalescing.
-2. `getGameFlow` server function returning all three payloads.
-3. Shot timeline card + wire into briefing.
-4. Special-teams timeline card (replace existing card body).
-5. Lineup diff card.
-6. Verify by loading a real matchup in the preview, checking `/admin/health` for scrape counts.
+## Tekniska detaljer
+
+- Alla ändringar är rent frontend + endpoint-nivå – inga schemaändringar.
+- Ingen befintlig data påverkas.
+- pg_cron-listning görs via `supabase--read_query` mot `cron.job` för att bekräfta att email-processorn är on-demand.
+
+Vill du att jag kör hela listan, eller bara #1 + #2 som ger absolut störst effekt med minst risk?
+
+Kör hela listan
+
+&nbsp;
