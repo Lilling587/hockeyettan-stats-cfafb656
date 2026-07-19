@@ -161,6 +161,7 @@ function UsagePage() {
                     <TableHead className="text-right">Fel</TableHead>
                     <TableHead className="text-right">Cache</TableHead>
                     <TableHead className="text-right">Snitt ms</TableHead>
+                    <TableHead className="text-right">Credits</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -171,8 +172,9 @@ function UsagePage() {
                       <TableCell className="text-right">{r.errors || "–"}</TableCell>
                       <TableCell className="text-right">{r.cacheHits}</TableCell>
                       <TableCell className="text-right">{r.avgLatencyMs}</TableCell>
+                      <TableCell className="text-right font-mono text-xs">{r.credits.toFixed(4)}</TableCell>
                     </TableRow>
-                  )) : <EmptyRow cols={5} />}
+                  )) : <EmptyRow cols={6} />}
                 </TableBody>
               </Table>
             </CardContent>
