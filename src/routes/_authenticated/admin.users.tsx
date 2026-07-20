@@ -12,6 +12,10 @@ import {
   revokeAdmin,
   type AdminUser,
 } from "@/lib/admin-users.functions";
+import {
+  listNotificationSubscribers,
+  type NotificationSubscriber,
+} from "@/lib/notifications.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Card,
@@ -39,6 +43,7 @@ function AdminUsersPage() {
   const navigate = useNavigate();
   const fetchIsAdmin = useServerFn(checkIsAdmin);
   const fetchList = useServerFn(listAdmins);
+  const fetchSubscribers = useServerFn(listNotificationSubscribers);
   const invite = useServerFn(inviteAdmin);
   const revoke = useServerFn(revokeAdmin);
 
@@ -65,6 +70,12 @@ function AdminUsersPage() {
   const listQuery = useQuery({
     queryKey: ["admin-users"],
     queryFn: () => fetchList(),
+    enabled: adminQuery.data?.isAdmin === true,
+  });
+
+  const subscribersQuery = useQuery({
+    queryKey: ["notification-subscribers"],
+    queryFn: () => fetchSubscribers(),
     enabled: adminQuery.data?.isAdmin === true,
   });
 
@@ -139,6 +150,60 @@ function AdminUsersPage() {
               Personen får ett mejl för att sätta sitt lösenord. Om kontot redan
               finns läggs admin-rollen till direkt.
             </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Notisprenumeranter ({subscribersQuery.data?.length ?? 0})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {subscribersQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Laddar…</p>
+            ) : (subscribersQuery.data?.length ?? 0) === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Inga prenumeranter ännu.
+              </p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {(subscribersQuery.data as NotificationSubscriber[]).map((s) => (
+                  <li key={s.userId} className="py-3 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="truncate font-medium">{s.email}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {s.favoriteTeam || "Inget favoritlag"}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1 text-[10px]">
+                        {s.enabled && (
+                          <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-emerald-600 dark:text-emerald-400">
+                            För-/eftermatch
+                          </span>
+                        )}
+                        {s.digestEnabled && (
+                          <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-blue-600 dark:text-blue-400">
+                            Veckodigest
+                          </span>
+                        )}
+                        {!s.enabled && !s.digestEnabled && (
+                          <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
+                            Inaktiv
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {s.lastPostgameEmailDate && (
+                      <div className="mt-0.5 text-[10px] text-muted-foreground">
+                        Senaste matchmail: {s.lastPostgameEmailDate}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
 
