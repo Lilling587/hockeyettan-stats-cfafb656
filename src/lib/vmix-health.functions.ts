@@ -81,7 +81,7 @@ export const checkVmixHealth = createServerFn({ method: "POST" })
         const start = Date.now();
         try {
           const res = await fetch(`${origin}${path}`, {
-            headers: { accept: "application/xml, text/xml, application/json" },
+            headers: { accept: "*/*" },
           });
           const text = await res.text();
           return {
