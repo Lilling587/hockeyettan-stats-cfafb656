@@ -10,7 +10,9 @@ import {
 import type { TeamData } from "@/lib/dashboard-utils";
 
 export function GoaliesCard({ team }: { team: TeamData }) {
-  const goalies = team.goalies ?? [];
+  const goalies = [...(team.goalies ?? [])].sort(
+    (a, b) => (b.savePct ?? -1) - (a.savePct ?? -1),
+  );
   return (
     <Card>
       <CardHeader>
