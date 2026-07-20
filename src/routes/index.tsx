@@ -487,6 +487,29 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh, !!briefing, home, selectedAway]);
 
+  // Show a reload prompt when a new service worker takes control (new deploy).
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const hadController = !!navigator.serviceWorker.controller;
+    const onControllerChange = () => {
+      if (!hadController) return;
+      toast("Ny version tillgänglig", {
+        description: "Uppdatera sidan för att få den senaste versionen.",
+        action: {
+          label: "Uppdatera nu",
+          onClick: () => window.location.reload(),
+        },
+        duration: Infinity,
+      });
+    };
+    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+    return () =>
+      navigator.serviceWorker.removeEventListener(
+        "controllerchange",
+        onControllerChange,
+      );
+  }, []);
+
   return (
     <Tabs
       value={activeTab}
