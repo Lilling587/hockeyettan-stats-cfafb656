@@ -21,7 +21,7 @@ import { getTodaysMatchup, listSeasons, listTeams } from "@/lib/stats.functions"
 import {
   emptySlots,
   fetchTeamRoster,
-  fetchTodaysGames,
+
   getActivePublication,
   getAuditLog,
   getPublicationHistory,
@@ -38,7 +38,7 @@ import {
   type RosterPlayer,
   type SlotPlayer,
   type TeamLogoCode,
-  type TodayGame,
+  
   type VmixLineupSlots,
   type VmixPublicationRow,
   listLineupPresets,
