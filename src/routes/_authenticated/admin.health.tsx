@@ -682,7 +682,7 @@ function VmixOverallBanner({
           bg: "bg-emerald-500/10",
           text: "text-emerald-700 dark:text-emerald-400",
           iconColor: "text-emerald-600 dark:text-emerald-400",
-          badge: "secondary" as const,
+          badgeClass: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400",
         }
       : {
           icon: XCircle,
@@ -690,7 +690,7 @@ function VmixOverallBanner({
           bg: "bg-rose-500/10",
           text: "text-rose-700 dark:text-rose-400",
           iconColor: "text-rose-600 dark:text-rose-400",
-          badge: "destructive" as const,
+          badgeClass: "bg-destructive text-destructive-foreground hover:bg-destructive",
         };
   const Icon = config.icon;
   const spinning = state === "fel" && isLoading && !error && !data;
