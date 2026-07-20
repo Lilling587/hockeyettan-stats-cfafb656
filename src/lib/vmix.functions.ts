@@ -169,7 +169,9 @@ async function fetchActivePublicationFresh(): Promise<VmixPublicationRow | null>
   );
   const { data, error } = await client
     .from("vmix_publications")
-    .select("*")
+    .select(
+      "id, game_date, home_team, away_team, home_team_code, away_team_code, venue, standings_json, home_slots, away_slots, is_active, published_at, updated_at",
+    )
     .eq("is_active", true)
     .order("published_at", { ascending: false })
     .limit(1)
