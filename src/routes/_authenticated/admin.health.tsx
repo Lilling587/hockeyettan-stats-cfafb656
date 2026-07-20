@@ -346,7 +346,7 @@ function HealthPage() {
                           <TableCell className="text-xs">{r.season ?? "—"}</TableCell>
                           <TableCell>
                             {r.status === "ok" ? (
-                              <Badge variant="secondary" className="text-[10px]">
+                              <Badge className="text-[10px] bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400">
                                 {r.cache_hit ? "cache" : "ok"}
                               </Badge>
                             ) : (
@@ -413,7 +413,9 @@ function SupabaseHealthCard({
 }) {
   const toneBadge = (ok: boolean) =>
     ok ? (
-      <Badge variant="secondary" className="text-[10px]">OK</Badge>
+      <Badge className="text-[10px] bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400">
+        OK
+      </Badge>
     ) : (
       <Badge variant="destructive" className="text-[10px]">FEL</Badge>
     );
@@ -539,12 +541,15 @@ function VmixHealthCard({
         <CardTitle className="text-base">vMix endpoints</CardTitle>
         <div className="flex items-center gap-2">
           {data ? (
-            <Badge
-              variant={data.overall === "ok" ? "secondary" : "destructive"}
-              className="text-[10px] uppercase"
-            >
-              {data.overall === "ok" ? "ok" : "fel"}
-            </Badge>
+            data.overall === "ok" ? (
+              <Badge className="text-[10px] uppercase bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400">
+                ok
+              </Badge>
+            ) : (
+              <Badge variant="destructive" className="text-[10px] uppercase">
+                fel
+              </Badge>
+            )
           ) : null}
           <Button
             variant="outline"
@@ -588,7 +593,9 @@ function VmixHealthCard({
                       </TableCell>
                       <TableCell>
                         {e.ok ? (
-                          <Badge variant="secondary" className="text-[10px]">OK</Badge>
+                          <Badge className="text-[10px] bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400">
+                            OK
+                          </Badge>
                         ) : (
                           <Badge variant="destructive" className="text-[10px]">FEL</Badge>
                         )}
@@ -675,7 +682,7 @@ function VmixOverallBanner({
           bg: "bg-emerald-500/10",
           text: "text-emerald-700 dark:text-emerald-400",
           iconColor: "text-emerald-600 dark:text-emerald-400",
-          badge: "secondary" as const,
+          badgeClass: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400",
         }
       : {
           icon: XCircle,
@@ -683,7 +690,7 @@ function VmixOverallBanner({
           bg: "bg-rose-500/10",
           text: "text-rose-700 dark:text-rose-400",
           iconColor: "text-rose-600 dark:text-rose-400",
-          badge: "destructive" as const,
+          badgeClass: "bg-destructive text-destructive-foreground hover:bg-destructive",
         };
   const Icon = config.icon;
   const spinning = state === "fel" && isLoading && !error && !data;
@@ -701,7 +708,7 @@ function VmixOverallBanner({
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold">vMix status: {title}</span>
-            <Badge variant={config.badge} className="text-[10px] uppercase">
+            <Badge className={`text-[10px] uppercase ${config.badgeClass}`}>
               {state}
             </Badge>
           </div>
