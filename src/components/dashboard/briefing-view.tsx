@@ -314,6 +314,9 @@ export function BriefingView({
         <SpecialTeamsTimelineCard team={data.away} opponent={data.home} flow={awayFlow} />
       </div>
 
+      <FaceoffsCard briefing={data} />
+
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <LineupDiffCard teamName={data.home.name} data={homeFlow} />
         <LineupDiffCard teamName={data.away.name} data={awayFlow} />
