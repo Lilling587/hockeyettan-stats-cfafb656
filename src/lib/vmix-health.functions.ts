@@ -76,9 +76,26 @@ export const checkVmixHealth = createServerFn({ method: "POST" })
     const origin = reqUrl.origin;
 
 
+    // TEMP: simulate a vMix endpoint outage until this timestamp, then auto-revert.
+    const SIMULATE_FAILURE_UNTIL = "2026-07-20T07:48:55Z";
+    const simulateFailure = Date.now() < Date.parse(SIMULATE_FAILURE_UNTIL);
+
     const results = await Promise.all(
       ENDPOINTS.map(async ({ name, path }): Promise<VmixEndpointStatus> => {
         const start = Date.now();
+        if (simulateFailure && name === "Lineup") {
+          return {
+            name,
+            path,
+            ok: false,
+            status: 503,
+            latencyMs: 42,
+            contentType: "text/plain",
+            bodyPreview:
+              "SIMULATED OUTAGE: upstream vMix lineup service unavailable. This is a temporary test injected from admin/health and will auto-clear within ~1 minute.",
+            error: "HTTP 503 (simulated)",
+          };
+        }
         try {
           const res = await fetch(`${origin}${path}`, {
             headers: { accept: "*/*" },
@@ -108,6 +125,7 @@ export const checkVmixHealth = createServerFn({ method: "POST" })
         }
       }),
     );
+
 
     const okCount = results.filter((r) => r.ok).length;
     const overall: VmixHealthReport["overall"] =
