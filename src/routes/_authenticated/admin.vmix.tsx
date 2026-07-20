@@ -2322,6 +2322,62 @@ function PublicationHistory({
     </Card>
   );
 }
+function AuditLogCard({ entries, loading }: { entries: AuditLogRow[]; loading: boolean }) {
+  const [open, setOpen] = useState(false);
+  if (!loading && entries.length === 0) return null;
+  const actionLabel = (action: string) => {
+    switch (action) {
+      case "publish": return "Publicering";
+      case "unpublish": return "Avpublicering";
+      case "restore": return "Återställning";
+      case "refresh_standings": return "Tabelluppdatering";
+      default: return action;
+    }
+  };
+  return (
+    <Card>
+      <CardHeader className="cursor-pointer select-none" onClick={() => setOpen((v) => !v)}>
+        <CardTitle className="text-base flex items-center gap-2">
+          <CalendarDays className="h-4 w-4" />
+          Granskningslogg
+          {!loading && entries.length > 0 && (
+            <Badge variant="outline" className="ml-1 text-[10px]">{entries.length}</Badge>
+          )}
+          <span className="ml-auto text-xs text-muted-foreground font-normal">{open ? "Dölj" : "Visa"}</span>
+        </CardTitle>
+      </CardHeader>
+      {open && loading && (
+        <CardContent className="space-y-1 pt-0">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-2 rounded px-2 py-1.5">
+              <div className="flex-1 space-y-1 py-0.5">
+                <Skeleton className="h-3.5 w-32" />
+                <Skeleton className="h-3 w-48" />
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      )}
+      {open && !loading && (
+        <CardContent className="space-y-1 pt-0">
+          {entries.map((e) => (
+            <div key={e.id} className="flex items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-muted/40">
+              <div className="flex-1 min-w-0">
+                <div className="font-medium">
+                  {actionLabel(e.action)}
+                  {e.homeTeam && e.awayTeam && (
+                    <span className="font-normal text-muted-foreground"> · {e.homeTeam} vs {e.awayTeam}</span>
+                  )}
+                </div>
+                <div className="text-muted-foreground">{new Date(e.createdAt).toLocaleString("sv-SE")}</div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      )}
+    </Card>
+  );
+}
 // ---------- Data source (auto / manual) ----------
 function DataSourceCard({
   sourceMode,
