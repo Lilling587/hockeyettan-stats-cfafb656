@@ -89,6 +89,8 @@ export function briefingToMarkdown(b: Briefing): string {
       )
       .join("\n");
     const goalies = (t.goalies ?? [])
+      .filter((g) => g.savePct != null)
+      .sort((a, b) => (b.savePct ?? 0) - (a.savePct ?? 0))
       .slice(0, 3)
       .map(
         (g) =>
