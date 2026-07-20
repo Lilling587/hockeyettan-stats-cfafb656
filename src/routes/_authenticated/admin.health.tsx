@@ -413,7 +413,9 @@ function SupabaseHealthCard({
 }) {
   const toneBadge = (ok: boolean) =>
     ok ? (
-      <Badge variant="secondary" className="text-[10px]">OK</Badge>
+      <Badge className="text-[10px] bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400">
+        OK
+      </Badge>
     ) : (
       <Badge variant="destructive" className="text-[10px]">FEL</Badge>
     );
