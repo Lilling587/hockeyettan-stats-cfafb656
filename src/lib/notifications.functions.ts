@@ -163,3 +163,39 @@ export const triggerPostgameEmailsNow = createServerFn({ method: "POST" })
     return { sent: result.sent, skipped: result.skipped };
   });
 
+export type NotificationSubscriber = {
+  userId: string;
+  email: string;
+  favoriteTeam: string;
+  enabled: boolean;
+  digestEnabled: boolean;
+  digestDow: number | null;
+  lastPostgameEmailDate: string | null;
+};
+
+export const listNotificationSubscribers = createServerFn({ method: "GET" })
+  .middleware([requireAdmin])
+  .handler(async (): Promise<NotificationSubscriber[]> => {
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { data, error } = await supabaseAdmin
+      .from("notification_prefs")
+      .select(
+        "user_id, email, favorite_team, enabled, digest_enabled, digest_dow, last_postgame_email_date",
+      )
+      .order("email", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => ({
+      userId: String(r.user_id),
+      email: String(r.email),
+      favoriteTeam: String(r.favorite_team ?? ""),
+      enabled: Boolean(r.enabled),
+      digestEnabled: Boolean(r.digest_enabled),
+      digestDow: r.digest_dow != null ? Number(r.digest_dow) : null,
+      lastPostgameEmailDate: r.last_postgame_email_date
+        ? String(r.last_postgame_email_date)
+        : null,
+    }));
+  });
+
