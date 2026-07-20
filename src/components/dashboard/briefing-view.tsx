@@ -42,6 +42,7 @@ import { HottestPlayerCard } from "./cards/hottest-player-card";
 import { StreakAlertsCard } from "./cards/streak-alerts-card";
 import { RestDaysCard } from "./cards/rest-days-card";
 import { DisciplineCard } from "./cards/discipline-card";
+import { FaceoffsCard } from "./briefing/FaceoffsCard";
 
 import { HomeAwaySplitCard } from "./cards/home-away-split-card";
 
@@ -312,6 +313,9 @@ export function BriefingView({
         <SpecialTeamsTimelineCard team={data.home} opponent={data.away} flow={homeFlow} />
         <SpecialTeamsTimelineCard team={data.away} opponent={data.home} flow={awayFlow} />
       </div>
+
+      <FaceoffsCard briefing={data} />
+
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <LineupDiffCard teamName={data.home.name} data={homeFlow} />

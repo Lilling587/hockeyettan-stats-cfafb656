@@ -17,6 +17,7 @@ export type BriefingAnchorId =
   | "goalies"
   | "shots"
   | "special"
+  | "faceoffs"
   | "probability"
   | "hot"
   | "streaks"
@@ -37,6 +38,7 @@ export const BRIEFING_ANCHORS: readonly BriefingAnchor[] = [
   { id: "goalies", label: "Målvakter" },
   { id: "shots", label: "Skottvolym" },
   { id: "special", label: "Special teams" },
+  { id: "faceoffs", label: "Avtappningar" },
   { id: "probability", label: "Vinstsannolikhet" },
   { id: "hot", label: "Hetaste spelaren" },
   { id: "streaks", label: "Streak alerts" },
