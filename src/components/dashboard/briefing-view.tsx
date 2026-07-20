@@ -42,6 +42,7 @@ import { HottestPlayerCard } from "./cards/hottest-player-card";
 import { StreakAlertsCard } from "./cards/streak-alerts-card";
 import { RestDaysCard } from "./cards/rest-days-card";
 import { DisciplineCard } from "./cards/discipline-card";
+import { FaceoffsCard } from "./briefing/FaceoffsCard";
 
 import { HomeAwaySplitCard } from "./cards/home-away-split-card";
 

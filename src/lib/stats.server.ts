@@ -967,6 +967,8 @@ export async function buildBriefing(
   object.away.goalies = scoringData.goalies[away] ?? [];
   object.home.discipline = scoringData.discipline[home] ?? null;
   object.away.discipline = scoringData.discipline[away] ?? null;
+  object.home.faceoffs = scoringData.faceoffs[home] ?? null;
+  object.away.faceoffs = scoringData.faceoffs[away] ?? null;
 
   // Hot players from individual game event pages.
   const hotPlayerStarted = Date.now();
