@@ -708,7 +708,7 @@ function VmixOverallBanner({
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold">vMix status: {title}</span>
-            <Badge variant={config.badge} className="text-[10px] uppercase">
+            <Badge className={`text-[10px] uppercase ${config.badgeClass}`}>
               {state}
             </Badge>
           </div>
