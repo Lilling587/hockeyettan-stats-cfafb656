@@ -91,7 +91,7 @@ export const checkVmixHealth = createServerFn({ method: "POST" })
             status: res.status,
             latencyMs: Date.now() - start,
             contentType: res.headers.get("content-type"),
-            bodyPreview: text.slice(0, 160),
+            bodyPreview: text.slice(0, 800),
             error: res.ok ? null : `HTTP ${res.status}`,
           };
         } catch (err) {

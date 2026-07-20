@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -578,30 +578,49 @@ function VmixHealthCard({
               </TableHeader>
               <TableBody>
                 {data.endpoints.map((e) => (
-                  <TableRow key={e.path}>
-                    <TableCell>
-                      <div className="text-sm">{e.name}</div>
-                      <div className="font-mono text-[10px] text-muted-foreground truncate max-w-xs">
-                        {e.path}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {e.ok ? (
-                        <Badge variant="secondary" className="text-[10px]">OK</Badge>
-                      ) : (
-                        <Badge variant="destructive" className="text-[10px]">FEL</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-xs">
-                      {e.status ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-xs">
-                      {e.latencyMs} ms
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground truncate max-w-[160px]">
-                      {e.contentType ?? "—"}
-                    </TableCell>
-                  </TableRow>
+                  <Fragment key={e.path}>
+                    <TableRow>
+                      <TableCell>
+                        <div className="text-sm">{e.name}</div>
+                        <div className="font-mono text-[10px] text-muted-foreground truncate max-w-xs">
+                          {e.path}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {e.ok ? (
+                          <Badge variant="secondary" className="text-[10px]">OK</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-[10px]">FEL</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-xs">
+                        {e.status ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-xs">
+                        {e.latencyMs} ms
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground truncate max-w-[160px]">
+                        {e.contentType ?? "—"}
+                      </TableCell>
+                    </TableRow>
+                    {!e.ok && (e.error || e.bodyPreview) ? (
+                      <TableRow className="bg-destructive/5 hover:bg-destructive/5">
+                        <TableCell colSpan={5} className="py-2">
+                          <div className="space-y-1 text-[11px]">
+                            <div>
+                              <span className="font-medium text-destructive">Fel:</span>{" "}
+                              <span className="font-mono">{e.error ?? `HTTP ${e.status ?? "?"}`}</span>
+                            </div>
+                            {e.bodyPreview ? (
+                              <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded border border-destructive/30 bg-background/60 p-2 font-mono text-[10px] leading-snug text-muted-foreground">
+{e.bodyPreview}
+                              </pre>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </Fragment>
                 ))}
               </TableBody>
             </Table>
