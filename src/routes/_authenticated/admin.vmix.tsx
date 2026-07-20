@@ -205,6 +205,7 @@ function VmixAdminPage() {
   const fetchPresets = useServerFn(listLineupPresets);
   const savePreset = useServerFn(saveLineupPreset);
   const delPreset = useServerFn(deleteLineupPreset);
+  const fetchAuditLog = useServerFn(getAuditLog);
   const adminQuery = useQuery({
     queryKey: ["is-admin"],
     queryFn: () => fetchIsAdmin(),
@@ -245,6 +246,11 @@ const presetsQuery = useQuery({
   const activeQuery = useQuery({
     queryKey: ["vmix-active"],
     queryFn: () => fetchActive(),
+    enabled: !!adminQuery.data?.isAdmin,
+  });
+  const auditQuery = useQuery({
+    queryKey: ["vmix-audit"],
+    queryFn: () => fetchAuditLog() as Promise<AuditLogRow[]>,
     enabled: !!adminQuery.data?.isAdmin,
   });
 
@@ -1042,6 +1048,7 @@ const restoreMut = useMutation({
           }}
         />
       </CardErrorBoundary>
+      <AuditLogCard entries={auditQuery.data ?? []} loading={auditQuery.isLoading} />
 <div className="flex items-center gap-2">
         <span className="text-xs text-muted-foreground">Säsong för spelarlistan:</span>
         <Select
