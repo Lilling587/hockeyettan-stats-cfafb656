@@ -20,7 +20,7 @@ async function resolveSeason(label?: string | null): Promise<Season> {
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 const TEAMS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
-const CACHE_VERSION = "v13";
+const CACHE_VERSION = "v14";
 const HISTORY_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const LEAGUE_SLUG = "hockeyettan-sodra";
 
@@ -126,6 +126,16 @@ const TeamBriefing = z.object({
     .nullable()
     .default(null)
     .describe("Season penalty-minutes totals and most-penalized players"),
+  faceoffs: z.object({
+    teamFoPct: z.number().nullable().describe("Team overall FO win % (0-100)"),
+    players: z.array(z.object({
+      name: z.string(),
+      foWins: z.number().int(),
+      foLosses: z.number().int(),
+      foTotal: z.number().int(),
+      foPct: z.number().describe("FO win % (0-100)"),
+    })).max(5).describe("Top players by FO%, minimum 10 total faceoffs"),
+  }).nullable().default(null).describe("Season faceoff statistics"),
 });
 
 const BriefingSchema = z.object({

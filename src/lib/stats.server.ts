@@ -408,12 +408,20 @@ type ScoringPageData = {
   topScorers: Record<string, Briefing["home"]["topScorers"]>;
   goalies: Record<string, Briefing["home"]["goalies"]>;
   discipline: Record<string, NonNullable<Briefing["home"]["discipline"]>>;
+  faceoffs: Record<string, {
+    teamFoPct: number | null;
+    players: Array<{ name: string; foWins: number; foLosses: number; foTotal: number; foPct: number; }>;
+  }>;
 };
 
 async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
   const topScorers: Record<string, Briefing["home"]["topScorers"]> = {};
   const goalies: Record<string, Briefing["home"]["goalies"]> = {};
   const discipline: Record<string, NonNullable<Briefing["home"]["discipline"]>> = {};
+  const faceoffs: Record<string, {
+    teamFoPct: number | null;
+    players: Array<{ name: string; foWins: number; foLosses: number; foTotal: number; foPct: number; }>;
+  }> = {};
 
   try {
     const res = await fetch(urls.scoring, {
@@ -453,6 +461,7 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
       let totalPim = 0;
       let maxGp = 0;
       const offenders: Array<{ name: string; pim: number; gamesPlayed: number | null }> = [];
+      const foEntries: Array<{ name: string; foWins: number; foLosses: number; foTotal: number; foPct: number }> = [];
 
       const skaterRowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
       let rowMatch: RegExpExecArray | null;
@@ -489,6 +498,22 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
             offenders.push({ name, pim, gamesPlayed: Number.isFinite(gp) ? gp : null });
           }
         }
+
+        // Collect faceoff data — process all rows (not just top scorers)
+        const foWins = cells.length >= 21 ? Number(cells[17]) : NaN;
+        const foLosses = cells.length >= 21 ? Number(cells[18]) : NaN;
+        const foTotal = cells.length >= 21 ? Number(cells[19]) : NaN;
+        const foPctStr = cells.length >= 21 ? cells[20] : "N/A";
+        const foPctVal = foPctStr === "N/A" || foPctStr === "" ? null : Number(foPctStr);
+        if (
+          Number.isFinite(foWins) &&
+          Number.isFinite(foLosses) &&
+          Number.isFinite(foTotal) &&
+          foPctVal !== null &&
+          Number.isFinite(foPctVal)
+        ) {
+          foEntries.push({ name, foWins, foLosses, foTotal, foPct: foPctVal });
+        }
       }
 
       if (scorerList.length > 0) topScorers[teamName] = scorerList;
@@ -500,6 +525,18 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
         perGame: maxGp > 0 ? totalPim / maxGp : 0,
         topOffenders: offenders.slice(0, 3),
       };
+
+      // --- Faceoffs ---
+      const totalFoWins = foEntries.reduce((s, e) => s + e.foWins, 0);
+      const totalFoTotal = foEntries.reduce((s, e) => s + e.foTotal, 0);
+      const teamFoPct = totalFoTotal > 0
+        ? Math.round((totalFoWins / totalFoTotal) * 10000) / 100
+        : null;
+      const foPlayers = foEntries
+        .filter((e) => e.foTotal >= 10)
+        .sort((a, b) => b.foPct - a.foPct)
+        .slice(0, 5);
+      faceoffs[teamName] = { teamFoPct, players: foPlayers };
 
       // --- Goalies ---
       // Columns: Rk, No, Name, GPT, GKD, GPI, MIP, GA, SVS, SOG, SVS%, GAA, SO, W, L (15 cells)
@@ -539,7 +576,7 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
     console.warn("[scoringPage] fetch failed:", (err as Error).message);
   }
 
-  return { topScorers, goalies, discipline };
+  return { topScorers, goalies, discipline, faceoffs };
 }
 
 // ---------------------------------------------------------------------------
