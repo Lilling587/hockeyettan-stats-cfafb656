@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAdmin } from "@/integrations/supabase/admin-middleware";
 import { renderPregameEmail } from "@/lib/email-templates";
 
 export type NotificationPrefs = {
@@ -149,3 +150,16 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+export const triggerPostgameEmailsNow = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .handler(async (): Promise<{ sent: number; skipped: number }> => {
+    const { sendPostgameEmails } = await import("./postgame-email-sender.server");
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : process.env.VITE_APP_URL ?? "https://hockeyettan-stats.spdproduktion.se";
+    const result = await sendPostgameEmails(origin);
+    return { sent: result.sent, skipped: result.skipped };
+  });
+

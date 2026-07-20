@@ -226,6 +226,7 @@ export type Database = {
           email: string
           enabled: boolean
           favorite_team: string
+          last_postgame_email_date: string | null
           updated_at: string
           user_id: string
         }
@@ -236,6 +237,7 @@ export type Database = {
           email: string
           enabled?: boolean
           favorite_team?: string
+          last_postgame_email_date?: string | null
           updated_at?: string
           user_id: string
         }
@@ -246,6 +248,7 @@ export type Database = {
           email?: string
           enabled?: boolean
           favorite_team?: string
+          last_postgame_email_date?: string | null
           updated_at?: string
           user_id?: string
         }

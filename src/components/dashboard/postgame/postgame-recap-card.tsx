@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { ChevronLeft, Loader2, RefreshCw } from "lucide-react";
 import {
   getLastMeetingRecap,
   type LastMeetingRecapResult,
 } from "@/lib/stats.functions";
+import { triggerPostgameEmailsNow } from "@/lib/notifications.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +25,7 @@ export function PostgameRecapCard({
 }) {
   const query = useSuspenseQuery(lastMeetingOptions(home, away));
   const queryClient = useQueryClient();
+  const triggerPostgameEmails = useServerFn(triggerPostgameEmailsNow);
   const [forcing, setForcing] = useState(false);
   const [autoRefreshedAt, setAutoRefreshedAt] = useState<string | null>(null);
   const handleGameFinished = async () => {
@@ -30,6 +34,16 @@ export function PostgameRecapCard({
       const fresh = await getLastMeetingRecap({ data: { home, away, force: true } });
       queryClient.setQueryData(["lastMeeting", home, away], fresh);
       setAutoRefreshedAt(new Date().toISOString());
+      try {
+        const res = await triggerPostgameEmails();
+        if (res.sent > 0) {
+          toast.success(`Matchrapport skickad till ${res.sent} prenumeranter`);
+        } else if (res.skipped > 0) {
+          toast.info("Matchrapport redan skickad idag");
+        }
+      } catch {
+        // Never let email failure block the UI refresh.
+      }
     } finally {
       setForcing(false);
     }

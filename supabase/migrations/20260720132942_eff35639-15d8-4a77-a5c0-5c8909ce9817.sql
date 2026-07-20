@@ -1,0 +1,1 @@
+ALTER TABLE public.notification_prefs ADD COLUMN IF NOT EXISTS last_postgame_email_date DATE;
