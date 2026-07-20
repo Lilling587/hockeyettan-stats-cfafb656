@@ -6,6 +6,14 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
+import { loadEnv } from "vite";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Load server-only env vars (no VITE_ prefix) into process.env for SSR routes.
+// Do NOT expose these to the client bundle via define().
+Object.assign(process.env, loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), ""));
 
 function keepPreviewAliveAfterDevServerRestart() {
   return {
@@ -56,6 +64,13 @@ export default defineConfig({
   },
   vite: {
     plugins: [keepPreviewAliveAfterDevServerRestart(), mcpPlugin()],
+    resolve: {
+      alias: {
+        "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),
+        "entities/lib/encode.js": path.resolve(__dirname, "node_modules/entities/lib/encode.js"),
+        entities: path.resolve(__dirname, "node_modules/entities"),
+      },
+    },
     server: {
       // Warm up critical entry points so the initial bundle is ready before
       // the browser opens the page — prevents long first-paint stalls that
