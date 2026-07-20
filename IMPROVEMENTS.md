@@ -31,7 +31,7 @@
 
 ---
 
-## New items 21–34
+## Broadcast safety & resilience (items 21–34)
 
 | # | Item | Status |
 |---|---|---|
@@ -52,8 +52,104 @@
 
 ---
 
+## vMix endpoints & data (items 35–44)
+
+| # | Item | Status |
+|---|---|---|
+| 35 | Today's games vMix endpoint (/api/public/vmix/todays-games) | ✅ Done |
+| 36 | Players lower-thirds vMix endpoint (/api/public/vmix/player) | ✅ Done |
+| 37 | Title card vMix endpoint (/api/public/vmix/titlecard) | ✅ Done |
+| 38 | Standings refresh without full republish ("Uppdatera tabell" button) | ✅ Done |
+| 39 | Load lineup from previous game vs same opponent | ⏭️ Skipped (single round-robin, no repeat home matchups) |
+| 40 | Print-friendly lineup view | ⏭️ Skipped (printed lineups provided by official stats staff) |
+| 41 | Quick player swap in lineup slots | ⏭️ Skipped |
+| 42 | Standings completeness check before publish (block if <8 teams) | ✅ Done |
+| 43 | Rate limiting on public vMix endpoints (120 req/min per IP) | ✅ Done |
+| 44 | Audit log for publications (vmix_audit_log table + Granskningslogg card) | ✅ Done |
+
+---
+
+## Commentator dashboard (items 45–46)
+
+| # | Item | Status |
+|---|---|---|
+| 45 | Commentator dashboard auto-refresh (every 30 min toggle) | ✅ Done |
+| 46 | Tablet-optimized commentator mode (larger text + spacing toggle) | ✅ Done |
+
+---
+
+## Broadcast safety – second wave (items 47–51)
+
+| # | Item | Status |
+|---|---|---|
+| 47 | Official Swehockey API health badge in readiness card (polls every 60s) | ✅ Done |
+| 48 | Broadcast countdown timer on admin page (manual puck drop time input) | ✅ Done |
+| 49 | Post-game "Avsluta sändning" button (unpublish + clear draft + reset) | ✅ Done |
+| 50 | vMix-endpoints and EndpointTester merged into one card | ✅ Done |
+| 51 | Auto-refresh interval changed from 10s to 60s (reduce Swehockey load) | ✅ Done |
+
+---
+
+## Logo system overhaul (items 52–54)
+
+| # | Item | Status |
+|---|---|---|
+| 52 | Logotyper page merged into Lagring page as separate card | ✅ Done |
+| 53 | Logo cache (statistiksida) now fetches from Supabase Storage instead of hockeyettan.se | ✅ Done |
+| 54 | adminRefetchTeamLogo uses supabaseAdmin (service role) for reliable cache updates | ✅ Done |
+
+---
+
+## Performance optimizations (item 55)
+
+| # | Item | Status |
+|---|---|---|
+| 55 | React.memo on SlotInputs, memoized slot counts, conditional API polling, countdown via DOM refs, skip unchanged draft saves, player stats cache | ✅ Done |
+
+---
+
+## UI & UX cleanup (items 56–67)
+
+| # | Item | Status |
+|---|---|---|
+| 56 | Admin header links consolidated into "Admin" dropdown | ✅ Done |
+| 57 | SeasonPicker moved inline into team picker grid | ✅ Done |
+| 58 | Tab buttons (Matchgenomgång/Matchsammanfattning) moved above Nästa match card | ✅ Done |
+| 59 | Team selector collapses to compact banner after briefing loads | ✅ Done |
+| 60 | "Välj lag" card title removed | ✅ Done |
+| 61 | "XX lag laddade" success indicator removed | ✅ Done |
+| 62 | Fixed duplicate Settings icons (Loggbok → ScrollText, Hälsa → Activity) | ✅ Done |
+| 63 | Removed duplicate span on HockeyEttan stats link | ✅ Done |
+| 64 | Separate login/signup flows: regular users (with sign-up) vs admins (no sign-up) | ✅ Done |
+| 65 | Compare page: Top 10 PIM card added (Utvisningsliga), cards renamed to Swedish | ✅ Done |
+| 66 | Spelare page: filter out position "G" (misidentified Goals column header) | ✅ Done |
+| 67 | Goalie sorted by save percentage in TV text ("Kopiera som text") export | ✅ Done |
+
+---
+
 ## Notes
 
 - pg_cron via Lovable handles pregame/postgame email scheduling
 - CRON_SECRET environment variable set in Lovable
-- Supabase Realtime enabled on vmix_publications table
+- Supabase Realtime enabled on vmix_publications table via SQL
+- vmix_audit_log table created via SQL migration
+- Rate limiter exempts internal server-to-server requests (IP = "unknown")
+- vMix health check in admin/health uses same 4 endpoints as the vMix-endpoints card
+- All public vMix endpoints now rate-limited to 120 req/min per IP
+- Player lower-thirds endpoint: /api/public/vmix/player?PlayerName=LASTNAME,%20FIRSTNAME
+- Logo files in vmix-assets/logos/ serve both vMix (small+large) and the briefing dashboard (large)
+- Old Supabase buckets "logos" and "team-logos" were deleted — only "vmix-assets" is used
+
+---
+
+## Workflow notes
+
+- All code changes use exact delete/replace blocks — never "insert between"
+- GitHub web editor for most changes; Lovable for multi-file coordinated edits
+- Always include approximate line numbers with every change
+- When modifying an existing line, always show the full original line in the
+  delete block and the full new line in the replace block
+- For any single replace block over ~30 lines in a large file, use Lovable
+- Use downloadable files for any code or text block over ~50 lines
+- Lovable dev server restart often needed after multiple rapid GitHub commits
+- Always test on production URL (hockeyettan-stats.spdproduktion.se) not preview URL
