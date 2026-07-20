@@ -32,6 +32,8 @@ import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminAssetsRouteImport } from './routes/_authenticated/admin.assets'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicVmixTodaysGamesRouteImport } from './routes/api/public/vmix/todays-games'
 import { Route as ApiPublicVmixTitlecardRouteImport } from './routes/api/public/vmix/titlecard'
 import { Route as ApiPublicVmixStandingsRouteImport } from './routes/api/public/vmix/standings'
@@ -163,6 +165,16 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicVmixTodaysGamesRoute =
   ApiPublicVmixTodaysGamesRouteImport.update({
     id: '/api/public/vmix/todays-games',
@@ -244,6 +256,8 @@ export interface FileRoutesByFullPath {
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/api/public/vmix/titlecard': typeof ApiPublicVmixTitlecardRoute
   '/api/public/vmix/todays-games': typeof ApiPublicVmixTodaysGamesRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
 }
@@ -277,6 +291,8 @@ export interface FileRoutesByTo {
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/api/public/vmix/titlecard': typeof ApiPublicVmixTitlecardRoute
   '/api/public/vmix/todays-games': typeof ApiPublicVmixTodaysGamesRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
 }
@@ -312,6 +328,8 @@ export interface FileRoutesById {
   '/api/public/vmix/standings': typeof ApiPublicVmixStandingsRoute
   '/api/public/vmix/titlecard': typeof ApiPublicVmixTitlecardRoute
   '/api/public/vmix/todays-games': typeof ApiPublicVmixTodaysGamesRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/api/public/vmix/lineup/$version': typeof ApiPublicVmixLineupVersionRoute
 }
@@ -347,6 +365,8 @@ export interface FileRouteTypes {
     | '/api/public/vmix/standings'
     | '/api/public/vmix/titlecard'
     | '/api/public/vmix/todays-games'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/api/public/vmix/lineup/$version'
   fileRoutesByTo: FileRoutesByTo
@@ -380,6 +400,8 @@ export interface FileRouteTypes {
     | '/api/public/vmix/standings'
     | '/api/public/vmix/titlecard'
     | '/api/public/vmix/todays-games'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/api/public/vmix/lineup/$version'
   id:
@@ -414,6 +436,8 @@ export interface FileRouteTypes {
     | '/api/public/vmix/standings'
     | '/api/public/vmix/titlecard'
     | '/api/public/vmix/todays-games'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/api/public/vmix/lineup/$version'
   fileRoutesById: FileRoutesById
@@ -441,6 +465,8 @@ export interface RootRouteChildren {
   ApiPublicVmixStandingsRoute: typeof ApiPublicVmixStandingsRoute
   ApiPublicVmixTitlecardRoute: typeof ApiPublicVmixTitlecardRoute
   ApiPublicVmixTodaysGamesRoute: typeof ApiPublicVmixTodaysGamesRoute
+  LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
+  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   ApiPublicVmixLineupVersionRoute: typeof ApiPublicVmixLineupVersionRoute
 }
@@ -608,6 +634,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/vmix/todays-games': {
       id: '/api/public/vmix/todays-games'
       path: '/api/public/vmix/todays-games'
@@ -723,6 +763,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicVmixStandingsRoute: ApiPublicVmixStandingsRoute,
   ApiPublicVmixTitlecardRoute: ApiPublicVmixTitlecardRoute,
   ApiPublicVmixTodaysGamesRoute: ApiPublicVmixTodaysGamesRoute,
+  LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
+  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   ApiPublicVmixLineupVersionRoute: ApiPublicVmixLineupVersionRoute,
 }
