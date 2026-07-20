@@ -488,27 +488,46 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh, !!briefing, home, selectedAway]);
 
-  // Show a reload prompt when a new service worker takes control (new deploy).
+ // Detect new deploys by polling the root HTML every 5 minutes.
+  // Vite generates new hashed bundle filenames on every deploy, so if
+  // the script src in the fresh HTML differs from the one we loaded with,
+  // a new version is available.
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
-    const hadController = !!navigator.serviceWorker.controller;
-    const onControllerChange = () => {
-      if (!hadController) return;
-      toast("Ny version tillgänglig", {
-        description: "Uppdatera sidan för att få den senaste versionen.",
-        action: {
-          label: "Uppdatera nu",
-          onClick: () => window.location.reload(),
-        },
-        duration: Infinity,
-      });
+    const currentScript = document.querySelector(
+      "script[src]",
+    ) as HTMLScriptElement | null;
+    if (!currentScript) return;
+    const currentSrc = currentScript.src;
+    let notified = false;
+
+    const check = async () => {
+      if (notified) return;
+      try {
+        const res = await fetch(window.location.pathname, {
+          cache: "no-store",
+          headers: { accept: "text/html" },
+        });
+        if (!res.ok) return;
+        const html = await res.text();
+        const match = html.match(/src="([^"]+\.js)"/);
+        if (match && match[1] && !currentSrc.includes(match[1].split("/").pop() ?? "")) {
+          notified = true;
+          toast("Ny version tillgänglig", {
+            description: "Uppdatera sidan för att få den senaste versionen.",
+            action: {
+              label: "Uppdatera nu",
+              onClick: () => window.location.reload(),
+            },
+            duration: Infinity,
+          });
+        }
+      } catch {
+        // Network error — ignore silently
+      }
     };
-    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
-    return () =>
-      navigator.serviceWorker.removeEventListener(
-        "controllerchange",
-        onControllerChange,
-      );
+
+    const id = setInterval(check, 5 * 60 * 1000);
+    return () => clearInterval(id);
   }, []);
 
   return (
