@@ -930,6 +930,7 @@ export async function buildBriefing(
     goalies: [],
     hotPlayer: null,
     discipline: null,
+    faceoffs: null,
   });
 
   const object: Briefing = {
