@@ -541,7 +541,7 @@ function VmixHealthCard({
         <CardTitle className="text-base">vMix endpoints</CardTitle>
         <div className="flex items-center gap-2">
           {data ? (
-            {data.overall === "ok" ? (
+            data.overall === "ok" ? (
               <Badge className="text-[10px] uppercase bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400">
                 ok
               </Badge>
@@ -549,7 +549,7 @@ function VmixHealthCard({
               <Badge variant="destructive" className="text-[10px] uppercase">
                 fel
               </Badge>
-            )}
+            )
           ) : null}
           <Button
             variant="outline"
