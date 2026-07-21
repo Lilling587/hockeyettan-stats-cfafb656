@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TeamData } from "@/lib/dashboard-utils";
 import type { GameFlowResultDto } from "@/lib/game-flow.functions";
 
-const RECENT_N = 10;
+const RECENT_N = 5;
 
 const fmt = (n: number | null | undefined, digits = 1) =>
   n != null && Number.isFinite(n) ? n.toFixed(digits) : "—";
