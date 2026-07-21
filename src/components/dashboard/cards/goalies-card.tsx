@@ -19,7 +19,7 @@ export function GoaliesCard({ team }: { team: TeamData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{team.name} · målvakter</CardTitle>
+        <CardTitle className="text-base">{team.name} · Målvakter</CardTitle>
       </CardHeader>
       <CardContent>
         {goalies.length === 0 ? (
