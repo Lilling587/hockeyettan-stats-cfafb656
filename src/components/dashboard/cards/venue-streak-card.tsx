@@ -19,7 +19,7 @@ function VenueRow({
   return (
     <div className="flex items-center justify-between gap-3 text-sm">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="font-medium w-12 shrink-0">{label}</span>
+        <span className="font-medium shrink-0">{label} · sen. {recent.length}</span>
         <Badge variant={streakVariant(split.streak?.type)} className="tabular-nums">
           {streakLabel(split.streak)}
         </Badge>
