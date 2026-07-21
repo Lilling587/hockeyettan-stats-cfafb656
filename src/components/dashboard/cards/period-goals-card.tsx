@@ -21,7 +21,7 @@ export function PeriodGoalsCard({
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <span>{team.name} · mål per period</span>
+          <span>{team.name} · Mål per period</span>
           {refreshing ? <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" /> : null}
         </CardTitle>
       </CardHeader>
