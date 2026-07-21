@@ -73,11 +73,8 @@ export const listErrorLogs = createServerFn({ method: "POST" })
       })
       .parse(input ?? {}),
   )
-  .handler(async ({ data }): Promise<{ rows: ErrorLogRow[] }> => {
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    let q = supabaseAdmin
+  .handler(async ({ data, context }): Promise<{ rows: ErrorLogRow[] }> => {
+    let q = context.supabase
       .from("error_log")
       .select(
         "id, created_at, source, level, message, route, stack, context, user_agent, user_id",
