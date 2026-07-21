@@ -35,25 +35,22 @@ function TeamColumn({ team }: { team: Briefing["home"] }) {
       <div className="text-2xl font-bold tabular-nums">
         {teamPct == null ? "–" : `${teamPct.toFixed(1)}%`}
       </div>
-      <div className="inline-flex items-start gap-1.5 text-xs text-muted-foreground">
-        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        <span>
-          FO% = vunna tekningar / totala tekningar · 100.
-          Lagets värde (teamFoPct) räknas på alla lagets tekningar.
-        </span>
-      </div>
-      {players.length > 0 ? (
-        <ul className="space-y-1 text-sm">
-          {players.map((p) => (
-            <li key={p.name} className="tabular-nums">
-              <span className="font-medium">{p.name}</span>
-              <span className="text-muted-foreground">
-                {" "}
-                — {p.foPct.toFixed(1)}% ({p.foTotal})
-              </span>
-            </li>
-          ))}
-        </ul>
+      
+     {players.length > 0 ? (
+        <>
+          <ul className="space-y-1 text-sm">
+            {players.map((p) => (
+              <li key={p.name} className="tabular-nums">
+                <span className="font-medium">{p.name}</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  — {p.foPct.toFixed(1)}% ({p.foTotal})
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted-foreground mt-1">Spelare med minst 10 tekningar</p>
+        </>
       ) : (
         <p className="text-xs text-muted-foreground">Inga spelare med minst 10 tekningar</p>
       )}
@@ -89,7 +86,7 @@ export function FaceoffsCard({ briefing }: { briefing: Briefing }) {
               </Tooltip>
             </TooltipProvider>
           </CardTitle>
-          <p className="text-xs text-muted-foreground mt-0.5">Spelare med minst 10 tekningar</p>
+         
         </CardHeader>
 
         <CardContent>
