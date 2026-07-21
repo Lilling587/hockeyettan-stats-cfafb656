@@ -957,9 +957,21 @@ function computePeriodGoals(
 async function fetchTeamCodeMap(urls: Urls): Promise<Record<string, string>> {
   try {
     const res = await fetch(urls.roster, { headers: { "user-agent": "Mozilla/5.0" } });
-    const html = await res.text();
-    const map: Record<string, string> = {};
-    const re = /href="#([^"\s]+)"[^>]*>([^<]+)<\/a>/g;
+    const fullHtml = await res.text();
+    const result: Record<string, number> = {};
+
+    // The page has two tables: Scoring Efficiency then Goalkeeping Efficiency.
+    // Both have SOG at column index 5, so we must isolate the first table only.
+    const scoringStart = fullHtml.indexOf("Scoring Efficiency");
+    const keepingStart = fullHtml.indexOf("Goalkeeping Efficiency");
+    const html =
+      scoringStart >= 0 && keepingStart > scoringStart
+        ? fullHtml.slice(scoringStart, keepingStart)
+        : scoringStart >= 0
+          ? fullHtml.slice(scoringStart)
+          : fullHtml;
+
+    const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
     let m;
     while ((m = re.exec(html)) !== null) {
       const code = m[1].trim();
