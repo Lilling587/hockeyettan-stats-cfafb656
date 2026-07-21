@@ -19,7 +19,7 @@ export function RestDaysCard({ home, away }: { home: TeamData; away: TeamData })
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Vila sedan senaste match</CardTitle>
-        <p className="text-xs text-muted-foreground">Fler vilodagar = piggare lag. Back-to-back kan vara en nackdel.</p>
+        <p className="text-xs text-muted-foreground">Antal dagar sen senaste match.</p>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
