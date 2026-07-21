@@ -51,7 +51,8 @@ export function FaceoffsCard({ briefing }: { briefing: Briefing }) {
     <section id="faceoffs">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Avtappningar (FO%)</CardTitle>
+          <CardTitle className="text-base">Tekningar (FO%)</CardTitle>
+          <p className="text-xs text-muted-foreground mt-0.5">Spelare med minst 10 tekningar</p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
