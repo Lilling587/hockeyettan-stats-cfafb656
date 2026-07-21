@@ -1032,19 +1032,17 @@ async function fetchTeamShotsOnGoal(
     const fullHtml = await res.text();
 
     // The page has two tables: Scoring Efficiency then Goalkeeping Efficiency.
-    // Both have SOG at column index 5 — isolate each section to avoid cross-reads.
+    // Both have SOG at column index 5 — split on the first </table> boundary
+    // after "Scoring Efficiency" so we never rely on the heading text of the
+    // second section (which may have different casing or spacing in raw HTML).
     const scoringStart = fullHtml.indexOf("Scoring Efficiency");
-    const keepingStart = fullHtml.indexOf("Goalkeeping Efficiency");
+    const afterScoring = scoringStart >= 0 ? fullHtml.slice(scoringStart) : fullHtml;
+    const firstTableEnd = afterScoring.search(/<\/table>/i);
 
     const scoringHtml =
-      scoringStart >= 0 && keepingStart > scoringStart
-        ? fullHtml.slice(scoringStart, keepingStart)
-        : scoringStart >= 0
-          ? fullHtml.slice(scoringStart)
-          : "";
-
+      firstTableEnd >= 0 ? afterScoring.slice(0, firstTableEnd) : afterScoring;
     const keepingHtml =
-      keepingStart >= 0 ? fullHtml.slice(keepingStart) : "";
+      firstTableEnd >= 0 ? afterScoring.slice(firstTableEnd) : "";
 
     function parseTable(
       html: string,
