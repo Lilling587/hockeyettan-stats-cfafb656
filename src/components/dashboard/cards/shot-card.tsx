@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import type { TeamData } from "@/lib/dashboard-utils";
 import type { GameFlowResultDto } from "@/lib/game-flow.functions";
 
@@ -49,6 +48,71 @@ function aggregateRecentShots(games: GameFlowResultDto["games"]) {
   };
 }
 
+function Dot() {
+  return (
+    <span
+      className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle"
+      aria-label="bättre"
+    />
+  );
+}
+
+function StatRow({
+  label,
+  homeVal,
+  awayVal,
+  higherIsBetter,
+}: {
+  label: string;
+  homeVal: number | null;
+  awayVal: number | null;
+  higherIsBetter: boolean;
+}) {
+  const homeWins =
+    homeVal != null && awayVal != null
+      ? higherIsBetter
+        ? homeVal > awayVal
+        : homeVal < awayVal
+      : false;
+  const awayWins =
+    homeVal != null && awayVal != null
+      ? higherIsBetter
+        ? awayVal > homeVal
+        : awayVal < homeVal
+      : false;
+
+  return (
+    <tr className="border-t border-border">
+      <td className="py-2 pr-3 text-sm text-muted-foreground">{label}</td>
+      <td className="py-2 text-right font-mono text-xl tabular-nums">
+        <span className={homeWins ? "text-emerald-500" : "text-foreground"}>
+          {fmt(homeVal)}
+        </span>
+        {homeWins && <Dot />}
+      </td>
+      <td className="py-2 pl-4 text-right font-mono text-xl tabular-nums">
+        <span className={awayWins ? "text-emerald-500" : "text-foreground"}>
+          {fmt(awayVal)}
+        </span>
+        {awayWins && <Dot />}
+      </td>
+    </tr>
+  );
+}
+
+function SectionHead({ label }: { label: string }) {
+  return (
+    <tr>
+      <td
+        colSpan={3}
+        className="pb-1 pt-4 text-xs uppercase tracking-widest text-muted-foreground"
+      >
+        {label}
+      </td>
+    </tr>
+  );
+}
+
 export function ShotCard({
   home,
   away,
@@ -65,103 +129,53 @@ export function ShotCard({
   const homeGoalie = aggregateGoalies(home);
   const awayGoalie = aggregateGoalies(away);
 
-  const recentN = Math.max(homeRecent.n, awayRecent.n);
-
-  // Per-period breakdown — home team's perspective, recent games only
-  const perPeriodHome: [number, number, number] = [0, 0, 0];
-  const perPeriodAway: [number, number, number] = [0, 0, 0];
-  const homeRecentGames = (homeFlow?.games ?? []).slice(0, RECENT_N);
-  for (const g of homeRecentGames) {
-    g.teamShotsByPeriod.slice(0, 3).forEach((v, i) => {
-      if (Number.isFinite(v)) perPeriodHome[i] += v || 0;
-    });
-    g.oppShotsByPeriod.slice(0, 3).forEach((v, i) => {
-      if (Number.isFinite(v)) perPeriodAway[i] += v || 0;
-    });
-  }
-
-  const rows = [
-    {
-      label: `SF/match · senaste ${RECENT_N}`,
-      homeVal: homeRecent.avgFor,
-      awayVal: awayRecent.avgFor,
-    },
-    {
-      label: `SA/match · senaste ${RECENT_N}`,
-      homeVal: homeRecent.avgAgainst,
-      awayVal: awayRecent.avgAgainst,
-    },
-    {
-      label: "SF/match · säsong",
-      homeVal: home.shotsForPerGame ?? null,
-      awayVal: away.shotsForPerGame ?? null,
-    },
-    {
-      label: "SA/match · säsong",
-      homeVal: homeGoalie.saPerGame,
-      awayVal: awayGoalie.saPerGame,
-    },
-  ];
-
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Skott</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Team name headers */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm font-medium">
-          <span>{home.name}</span>
-          <span className="w-44" />
-          <span className="text-right">{away.name}</span>
-        </div>
-
-        {/* 4 stat rows */}
-        <div className="space-y-3">
-          {rows.map(({ label, homeVal, awayVal }) => (
-            <div
-              key={label}
-              className="grid grid-cols-[1fr_auto_1fr] items-center gap-2"
-            >
-              <span className="font-mono text-xl">{fmt(homeVal)}</span>
-              <span className="w-44 text-center text-xs text-muted-foreground">
-                {label}
-              </span>
-              <span className="font-mono text-xl text-right">{fmt(awayVal)}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Per-period breakdown */}
-        {homeRecentGames.length > 0 && (
-          <div>
-            <div className="mb-2 text-xs font-medium text-muted-foreground">
-              Skott per period · senaste {recentN} matcher (summa)
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              {([0, 1, 2] as const).map((i) => {
-                const diff = perPeriodHome[i] - perPeriodAway[i];
-                return (
-                  <div key={i} className="rounded-md bg-muted p-2">
-                    <div className="text-xs text-muted-foreground">P{i + 1}</div>
-                    <div className="font-mono text-sm">
-                      {perPeriodHome[i]}–{perPeriodAway[i]}
-                    </div>
-                    <Badge
-                      variant={
-                        diff > 0 ? "default" : diff < 0 ? "destructive" : "secondary"
-                      }
-                      className="mt-1"
-                    >
-                      {diff > 0 ? "+" : ""}
-                      {diff}
-                    </Badge>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+      <CardContent>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="w-2/5 pb-2 text-left text-xs font-normal text-muted-foreground" />
+              <th className="pb-2 text-right text-xs font-medium text-foreground">
+                {home.name}
+              </th>
+              <th className="pb-2 pl-4 text-right text-xs font-medium text-foreground">
+                {away.name}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <SectionHead label={`Senaste ${RECENT_N} matcher`} />
+            <StatRow
+              label="SF / match"
+              homeVal={homeRecent.avgFor}
+              awayVal={awayRecent.avgFor}
+              higherIsBetter={true}
+            />
+            <StatRow
+              label="SA / match"
+              homeVal={homeRecent.avgAgainst}
+              awayVal={awayRecent.avgAgainst}
+              higherIsBetter={false}
+            />
+            <SectionHead label="Säsong" />
+            <StatRow
+              label="SF / match"
+              homeVal={home.shotsForPerGame ?? null}
+              awayVal={away.shotsForPerGame ?? null}
+              higherIsBetter={true}
+            />
+            <StatRow
+              label="SA / match"
+              homeVal={homeGoalie.saPerGame}
+              awayVal={awayGoalie.saPerGame}
+              higherIsBetter={false}
+            />
+          </tbody>
+        </table>
       </CardContent>
     </Card>
   );
