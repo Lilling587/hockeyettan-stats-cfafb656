@@ -136,7 +136,8 @@ const TeamBriefing = z.object({
       foPct: z.number().describe("FO win % (0-100)"),
     })).max(5).describe("Top players by FO%, minimum 10 total faceoffs"),
   }).nullable().default(null).describe("Season faceoff statistics"),
-  shotsForPerGame: z.number().nullable().default(null).describe("Season shots on goal per game (SOG/GP from scoring efficiency page)"),
+ shotsForPerGame: z.number().nullable().default(null).describe("Season shots on goal per game (SOG/GP from scoring efficiency page)"),
+  shotsAgainstPerGame: z.number().nullable().default(null).describe("Season shots against per game (SOA/GP from goalkeeping efficiency page)"),
 });
 
 const BriefingSchema = z.object({
