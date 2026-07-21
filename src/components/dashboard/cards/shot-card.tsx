@@ -26,14 +26,7 @@ function aggregateRecentShots(games: GameFlowResultDto["games"]) {
   };
 }
 
-function Dot() {
-  return (
-    <span
-      className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle"
-      aria-label="bättre"
-    />
-  );
-}
+
 
 function StatRow({
   label,
@@ -61,17 +54,15 @@ function StatRow({
 
   return (
     <tr className="border-t border-border">
-      <td className="py-2 pr-2 text-right font-mono text-xl tabular-nums">
+     <td className="py-2 pr-2 text-right font-mono text-xl tabular-nums">
         <span className={homeWins ? "text-emerald-500" : "text-foreground"}>
           {fmt(homeVal)}
         </span>
-        {homeWins && <span className="ml-1.5"><Dot /></span>}
       </td>
       <td className="py-2 text-center text-xs text-muted-foreground">
         {label}
       </td>
-      <td className="py-2 pl-2 text-left font-mono text-xl tabular-nums">
-        {awayWins && <span className="mr-1.5"><Dot /></span>}
+     <td className="py-2 pl-2 text-left font-mono text-xl tabular-nums">
         <span className={awayWins ? "text-emerald-500" : "text-foreground"}>
           {fmt(awayVal)}
         </span>
