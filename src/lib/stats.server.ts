@@ -113,17 +113,71 @@ function buildUrls(competitionId: string): Urls {
   };
 }
 
-async function scrapeMd(url: string): Promise<string> {
-  const fc = firecrawl();
-  const res = await fc.scrape(url, {
-    formats: ["markdown"],
-    onlyMainContent: true,
+function htmlEntityDecode(value: string): string {
+  return value
+    .replace(/&nbsp;|&#160;|\u00a0/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractTableRowsAsMarkdown(html: string): string {
+  const rows: string[] = [];
+  const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+  let rowMatch: RegExpExecArray | null;
+  while ((rowMatch = rowRe.exec(html)) !== null) {
+    const cells: string[] = [];
+    const cellRe = /<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi;
+    let cellMatch: RegExpExecArray | null;
+    while ((cellMatch = cellRe.exec(rowMatch[1])) !== null) {
+      const text = htmlEntityDecode(
+        cellMatch[1]
+          .replace(/<br\s*\/?>/gi, " ")
+          .replace(/<[^>]+>/g, " "),
+      );
+      cells.push(text);
+    }
+    if (cells.some(Boolean)) rows.push(`| ${cells.join(" | ")} |`);
+  }
+  return rows.join("\n");
+}
+
+async function fetchPageTablesAsMarkdown(url: string): Promise<string> {
+  const response = await fetch(url, {
+    headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
   });
-  const md =
-    (res as { markdown?: string }).markdown ??
-    (res as { data?: { markdown?: string } }).data?.markdown ??
-    "";
-  return md;
+  if (!response.ok) {
+    throw new Error(`Direct stats fetch failed [${response.status}] for ${url}`);
+  }
+  return extractTableRowsAsMarkdown(await response.text());
+}
+
+async function scrapeMd(url: string): Promise<string> {
+  const apiKey = process.env.FIRECRAWL_API_KEY_1 || process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) {
+    console.warn(`[firecrawl] API key missing; using direct stats HTML fallback for ${url}`);
+    return fetchPageTablesAsMarkdown(url);
+  }
+
+  try {
+    const fc = firecrawl();
+    const res = await fc.scrape(url, {
+      formats: ["markdown"],
+      onlyMainContent: true,
+    });
+    const md =
+      (res as { markdown?: string }).markdown ??
+      (res as { data?: { markdown?: string } }).data?.markdown ??
+      "";
+    if (md.trim().length > 0) return md;
+  } catch (err) {
+    console.warn(`[firecrawl] scrape failed; using direct stats HTML fallback for ${url}: ${(err as Error).message}`);
+  }
+  return fetchPageTablesAsMarkdown(url);
 }
 
 function extractTeamSection(md: string, teamName: string): string {
