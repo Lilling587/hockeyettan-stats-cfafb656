@@ -46,7 +46,7 @@ function TeamBlock({ team }: { team: TeamData }) {
     <div className="space-y-2">
       <div className="truncate text-sm font-semibold">{team.name}</div>
       <div className="grid grid-cols-4 gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-        <span>Var</span>
+      
         <span className="text-right">Matcher</span>
         <span className="text-right">Poäng/match</span>
         <span className="text-right">Vinst%</span>
@@ -69,7 +69,7 @@ export function HomeAwaySplitCard({
       <CardHeader>
         <CardTitle className="text-base">Hemma/borta-split</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Vinstprocent och poäng per match uppdelat på hemma- och bortamatcher.
+          Vinstprocent och poäng per match fördelat på hemma- och bortamatcher.
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
