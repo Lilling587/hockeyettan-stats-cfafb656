@@ -114,7 +114,7 @@ function LeagueOverviewView({
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">poängliga</CardTitle>
+            <CardTitle className="text-base">Poängliga</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
