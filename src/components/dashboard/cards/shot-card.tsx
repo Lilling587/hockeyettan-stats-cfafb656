@@ -106,7 +106,7 @@ function SectionHead({ label }: { label: string }) {
     <tr>
       <td
         colSpan={3}
-        className="pb-1 pt-4 text-center text-xs uppercase tracking-widest text-muted-foreground"
+        className="pb-1 pt-3 text-center text-xs uppercase tracking-widest text-muted-foreground"
       >
         {label}
       </td>
@@ -117,8 +117,8 @@ function SectionHead({ label }: { label: string }) {
 function SectionDivider() {
   return (
     <tr>
-      <td colSpan={3} className="pt-3 pb-0">
-        <div className="border-t-2 border-border" />
+      <td colSpan={3} className="py-3">
+        <div className="h-[3px] rounded-full bg-foreground/20" />
       </td>
     </tr>
   );
@@ -154,11 +154,11 @@ export function ShotCard({
           </colgroup>
           <thead>
             <tr>
-              <th className="pb-2 text-right text-xs font-medium text-foreground">
+              <th className="pb-3 text-right text-base font-semibold text-foreground">
                 {home.name}
               </th>
-              <th className="pb-2 text-center text-xs font-normal text-muted-foreground" />
-              <th className="pb-2 text-left text-xs font-medium text-foreground">
+              <th className="pb-3 text-center" />
+              <th className="pb-3 text-left text-base font-semibold text-foreground">
                 {away.name}
               </th>
             </tr>
