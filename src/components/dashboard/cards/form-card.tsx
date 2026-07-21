@@ -174,8 +174,8 @@ export function FormCard({ team }: { team: TeamData }) {
             </ul>
 
             <div className="border-t border-border pt-3 space-y-3">
-              <SplitRow label="Hemma (senaste 5)" games={home} />
-              <SplitRow label="Borta (senaste 5)" games={away} />
+              <SplitRow label="Hemma (av senaste 5)" games={home} />
+              <SplitRow label="Borta (av senaste 5)" games={away} />
             </div>
 
             <FormTrendSection team={team} />
