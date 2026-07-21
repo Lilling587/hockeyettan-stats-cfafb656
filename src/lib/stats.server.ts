@@ -1017,7 +1017,7 @@ function buildTeamContextMd(
 
 async function fetchTeamShotsOnGoal(
   urls: Urls,
-): Promise<Record<string, number>> {
+): Promise<Record<string, { sfPerGame: number | null; saPerGame: number | null }>> {
   // Invert the SHORT_NAMES map: abbreviation → full name
   // e.g. "GRÄ" → "Grästorps IK"
   const nameByAbbr: Record<string, string> = {};
@@ -1029,20 +1029,55 @@ async function fetchTeamShotsOnGoal(
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     });
     if (!res.ok) return {};
-    const html = await res.text();
-    const result: Record<string, number> = {};
-    const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
-    let rowMatch: RegExpExecArray | null;
-    while ((rowMatch = rowRe.exec(html)) !== null) {
-      // Scoring Efficiency columns: Rk(0) Team-abbr(1) GP(2) GF(3) SSG(4) SOG(5) GFA(6) SG%(7)
-      const cells = extractTdCells(rowMatch[1]);
-      if (cells.length < 6) continue;
-      const fullName = nameByAbbr[cells[1]];
-      if (!fullName) continue;
-      const gp = Number(cells[2]);
-      const sog = Number(cells[5]);
-      if (!Number.isFinite(gp) || gp === 0 || !Number.isFinite(sog) || sog <= 0) continue;
-      result[fullName] = sog / gp;
+    const fullHtml = await res.text();
+
+    // The page has two tables: Scoring Efficiency then Goalkeeping Efficiency.
+    // Both have SOG at column index 5 — isolate each section to avoid cross-reads.
+    const scoringStart = fullHtml.indexOf("Scoring Efficiency");
+    const keepingStart = fullHtml.indexOf("Goalkeeping Efficiency");
+
+    const scoringHtml =
+      scoringStart >= 0 && keepingStart > scoringStart
+        ? fullHtml.slice(scoringStart, keepingStart)
+        : scoringStart >= 0
+          ? fullHtml.slice(scoringStart)
+          : "";
+
+    const keepingHtml =
+      keepingStart >= 0 ? fullHtml.slice(keepingStart) : "";
+
+    function parseTable(
+      html: string,
+      // Scoring Efficiency: Rk(0) Team(1) GP(2) GF(3) SSG(4) SOG(5) GFA(6) SG%(7)
+      // Goalkeeping Efficiency: Rk(0) Team(1) GP(2) GA(3) SSG(4) SOA(5) GAA(6) SV%(7)
+      // Column layout is identical — SOG/SOA always at index 5
+    ): Record<string, number> {
+      const out: Record<string, number> = {};
+      const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+      let rowMatch: RegExpExecArray | null;
+      while ((rowMatch = rowRe.exec(html)) !== null) {
+        const cells = extractTdCells(rowMatch[1]);
+        if (cells.length < 6) continue;
+        const fullName = nameByAbbr[cells[1]];
+        if (!fullName) continue;
+        const gp = Number(cells[2]);
+        const sog = Number(cells[5]);
+        if (!Number.isFinite(gp) || gp === 0 || !Number.isFinite(sog) || sog <= 0) continue;
+        out[fullName] = sog / gp;
+      }
+      return out;
+    }
+
+    const sfByName = parseTable(scoringHtml);
+    const saByName = parseTable(keepingHtml);
+
+    const result: Record<string, { sfPerGame: number | null; saPerGame: number | null }> = {};
+    const allNames = new Set([...Object.keys(sfByName), ...Object.keys(saByName)]);
+    for (const name of allNames) {
+      result[name] = {
+        sfPerGame: sfByName[name] ?? null,
+        saPerGame: saByName[name] ?? null,
+      };
     }
     return result;
   } catch (err) {
