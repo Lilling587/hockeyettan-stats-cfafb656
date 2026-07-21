@@ -1051,13 +1051,14 @@ export async function buildBriefing(
   // top scorers, goalies, AND discipline in one HTTP request via
   // fetchScoringPageData — previously those three fetched urls.scoring
   // independently, up to three times per buildBriefing call).
-  const [scheduleGames, scheduleMd, specialTeamsMd, codeMap, scoringData] =
+  const [scheduleGames, scheduleMd, specialTeamsMd, codeMap, scoringData, sogByName] =
     await Promise.all([
       getScheduleGames(season),
       scrapeMd(urls.schedule),
       scrapeMd(urls.specialTeams),
       fetchTeamCodeMap(urls),
       fetchScoringPageData(urls),
+      fetchTeamShotsOnGoal(urls),
     ]);
 
   const homeCode = codeMap[home];
@@ -1084,6 +1085,7 @@ export async function buildBriefing(
     hotPlayer: null,
     discipline: null,
     faceoffs: null,
+    shotsForPerGame: null,
   });
 
   const object: Briefing = {
@@ -1122,6 +1124,8 @@ export async function buildBriefing(
   object.away.discipline = scoringData.discipline[away] ?? null;
   object.home.faceoffs = scoringData.faceoffs[home] ?? null;
   object.away.faceoffs = scoringData.faceoffs[away] ?? null;
+  object.home.shotsForPerGame = sogByName[home] ?? null;
+  object.away.shotsForPerGame = sogByName[away] ?? null;
 
   // Hot players from individual game event pages.
   const hotPlayerStarted = Date.now();
