@@ -1133,6 +1133,7 @@ export async function buildBriefing(
     discipline: null,
     faceoffs: null,
     shotsForPerGame: null,
+    shotsAgainstPerGame: null,
   });
 
   const object: Briefing = {
@@ -1171,8 +1172,10 @@ export async function buildBriefing(
   object.away.discipline = scoringData.discipline[away] ?? null;
   object.home.faceoffs = scoringData.faceoffs[home] ?? null;
   object.away.faceoffs = scoringData.faceoffs[away] ?? null;
-  object.home.shotsForPerGame = sogByName[home] ?? null;
-  object.away.shotsForPerGame = sogByName[away] ?? null;
+  object.home.shotsForPerGame = sogByName[home]?.sfPerGame ?? null;
+  object.away.shotsForPerGame = sogByName[away]?.sfPerGame ?? null;
+  object.home.shotsAgainstPerGame = sogByName[home]?.saPerGame ?? null;
+  object.away.shotsAgainstPerGame = sogByName[away]?.saPerGame ?? null;
 
   // Hot players from individual game event pages.
   const hotPlayerStarted = Date.now();
