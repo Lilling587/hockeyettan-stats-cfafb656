@@ -44,7 +44,6 @@ function aggregateRecentShots(games: GameFlowResultDto["games"]) {
     avgAgainst: withAgainst.length
       ? withAgainst.reduce((s, g) => s + (g.oppShots ?? 0), 0) / withAgainst.length
       : null,
-    n: recent.length,
   };
 }
 
@@ -83,16 +82,16 @@ function StatRow({
 
   return (
     <tr className="border-t border-border">
-      <td className="py-2 text-right font-mono text-xl tabular-nums">
+      <td className="py-2 pr-2 text-right font-mono text-xl tabular-nums">
         <span className={homeWins ? "text-emerald-500" : "text-foreground"}>
           {fmt(homeVal)}
         </span>
         {homeWins && <span className="ml-1.5"><Dot /></span>}
       </td>
-      <td className="px-4 py-2 text-center text-xs text-muted-foreground whitespace-nowrap">
+      <td className="py-2 text-center text-xs text-muted-foreground">
         {label}
       </td>
-      <td className="py-2 text-left font-mono text-xl tabular-nums">
+      <td className="py-2 pl-2 text-left font-mono text-xl tabular-nums">
         {awayWins && <span className="mr-1.5"><Dot /></span>}
         <span className={awayWins ? "text-emerald-500" : "text-foreground"}>
           {fmt(awayVal)}
@@ -110,6 +109,16 @@ function SectionHead({ label }: { label: string }) {
         className="pb-1 pt-4 text-center text-xs uppercase tracking-widest text-muted-foreground"
       >
         {label}
+      </td>
+    </tr>
+  );
+}
+
+function SectionDivider() {
+  return (
+    <tr>
+      <td colSpan={3} className="pt-3 pb-0">
+        <div className="border-t-2 border-border" />
       </td>
     </tr>
   );
@@ -137,13 +146,18 @@ export function ShotCard({
         <CardTitle className="text-base">Skott</CardTitle>
       </CardHeader>
       <CardContent>
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse table-fixed">
+          <colgroup>
+            <col style={{ width: "38%" }} />
+            <col style={{ width: "24%" }} />
+            <col style={{ width: "38%" }} />
+          </colgroup>
           <thead>
             <tr>
               <th className="pb-2 text-right text-xs font-medium text-foreground">
                 {home.name}
               </th>
-              <th className="px-4 pb-2" />
+              <th className="pb-2 text-center text-xs font-normal text-muted-foreground" />
               <th className="pb-2 text-left text-xs font-medium text-foreground">
                 {away.name}
               </th>
@@ -163,6 +177,7 @@ export function ShotCard({
               awayVal={awayRecent.avgAgainst}
               higherIsBetter={false}
             />
+            <SectionDivider />
             <SectionHead label="Säsong" />
             <StatRow
               label="SF / match"
