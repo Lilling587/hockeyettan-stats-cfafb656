@@ -8,7 +8,7 @@ export function HottestPlayerCard({ team, label }: { team: TeamData; label: stri
     <Card>
       <CardHeader>
         <CardTitle className="text-base">
-          Hetaste spelare · {team.name}{" "}
+       {team.name} · Hetaste spelare{" "}
           <span className="text-xs font-normal text-muted-foreground">({label})</span>
         </CardTitle>
       </CardHeader>
