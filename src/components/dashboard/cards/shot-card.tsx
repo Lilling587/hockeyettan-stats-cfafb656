@@ -51,7 +51,7 @@ function aggregateRecentShots(games: GameFlowResultDto["games"]) {
 function Dot() {
   return (
     <span
-      className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle"
+      className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle"
       aria-label="bättre"
     />
   );
@@ -83,18 +83,20 @@ function StatRow({
 
   return (
     <tr className="border-t border-border">
-      <td className="py-2 pr-3 text-sm text-muted-foreground">{label}</td>
       <td className="py-2 text-right font-mono text-xl tabular-nums">
         <span className={homeWins ? "text-emerald-500" : "text-foreground"}>
           {fmt(homeVal)}
         </span>
-        {homeWins && <Dot />}
+        {homeWins && <span className="ml-1.5"><Dot /></span>}
       </td>
-      <td className="py-2 pl-4 text-right font-mono text-xl tabular-nums">
+      <td className="px-4 py-2 text-center text-xs text-muted-foreground whitespace-nowrap">
+        {label}
+      </td>
+      <td className="py-2 text-left font-mono text-xl tabular-nums">
+        {awayWins && <span className="mr-1.5"><Dot /></span>}
         <span className={awayWins ? "text-emerald-500" : "text-foreground"}>
           {fmt(awayVal)}
         </span>
-        {awayWins && <Dot />}
       </td>
     </tr>
   );
@@ -105,7 +107,7 @@ function SectionHead({ label }: { label: string }) {
     <tr>
       <td
         colSpan={3}
-        className="pb-1 pt-4 text-xs uppercase tracking-widest text-muted-foreground"
+        className="pb-1 pt-4 text-center text-xs uppercase tracking-widest text-muted-foreground"
       >
         {label}
       </td>
@@ -138,11 +140,11 @@ export function ShotCard({
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="w-2/5 pb-2 text-left text-xs font-normal text-muted-foreground" />
               <th className="pb-2 text-right text-xs font-medium text-foreground">
                 {home.name}
               </th>
-              <th className="pb-2 pl-4 text-right text-xs font-medium text-foreground">
+              <th className="px-4 pb-2" />
+              <th className="pb-2 text-left text-xs font-medium text-foreground">
                 {away.name}
               </th>
             </tr>
