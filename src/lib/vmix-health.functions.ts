@@ -17,10 +17,9 @@ export const logVmixHeartbeatTransition = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const level = data.to === "ok" ? "info" : "warn";
     const message = `vMix heartbeat: ${data.from} → ${data.to} (${data.okCount}/${data.total} endpoints OK)`;
-    await supabaseAdmin.from("error_log").insert({
+    await context.supabase.from("error_log").insert({
       source: "vmix-heartbeat",
       level,
       message,
