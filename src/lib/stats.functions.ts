@@ -20,7 +20,7 @@ async function resolveSeason(label?: string | null): Promise<Season> {
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 const TEAMS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
-const CACHE_VERSION = "v14";
+const CACHE_VERSION = "v15";
 const HISTORY_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const LEAGUE_SLUG = "hockeyettan-sodra";
 
@@ -136,6 +136,7 @@ const TeamBriefing = z.object({
       foPct: z.number().describe("FO win % (0-100)"),
     })).max(5).describe("Top players by FO%, minimum 10 total faceoffs"),
   }).nullable().default(null).describe("Season faceoff statistics"),
+  shotsForPerGame: z.number().nullable().default(null).describe("Season shots on goal per game (SOG/GP from scoring efficiency page)"),
 });
 
 const BriefingSchema = z.object({
