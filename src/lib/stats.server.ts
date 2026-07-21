@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { BriefingSchema, TeamsSchema, type Briefing } from "./stats.functions";
 import { DEFAULT_SEASON, type Season } from "./seasons.config";
+import { shortTeamName, KNOWN_TEAM_NAMES } from "./team-short-names";
 
 async function generateJson<T extends z.ZodTypeAny>(
   model: ReturnType<typeof aiModel>,
@@ -1000,6 +1001,42 @@ function buildTeamContextMd(
 ): string {
   const needles = [teamName, teamCode ?? ""].filter(Boolean);
   return `Team: ${teamName}${teamCode ? ` (code: ${teamCode})` : ""}\n\nSource: ${urls.roster}\n\n=== SENIOR TEAM ROSTER ===\n${extractTeamSection(rosterMd, teamName)}\n\nSource: ${urls.scoring}\n\n=== PLAYERS-BY-TEAM (full stats incl. G/A/TP, sorted by points) ===\n${extractTeamSection(scoringMd, teamName)}\n\nSource: ${urls.teamStats}\n\n=== TEAM SCORING / GOALKEEPING ===\n${extractRowsForTeam(teamStatsMd, needles)}\n\nSource: ${urls.specialTeams}\n\n=== POWERPLAY / PENALTY KILLING ===\n${extractRowsForTeam(specialTeamsMd, needles)}\n\n=== LAST 5 PLAYED GAMES (most recent first; already filtered & sorted) ===\n${lastFiveMd}`;
+}
+
+async function fetchTeamShotsOnGoal(
+  urls: Urls,
+): Promise<Record<string, number>> {
+  // Invert the SHORT_NAMES map: abbreviation → full name
+  // e.g. "GRÄ" → "Grästorps IK"
+  const nameByAbbr: Record<string, string> = {};
+  for (const name of KNOWN_TEAM_NAMES) {
+    nameByAbbr[shortTeamName(name)] = name;
+  }
+  try {
+    const res = await fetch(urls.teamStats, {
+      headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
+    });
+    if (!res.ok) return {};
+    const html = await res.text();
+    const result: Record<string, number> = {};
+    const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+    let rowMatch: RegExpExecArray | null;
+    while ((rowMatch = rowRe.exec(html)) !== null) {
+      // Scoring Efficiency columns: Rk(0) Team-abbr(1) GP(2) GF(3) SSG(4) SOG(5) GFA(6) SG%(7)
+      const cells = extractTdCells(rowMatch[1]);
+      if (cells.length < 6) continue;
+      const fullName = nameByAbbr[cells[1]];
+      if (!fullName) continue;
+      const gp = Number(cells[2]);
+      const sog = Number(cells[5]);
+      if (!Number.isFinite(gp) || gp === 0 || !Number.isFinite(sog) || sog <= 0) continue;
+      result[fullName] = sog / gp;
+    }
+    return result;
+  } catch (err) {
+    console.warn("[teamStats:SOG] fetch failed:", (err as Error).message);
+    return {};
+  }
 }
 
 export async function buildBriefing(
