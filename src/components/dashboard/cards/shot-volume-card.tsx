@@ -50,9 +50,9 @@ export function ShotVolumeCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Skottvolym mot</CardTitle>
+        <CardTitle className="text-base">Skott mot sig</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Snitt skott på mål per match som lagets målvakter mött i år. Lägre = bättre defensiv skottreduktion.
+          Snitt skott på mål per match.
         </p>
       </CardHeader>
       <CardContent>
