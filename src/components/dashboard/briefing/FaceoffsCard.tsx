@@ -1,5 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { Briefing } from "@/lib/stats.functions";
+import { Info } from "lucide-react";
+
 
 type TeamFaceoffs = NonNullable<Briefing["home"]["faceoffs"]>;
 
