@@ -215,9 +215,12 @@ async function fetchPageTablesAsMarkdown(url: string): Promise<string> {
 }
 
 async function scrapeMd(url: string): Promise<string> {
-  const apiKey = process.env.FIRECRAWL_API_KEY_1 || process.env.FIRECRAWL_API_KEY;
-  if (!apiKey) {
-    console.warn(`[firecrawl] API key missing; using direct stats HTML fallback for ${url}`);
+  const { key, missingVars } = resolveFirecrawlKey();
+  if (!key) {
+    console.warn(
+      `[firecrawl:scrapeMd] API key missing; using direct stats HTML fallback`,
+      JSON.stringify({ url, missingEnvVars: missingVars }),
+    );
     return fetchPageTablesAsMarkdown(url);
   }
 
@@ -232,8 +235,9 @@ async function scrapeMd(url: string): Promise<string> {
       (res as { data?: { markdown?: string } }).data?.markdown ??
       "";
     if (md.trim().length > 0) return md;
+    console.warn(`[firecrawl:scrapeMd] empty markdown response; falling back`, JSON.stringify({ url }));
   } catch (err) {
-    console.warn(`[firecrawl] scrape failed; using direct stats HTML fallback for ${url}: ${(err as Error).message}`);
+    logFirecrawlError("scrapeMd", err, url);
   }
   return fetchPageTablesAsMarkdown(url);
 }
