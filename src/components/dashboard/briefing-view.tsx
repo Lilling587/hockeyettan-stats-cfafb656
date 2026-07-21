@@ -33,8 +33,7 @@ import { VenueStreakCard } from "./cards/venue-streak-card";
 import { PeriodGoalsCard } from "./cards/period-goals-card";
 import { ScorersCard } from "./cards/scorers-card";
 import { GoaliesCard } from "./cards/goalies-card";
-import { ShotVolumeCard } from "./cards/shot-volume-card";
-import { ShotTimelineCard } from "./cards/shot-timeline-card";
+import { ShotCard } from "./cards/shot-card";
 import { SpecialTeamsTimelineCard } from "./cards/special-teams-timeline-card";
 import { LineupDiffCard } from "./cards/lineup-diff-card";
 import { WinProbabilityCard } from "./cards/win-probability-card";
@@ -300,13 +299,13 @@ export function BriefingView({
         <GoaliesCard team={data.away} />
       </div>
 
-     <div id="shots">
-        <ShotVolumeCard home={data.home} away={data.away} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <ShotTimelineCard teamName={data.home.name} data={homeFlow} />
-        <ShotTimelineCard teamName={data.away.name} data={awayFlow} />
+      <div id="shots">
+        <ShotCard
+          home={data.home}
+          away={data.away}
+          homeFlow={homeFlow}
+          awayFlow={awayFlow}
+        />
       </div>
 
       <div id="special" className="grid grid-cols-1 gap-4 md:grid-cols-2">
