@@ -47,6 +47,8 @@ function TeamBlock({ team }: { team: TeamData }) {
       <div className="truncate text-sm font-semibold">{team.name}</div>
       <div className="grid grid-cols-4 gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
       
+        <div className="grid grid-cols-4 gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+        <span></span>
         <span className="text-right">Matcher</span>
         <span className="text-right">Poäng/match</span>
         <span className="text-right">Vinst%</span>
