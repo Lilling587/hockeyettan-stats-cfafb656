@@ -39,9 +39,9 @@ export function DisciplineCard({ home, away }: { home: TeamData; away: TeamData 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Disciplin</CardTitle>
+        <CardTitle className="text-base">Utvisningsminuter</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Utvisningsminuter per match. Färre minuter = färre PP-chanser till motståndaren.
+          Utvisningsminuter per match.
         </p>
       </CardHeader>
       <CardContent>
