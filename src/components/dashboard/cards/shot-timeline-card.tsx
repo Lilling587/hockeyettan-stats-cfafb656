@@ -13,7 +13,7 @@ export function ShotTimelineCard({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{teamName} · Skottförlopp</CardTitle>
+          <CardTitle className="text-base">{teamName} · Skott</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">Data saknas.</p>
