@@ -48,7 +48,7 @@ export function VenueStreakCard({ team }: { team: TeamData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{team.name} · form</CardTitle>
+        <CardTitle className="text-base">{team.name} · Form</CardTitle>
       </CardHeader>
       <CardContent>
         {!team.venueForm ? (
