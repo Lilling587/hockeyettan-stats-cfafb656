@@ -7,27 +7,6 @@ const RECENT_N = 10;
 const fmt = (n: number | null | undefined, digits = 1) =>
   n != null && Number.isFinite(n) ? n.toFixed(digits) : "—";
 
-function aggregateGoalies(team: TeamData) {
-  const goalies = team.goalies ?? [];
-  let shots = 0;
-  let gp = 0;
-  let valid = false;
-  for (const g of goalies) {
-    if (
-      g.shotsAgainst != null &&
-      g.gamesPlayed != null &&
-      Number.isFinite(g.shotsAgainst) &&
-      Number.isFinite(g.gamesPlayed) &&
-      g.gamesPlayed > 0
-    ) {
-      shots += g.shotsAgainst;
-      gp += g.gamesPlayed;
-      valid = true;
-    }
-  }
-  if (!valid || gp === 0) return { saPerGame: null as number | null };
-  return { saPerGame: shots / gp };
-}
 
 function aggregateRecentShots(games: GameFlowResultDto["games"]) {
   const recent = games.slice(0, RECENT_N);
@@ -137,8 +116,7 @@ export function ShotCard({
 }) {
   const homeRecent = aggregateRecentShots(homeFlow?.games ?? []);
   const awayRecent = aggregateRecentShots(awayFlow?.games ?? []);
-  const homeGoalie = aggregateGoalies(home);
-  const awayGoalie = aggregateGoalies(away);
+  
 
   return (
     <Card>
@@ -187,8 +165,8 @@ export function ShotCard({
             />
             <StatRow
               label="SA / match"
-              homeVal={homeGoalie.saPerGame}
-              awayVal={awayGoalie.saPerGame}
+              homeVal={home.shotsAgainstPerGame ?? null}
+              awayVal={away.shotsAgainstPerGame ?? null}
               higherIsBetter={false}
             />
           </tbody>
