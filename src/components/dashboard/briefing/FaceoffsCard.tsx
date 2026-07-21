@@ -59,9 +59,32 @@ export function FaceoffsCard({ briefing }: { briefing: Briefing }) {
     <section id="faceoffs">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Tekningar (FO%)</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            Tekningar (FO%)
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="Förklaring av FO%"
+                  >
+                    <Info className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <p>
+                    FO% (Faceoff-procent) visar hur stor andel av lagets tekningar
+                    som vunnits. Lagvärdet är det totala antalet vunna tekningar
+                    dividerat med alla tekningar för laget.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
           <p className="text-xs text-muted-foreground mt-0.5">Spelare med minst 10 tekningar</p>
         </CardHeader>
+
         <CardContent>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <TeamColumn team={briefing.home} />
