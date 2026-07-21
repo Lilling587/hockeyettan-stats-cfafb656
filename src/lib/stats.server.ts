@@ -48,10 +48,68 @@ function admin() {
   });
 }
 
+const FIRECRAWL_ENV_CANDIDATES = ["FIRECRAWL_API_KEY_1", "FIRECRAWL_API_KEY"] as const;
+
+function resolveFirecrawlKey(): { key: string | null; usedVar: string | null; missingVars: string[] } {
+  const missing: string[] = [];
+  for (const name of FIRECRAWL_ENV_CANDIDATES) {
+    const value = process.env[name];
+    if (value && value.trim().length > 0) {
+      return { key: value, usedVar: name, missingVars: missing };
+    }
+    missing.push(name);
+  }
+  return { key: null, usedVar: null, missingVars: missing };
+}
+
+function logFirecrawlError(context: string, err: unknown, url?: string) {
+  const { usedVar, missingVars } = resolveFirecrawlKey();
+  const availableEnv = Object.keys(process.env).filter((k) => k.startsWith("FIRECRAWL"));
+  const e = err as { message?: string; name?: string; status?: number; statusCode?: number; response?: { status?: number; data?: unknown } };
+  console.error(
+    `[firecrawl:${context}] scrape failed`,
+    JSON.stringify(
+      {
+        url,
+        error: e?.message ?? String(err),
+        errorName: e?.name,
+        status: e?.status ?? e?.statusCode ?? e?.response?.status,
+        response: e?.response?.data,
+        keyResolved: Boolean(usedVar),
+        usedEnvVar: usedVar,
+        missingEnvVars: usedVar ? [] : missingVars,
+        firecrawlEnvVarsPresent: availableEnv,
+        hint: usedVar
+          ? "Key resolved but request failed — check Firecrawl account credits/quota, network egress, or upstream URL."
+          : `Set one of: ${missingVars.join(", ")}. Link the Firecrawl connector or add the secret; then restart the dev server so the process picks it up.`,
+      },
+      null,
+      2,
+    ),
+  );
+}
+
 function firecrawl() {
-  const apiKey = process.env.FIRECRAWL_API_KEY_1 || process.env.FIRECRAWL_API_KEY;
-  if (!apiKey) throw new Error("FIRECRAWL_API_KEY is not configured");
-  return new Firecrawl({ apiKey });
+  const { key, missingVars } = resolveFirecrawlKey();
+  if (!key) {
+    const availableEnv = Object.keys(process.env).filter((k) => k.startsWith("FIRECRAWL"));
+    console.error(
+      `[firecrawl:init] Missing API key`,
+      JSON.stringify(
+        {
+          missingEnvVars: missingVars,
+          firecrawlEnvVarsPresent: availableEnv,
+          hint: `Set one of: ${missingVars.join(", ")}. Link the Firecrawl connector or add the secret; then restart the dev server so the process picks it up.`,
+        },
+        null,
+        2,
+      ),
+    );
+    throw new Error(
+      `FIRECRAWL_API_KEY is not configured (checked: ${missingVars.join(", ")})`,
+    );
+  }
+  return new Firecrawl({ apiKey: key });
 }
 
 function aiModel() {
@@ -157,9 +215,12 @@ async function fetchPageTablesAsMarkdown(url: string): Promise<string> {
 }
 
 async function scrapeMd(url: string): Promise<string> {
-  const apiKey = process.env.FIRECRAWL_API_KEY_1 || process.env.FIRECRAWL_API_KEY;
-  if (!apiKey) {
-    console.warn(`[firecrawl] API key missing; using direct stats HTML fallback for ${url}`);
+  const { key, missingVars } = resolveFirecrawlKey();
+  if (!key) {
+    console.warn(
+      `[firecrawl:scrapeMd] API key missing; using direct stats HTML fallback`,
+      JSON.stringify({ url, missingEnvVars: missingVars }),
+    );
     return fetchPageTablesAsMarkdown(url);
   }
 
@@ -174,8 +235,9 @@ async function scrapeMd(url: string): Promise<string> {
       (res as { data?: { markdown?: string } }).data?.markdown ??
       "";
     if (md.trim().length > 0) return md;
+    console.warn(`[firecrawl:scrapeMd] empty markdown response; falling back`, JSON.stringify({ url }));
   } catch (err) {
-    console.warn(`[firecrawl] scrape failed; using direct stats HTML fallback for ${url}: ${(err as Error).message}`);
+    logFirecrawlError("scrapeMd", err, url);
   }
   return fetchPageTablesAsMarkdown(url);
 }
