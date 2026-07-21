@@ -117,7 +117,7 @@ export function FormCard({ team }: { team: TeamData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{team.name} · senaste 5</CardTitle>
+        <CardTitle className="text-base">{team.name} · Senaste 5</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {games.length === 0 ? (
