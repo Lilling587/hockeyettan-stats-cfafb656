@@ -355,22 +355,6 @@ export type GameFlowGamePoint = {
   teamPpPct: number | null;
 };
 
-export type LineupPlayerStatus =
-  | "regular_missing"
-  | "occasional_missing"
-  | "roster_never_played"
-  | "new_callup"
-  | "returning";
-
-export type LineupPlayerChange = {
-  name: string;
-  status: LineupPlayerStatus;
-  gamesPlayedOfLastN: number;
-  lastPlayedDate: string | null;
-  lastPlayedOpponent: string | null;
-  onRoster: boolean;
-};
-
 export type GameFlowResult = {
   team: string;
   seasonLabel: string;
@@ -379,72 +363,15 @@ export type GameFlowResult = {
     gameId: string | null;
     date: string | null;
     opponent: string | null;
-    previousGameId: string | null;
     previousDate: string | null;
     previousOpponent: string | null;
-    missingFromLastGame: string[];
-    playedButNotOnRoster: string[];
-    likelyInjured: LineupPlayerChange[];
-    healthyScratches: LineupPlayerChange[];
-    newInLineup: LineupPlayerChange[];
-    outOfLineup: LineupPlayerChange[];
-    rosterSize: number;
-    playedCount: number;
-    lineupSampleSize: number;
+    newInLineup: string[];
+    outOfLineup: string[];
     lineupAvailable: boolean;
   };
 };
 
-/**
- * Fetch a team's current roster names (Lastname, Firstname) from the
- * TeamRoster page for the given season, filtering to the section for `team`.
- */
-async function fetchCurrentRoster(team: string, season: Season): Promise<string[]> {
-  const url = `${STATS_BASE_URL}/Teams/Info/TeamRoster/${season.competitionId}`;
-  try {
-    const res = await fetch(url, { headers: { "user-agent": "Mozilla/5.0" } });
-    if (!res.ok) return [];
-    const html = await res.text();
-    // Find the anchor <a id="TeamName"></a> and take everything until the next anchor
-    const anchorRe = /<a\s+id="([^"]+)">\s*<\/a>/g;
-    const anchors: Array<{ name: string; index: number }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = anchorRe.exec(html)) !== null) {
-      anchors.push({ name: m[1], index: m.index });
-    }
-    const idx = anchors.findIndex((a) => a.name === team);
-    if (idx === -1) return [];
-    const start = anchors[idx].index;
-    const end = idx + 1 < anchors.length ? anchors[idx + 1].index : html.length;
-    const section = html.slice(start, end);
-    // Roster rows: cells [rank, jersey, name, position, ...]
-    const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
-    const names: string[] = [];
-    let rm: RegExpExecArray | null;
-    while ((rm = rowRe.exec(section)) !== null) {
-      const cellRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
-      const cells: string[] = [];
-      let cm: RegExpExecArray | null;
-      while ((cm = cellRe.exec(rm[1])) !== null) {
-        cells.push(
-          cm[1]
-            .replace(/<[^>]+>/g, " ")
-            .replace(/&nbsp;|\u00a0/g, " ")
-            .replace(/\s+/g, " ")
-            .trim(),
-        );
-      }
-      if (cells.length < 4) continue;
-      const rank = Number(cells[0]);
-      const name = cells[2];
-      if (!Number.isFinite(rank) || !name || name.length < 3) continue;
-      names.push(name);
-    }
-    return names;
-  } catch {
-    return [];
-  }
-}
+
 
 const teamCache = new Map<string, Promise<GameFlowResult>>();
 const TEAM_CACHE_TTL_MS = 30 * 60 * 1000;
@@ -470,10 +397,7 @@ async function doComputeGameFlow(
   season: Season,
   n: number,
 ): Promise<GameFlowResult> {
-  const [scheduleGames, rosterNames] = await Promise.all([
-    getScheduleGames(season),
-    fetchCurrentRoster(team, season),
-  ]);
+ const scheduleGames = await getScheduleGames(season);
   const teamGames = scheduleGames
     .filter((g) => g.played && g.id && (g.homeTeam === team || g.awayTeam === team))
     .sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -523,9 +447,7 @@ async function doComputeGameFlow(
     };
   });
 
-  // Build lineup diff with historical context: fetch lineups for the last few
-  // played games so we can classify who is normally in the lineup.
-  const LINEUP_SAMPLE = 5;
+  // Lineup diff: compare the last two played game lineups.
   const lastGame = teamGames[0];
   const previousGame = teamGames[1];
   const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
@@ -534,171 +456,45 @@ async function doComputeGameFlow(
     gameId: null,
     date: null,
     opponent: null,
-    previousGameId: null,
     previousDate: null,
     previousOpponent: null,
-    missingFromLastGame: [],
-    playedButNotOnRoster: [],
-    likelyInjured: [],
-    healthyScratches: [],
     newInLineup: [],
     outOfLineup: [],
-    rosterSize: rosterNames.length,
-    playedCount: 0,
-    lineupSampleSize: 0,
     lineupAvailable: false,
   };
 
   let lineupDiff = emptyDiff;
-  if (lastGame && lastGame.id) {
-    const sampleGames = teamGames.slice(0, LINEUP_SAMPLE);
-    const lineups = await Promise.all(
-      sampleGames.map(async (g) => ({
-        g,
-        lineup: g.id ? await fetchLineupPage(g.id) : null,
-      })),
-    );
+  if (lastGame?.id && previousGame?.id) {
+    const [lastLineup, prevLineup] = await Promise.all([
+      fetchLineupPage(lastGame.id),
+      fetchLineupPage(previousGame.id),
+    ]);
 
     const teamLineupFor = (byTeam: Record<string, string[]> | undefined) => {
       if (!byTeam) return [];
-      const key = Object.keys(byTeam).find(
+      const k = Object.keys(byTeam).find(
         (k) => k.toLowerCase() === team.toLowerCase(),
       );
-      return key ? byTeam[key] : [];
+      return k ? byTeam[k] : [];
     };
 
-    const lastPlayed = teamLineupFor(lineups[0]?.lineup?.byTeam);
-    const prevPlayed = teamLineupFor(lineups[1]?.lineup?.byTeam);
+    const lastPlayed = teamLineupFor(lastLineup?.byTeam);
+    const prevPlayed = teamLineupFor(prevLineup?.byTeam);
 
-    if (lastPlayed.length > 0) {
-      const rosterSet = new Set(rosterNames.map(norm));
-      const lastPlayedSet = new Set(lastPlayed.map(norm));
-      const prevPlayedSet = new Set(prevPlayed.map(norm));
-
-      // Attendance rate across the sampled played games (excluding tonight so
-      // we don't circularly count it against itself). Track most recent
-      // appearance so we can display "senast med den DATE mot OPP".
-      const attendance = new Map<
-        string,
-        { count: number; lastDate: string | null; lastOpp: string | null }
-      >();
-      const validSamples = lineups.filter((l) => l.lineup);
-      const sampleSize = validSamples.length;
-
-      for (const { g, lineup } of validSamples) {
-        const names = teamLineupFor(lineup?.byTeam);
-        const opp = g.homeTeam === team ? g.awayTeam : g.homeTeam;
-        for (const raw of names) {
-          const key = norm(raw);
-          const cur = attendance.get(key) ?? {
-            count: 0,
-            lastDate: null,
-            lastOpp: null,
-          };
-          cur.count += 1;
-          if (!cur.lastDate || g.date > cur.lastDate) {
-            cur.lastDate = g.date;
-            cur.lastOpp = opp;
-          }
-          attendance.set(key, cur);
-        }
-      }
-
-      const missing = rosterNames.filter((n) => !lastPlayedSet.has(norm(n)));
-      const extra = lastPlayed.filter((n) => !rosterSet.has(norm(n)));
-
-      const buildChange = (
-        name: string,
-        onRoster: boolean,
-        status: LineupPlayerStatus,
-      ): LineupPlayerChange => {
-        const att = attendance.get(norm(name));
-        return {
-          name,
-          status,
-          gamesPlayedOfLastN: att?.count ?? 0,
-          lastPlayedDate: att?.lastDate ?? null,
-          lastPlayedOpponent: att?.lastOpp ?? null,
-          onRoster,
-        };
-      };
-
-      // Threshold: played in >=60% of the sampled games (excluding tonight)
-      const priorSamples = Math.max(0, sampleSize - 1);
-      const regularThreshold = Math.max(2, Math.ceil(priorSamples * 0.6));
-
-      const likelyInjured: LineupPlayerChange[] = [];
-      const healthyScratches: LineupPlayerChange[] = [];
-      for (const name of missing) {
-        const priorCount = (attendance.get(norm(name))?.count ?? 0) -
-          (lastPlayedSet.has(norm(name)) ? 1 : 0);
-        if (priorSamples > 0 && priorCount >= regularThreshold) {
-          likelyInjured.push(buildChange(name, true, "regular_missing"));
-        } else if (priorSamples > 0 && priorCount === 0) {
-          healthyScratches.push(buildChange(name, true, "roster_never_played"));
-        } else {
-          likelyInjured.push(buildChange(name, true, "occasional_missing"));
-        }
-      }
-      likelyInjured.sort((a, b) => b.gamesPlayedOfLastN - a.gamesPlayedOfLastN);
-
-      // Diff vs previous game
-      const newInLineup: LineupPlayerChange[] = [];
-      const outOfLineup: LineupPlayerChange[] = [];
-      if (prevPlayed.length > 0) {
-        for (const raw of lastPlayed) {
-          if (!prevPlayedSet.has(norm(raw))) {
-            const onRoster = rosterSet.has(norm(raw));
-            const priorCount = (attendance.get(norm(raw))?.count ?? 0) - 1;
-            const status: LineupPlayerStatus = !onRoster
-              ? "new_callup"
-              : priorCount === 0
-                ? "new_callup"
-                : "returning";
-            newInLineup.push(buildChange(raw, onRoster, status));
-          }
-        }
-        for (const raw of prevPlayed) {
-          if (!lastPlayedSet.has(norm(raw))) {
-            const onRoster = rosterSet.has(norm(raw));
-            // Prior count relative to games before tonight
-            const priorCount = attendance.get(norm(raw))?.count ?? 0;
-            const status: LineupPlayerStatus = priorCount >= regularThreshold
-              ? "regular_missing"
-              : "occasional_missing";
-            outOfLineup.push(buildChange(raw, onRoster, status));
-          }
-        }
-      }
-
+    if (lastPlayed.length > 0 && prevPlayed.length > 0) {
+      const lastSet = new Set(lastPlayed.map(norm));
+      const prevSet = new Set(prevPlayed.map(norm));
       lineupDiff = {
         gameId: lastGame.id,
         date: lastGame.date,
         opponent: lastGame.homeTeam === team ? lastGame.awayTeam : lastGame.homeTeam,
-        previousGameId: previousGame?.id ?? null,
-        previousDate: previousGame?.date ?? null,
-        previousOpponent: previousGame
-          ? previousGame.homeTeam === team
-            ? previousGame.awayTeam
-            : previousGame.homeTeam
-          : null,
-        missingFromLastGame: missing,
-        playedButNotOnRoster: extra,
-        likelyInjured,
-        healthyScratches,
-        newInLineup,
-        outOfLineup,
-        rosterSize: rosterNames.length,
-        playedCount: lastPlayed.length,
-        lineupSampleSize: sampleSize,
+        previousDate: previousGame.date,
+        previousOpponent: previousGame.homeTeam === team
+          ? previousGame.awayTeam
+          : previousGame.homeTeam,
+        newInLineup: lastPlayed.filter((n) => !prevSet.has(norm(n))),
+        outOfLineup: prevPlayed.filter((n) => !lastSet.has(norm(n))),
         lineupAvailable: true,
-      };
-    } else {
-      lineupDiff = {
-        ...emptyDiff,
-        gameId: lastGame.id,
-        date: lastGame.date,
-        opponent: lastGame.homeTeam === team ? lastGame.awayTeam : lastGame.homeTeam,
       };
     }
   }
