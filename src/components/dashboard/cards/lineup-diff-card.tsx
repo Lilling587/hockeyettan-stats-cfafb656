@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, UserMinus, UserPlus } from "lucide-react";
+import { AlertTriangle, ArrowDownRight, UserMinus, UserPlus } from "lucide-react";
 import type {
   GameFlowResultDto,
   LineupPlayerChangeDto,
@@ -171,27 +171,7 @@ export function LineupDiffCard({
                 </section>
               )}
 
-            {/* New call-ups / not on roster */}
-            {diff.playedButNotOnRoster.length > 0 && (
-              <section>
-                <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-                  <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span>Spelade senast — ej på trupplistan</span>
-                  <Badge variant="outline">{diff.playedButNotOnRoster.length}</Badge>
-                </div>
-                <ul className="space-y-0.5 text-sm">
-                  {diff.playedButNotOnRoster.map((name) => (
-                    <li key={name} className="font-medium">
-                      {formatName(name)}
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-1 text-[10px] text-muted-foreground">
-                  Ofta uppflyttade juniorer eller nyförvärv som inte hunnit läggas
-                  till på trupplistan.
-                </p>
-              </section>
-            )}
+            
 
             {/* Healthy scratches */}
             {diff.healthyScratches.length > 0 && (
