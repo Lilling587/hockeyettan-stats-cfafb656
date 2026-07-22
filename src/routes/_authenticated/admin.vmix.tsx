@@ -19,7 +19,6 @@ import { toast } from "sonner";
 import { checkIsAdmin } from "@/lib/roles.functions";
 import { getTodaysMatchup, listSeasons, listTeams } from "@/lib/stats.functions";
 import {
- import {
   emptySlots,
   fetchTeamRoster,
   fetchTonightsLineup,
