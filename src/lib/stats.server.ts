@@ -1237,7 +1237,7 @@ export async function buildBriefing(
   const fetchStarted = Date.now();
   const [ppByName, standingsByName, lastFiveByName] = await Promise.all([
     ppPkMissing
-      ? fetchSpecialTeamsFromHtml(urls)
+      ? Promise.resolve(specialTeamsByName)
       : Promise.resolve({} as Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }>),
     standingsNeeded
       ? fetchStandingsFromHtml(urls)
