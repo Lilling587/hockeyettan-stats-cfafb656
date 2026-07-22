@@ -741,10 +741,40 @@ const restoreMut = useMutation({
     setHomeTeam(home);
     setAwayTeam(away);
     setSourceMode(source);
-    // Always start with empty slots for a new matchup – the producer fills
-    // each slot deliberately using the dropdown list.
-    setHomeSlots(emptySlots(home, codesMap[home] ?? ""));
-    setAwaySlots(emptySlots(away, codesMap[away] ?? ""));
+
+    const homeCode = codesMap[home] ?? "";
+    const awayCode = codesMap[away] ?? "";
+
+    if (source === "auto") {
+      // Auto mode: try to fetch tonight's published lineup from swehockey.
+      // Falls back to empty slots if not yet published (~30–60 min before puck drop).
+      try {
+        const result = await fetchTonightsLineupFn({
+          data: { home, away, homeCode, awayCode },
+        });
+        if (result.available) {
+          setHomeSlots(result.homeSlots);
+          setAwaySlots(result.awaySlots);
+          toast.success(
+            `Laguppställning laddad – granska positioner och justera vid behov`,
+          );
+        } else {
+          setHomeSlots(emptySlots(home, homeCode));
+          setAwaySlots(emptySlots(away, awayCode));
+          toast.info(`Laguppställning ej publicerad än på Swehockey – fyll i manuellt`);
+        }
+      } catch (e) {
+        setHomeSlots(emptySlots(home, homeCode));
+        setAwaySlots(emptySlots(away, awayCode));
+        toast.error(`Kunde inte hämta laguppställning: ${(e as Error).message}`);
+      }
+    } else {
+      // Manual mode: always start with empty slots — producer fills deliberately.
+      setHomeSlots(emptySlots(home, homeCode));
+      setAwaySlots(emptySlots(away, awayCode));
+    }
+
+    // Always load roster pools for the dropdowns regardless of mode.
     try {
       const [homePool, awayPool] = await Promise.all([
         fetchRoster({ data: { team: home } }),
@@ -752,11 +782,8 @@ const restoreMut = useMutation({
       ]);
       setHomePool(homePool);
       setAwayPool(awayPool);
-      toast.success(
-        `Dagens hemmamatch laddad: ${home} vs ${away} – välj spelare i listorna`,
-      );
     } catch (e) {
-      toast.error(`Kunde inte hämta roster: ${(e as Error).message}`);
+      toast.error(`Kunde inte hämta spelarlista: ${(e as Error).message}`);
     }
   };
 
