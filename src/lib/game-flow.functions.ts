@@ -43,6 +43,7 @@ export type GameFlowResultDto = {
     newInLineup: string[];
     outOfLineup: string[];
     lineupAvailable: boolean;
+    tonightsGameFound: boolean;
   };
 };
 
