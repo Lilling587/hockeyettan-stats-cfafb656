@@ -194,6 +194,7 @@ function VmixAdminPage() {
   const fetchActive = useServerFn(getActivePublication);
   const fetchRoster = useServerFn(fetchTeamRoster);
   const fetchTonightsLineupFn = useServerFn(fetchTonightsLineup);
+  const fetchTonightsLineupFn = useServerFn(fetchTonightsLineup);
   
   const publish = useServerFn(publishVmix);
   const unpublish = useServerFn(unpublishVmix);
