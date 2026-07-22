@@ -986,26 +986,22 @@ async function fetchTeamCodeMap(urls: Urls): Promise<Record<string, string>> {
   try {
     const res = await fetch(urls.roster, { headers: { "user-agent": "Mozilla/5.0" } });
     const fullHtml = await res.text();
-    const result: Record<string, number> = {};
+    const map: Record<string, string> = {};
 
-    // The page has two tables: Scoring Efficiency then Goalkeeping Efficiency.
-    // Both have SOG at column index 5, so we must isolate the first table only.
-    const scoringStart = fullHtml.indexOf("Scoring Efficiency");
-    const keepingStart = fullHtml.indexOf("Goalkeeping Efficiency");
-    const html =
-      scoringStart >= 0 && keepingStart > scoringStart
-        ? fullHtml.slice(scoringStart, keepingStart)
-        : scoringStart >= 0
-          ? fullHtml.slice(scoringStart)
-          : fullHtml;
-
-    const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
-    let m;
-    while ((m = re.exec(html)) !== null) {
-      const code = m[1].trim();
-      const name = m[2].trim();
-      if (code.length <= 6 && name.length > 2 && !(name in map)) {
-        map[name] = code;
+    // Roster page anchors typically look like:
+    //   <a href="/Teams/Info/Team/12345" title="Full Team Name">CODE</a>
+    // or with the code and name swapped. Capture both shapes defensively.
+    const anchorRe =
+      /<a\s+[^>]*href="\/Teams\/[^"]+"[^>]*(?:title="([^"]+)")?[^>]*>\s*([^<]+?)\s*<\/a>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = anchorRe.exec(fullHtml)) !== null) {
+      const title = (m[1] ?? "").trim();
+      const text = (m[2] ?? "").trim();
+      if (!title || !text) continue;
+      // Team code is typically 2–6 chars, all uppercase/digits.
+      const code = /^[A-ZÅÄÖ0-9]{2,6}$/.test(text) ? text : null;
+      if (code && title.length > 2 && !(title in map)) {
+        map[title] = code;
       }
     }
     return map;
@@ -1013,6 +1009,7 @@ async function fetchTeamCodeMap(urls: Urls): Promise<Record<string, string>> {
     return {};
   }
 }
+
 
 export async function parseTeamsFromStandings(
   _md: string,
