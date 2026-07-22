@@ -307,8 +307,9 @@ async function doFetchLineupPage(gameId: string): Promise<ParsedLineupPage | nul
     return null;
   }
 
-  // Split into per-team sections by <h3>TeamName (Red|White)
-  const sectionRe = /<h3>\s*([^<(]+?)\s*\((?:Red|White)\)[\s\S]*?(?=<h3>\s*[^<(]+?\s*\(|<\/table>\s*<\/td>\s*<\/tr>\s*<\/table>\s*<\/div>)/gi;
+ // Split into per-team sections by <h3>TeamName (Red|White|Röd|Vit|...)
+  // Accept any text in parentheses to handle both English and Swedish page variants.
+  const sectionRe = /<h3>\s*([^<(]+?)\s*\([^)]*\)[\s\S]*?(?=<h3>\s*[^<(]+?\s*\(|<\/table>\s*<\/td>\s*<\/tr>\s*<\/table>\s*<\/div>)/gi;
   const byTeam: Record<string, string[]> = {};
   let m: RegExpExecArray | null;
   while ((m = sectionRe.exec(html)) !== null) {
