@@ -441,16 +441,26 @@ async function fetchSpecialTeamsFromHtml(
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
     const result: Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }> = {};
-    const ppIdx = html.search(/Powerplay Efficiency/i);
-    const pkIdx = html.search(/Penalty Killing/i);
-    const sections: Array<{ key: "pp" | "pk"; html: string }> = [];
-    if (ppIdx !== -1) {
-      sections.push({ key: "pp", html: html.slice(ppIdx, pkIdx === -1 ? undefined : pkIdx) });
-    }
-    if (pkIdx !== -1) sections.push({ key: "pk", html: html.slice(pkIdx) });
     const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
     const titleRe = /<span\s+title="([^"]+)"[^>]*>\s*<strong>([^<]+)<\/strong>/i;
     const cellRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    const sections: Array<{ key: "pp" | "pk"; html: string }> = [];
+    const subtitleRe = /<th\b[^>]*class="[^"]*tdSubTitle[^"]*"[^>]*>([\s\S]*?)<\/th>/gi;
+    const subtitles = [...html.matchAll(subtitleRe)]
+      .map((match) => ({
+        title: htmlEntityDecode(match[1].replace(/<[^>]+>/g, " ")),
+        start: (match.index ?? 0) + match[0].length,
+      }))
+      .filter((section) => /Powerplay Efficiency|Penalty Killing/i.test(section.title));
+
+    for (const [index, section] of subtitles.entries()) {
+      const next = subtitles[index + 1]?.start ?? html.length;
+      sections.push({
+        key: /Powerplay Efficiency/i.test(section.title) ? "pp" : "pk",
+        html: html.slice(section.start, next),
+      });
+    }
+
     for (const section of sections) {
       let rowMatch: RegExpExecArray | null;
       while ((rowMatch = rowRe.exec(section.html)) !== null) {
