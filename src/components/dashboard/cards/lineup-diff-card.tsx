@@ -22,17 +22,18 @@ export function LineupDiffCard({
     <Card>
       <CardHeader>
         <CardTitle className="text-base">{teamName} · Laguppställning</CardTitle>
-        {diff?.lineupAvailable && diff.previousDate && (
+        {diff?.tonightsGameFound && diff.previousDate && (
           <p className="text-xs text-muted-foreground">
-            Förändringar jämfört med {diff.previousDate}
-            {diff.previousOpponent ? ` mot ${diff.previousOpponent}` : ""}
+            Ikväll vs {diff.opponent} · jämfört med {diff.previousDate} mot {diff.previousOpponent}
           </p>
         )}
       </CardHeader>
       <CardContent>
-        {!diff?.lineupAvailable ? (
+       {!diff?.lineupAvailable ? (
           <p className="text-sm text-muted-foreground">
-            Laguppställning saknas — behöver minst två spelade matcher.
+            {!diff?.tonightsGameFound
+              ? "Ingen match idag."
+              : "Laguppställning ej publicerad ännu."}
           </p>
         ) : diff.newInLineup.length === 0 && diff.outOfLineup.length === 0 ? (
           <p className="text-sm text-muted-foreground">Oförändrad laguppställning.</p>
