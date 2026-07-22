@@ -414,13 +414,31 @@ function parseSpecialTeamsStats(
   return { powerPlayPct, penaltyKillPct };
 }
 
+function normalizeTeamKey(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function pickSpecialTeams(
+  byName: Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }>,
+  teamName: string,
+): { powerPlayPct: number | null; penaltyKillPct: number | null } {
+  if (byName[teamName]) return byName[teamName];
+  const key = normalizeTeamKey(teamName);
+  for (const [k, v] of Object.entries(byName)) {
+    if (normalizeTeamKey(k) === key) return v;
+  }
+  return { powerPlayPct: null, penaltyKillPct: null };
+}
+
 async function fetchSpecialTeamsFromHtml(
   urls: Urls,
+  attempt = 1,
 ): Promise<Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }>> {
   try {
     const res = await fetch(urls.specialTeams, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
     const result: Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }> = {};
     const ppIdx = html.search(/Powerplay Efficiency/i);
@@ -456,12 +474,22 @@ async function fetchSpecialTeamsFromHtml(
         result[teamName] = entry;
       }
     }
+    if (Object.keys(result).length === 0 && attempt < 2) {
+      console.warn("[specialTeams] empty result, retrying once");
+      await new Promise((r) => setTimeout(r, 400));
+      return fetchSpecialTeamsFromHtml(urls, attempt + 1);
+    }
     return result;
   } catch (err) {
-    console.warn("[specialTeams] HTML fallback failed:", (err as Error).message);
+    console.warn(`[specialTeams] HTML fetch failed (attempt ${attempt}):`, (err as Error).message);
+    if (attempt < 2) {
+      await new Promise((r) => setTimeout(r, 400));
+      return fetchSpecialTeamsFromHtml(urls, attempt + 1);
+    }
     return {};
   }
 }
+
 
 // Generic helper: extract <td> cell text contents (tags stripped) from a row.
 function extractTdCells(rowHtml: string): string[] {
