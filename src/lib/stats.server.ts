@@ -414,13 +414,31 @@ function parseSpecialTeamsStats(
   return { powerPlayPct, penaltyKillPct };
 }
 
+function normalizeTeamKey(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function pickSpecialTeams(
+  byName: Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }>,
+  teamName: string,
+): { powerPlayPct: number | null; penaltyKillPct: number | null } {
+  if (byName[teamName]) return byName[teamName];
+  const key = normalizeTeamKey(teamName);
+  for (const [k, v] of Object.entries(byName)) {
+    if (normalizeTeamKey(k) === key) return v;
+  }
+  return { powerPlayPct: null, penaltyKillPct: null };
+}
+
 async function fetchSpecialTeamsFromHtml(
   urls: Urls,
+  attempt = 1,
 ): Promise<Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }>> {
   try {
     const res = await fetch(urls.specialTeams, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
     const result: Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }> = {};
     const ppIdx = html.search(/Powerplay Efficiency/i);
@@ -456,12 +474,22 @@ async function fetchSpecialTeamsFromHtml(
         result[teamName] = entry;
       }
     }
+    if (Object.keys(result).length === 0 && attempt < 2) {
+      console.warn("[specialTeams] empty result, retrying once");
+      await new Promise((r) => setTimeout(r, 400));
+      return fetchSpecialTeamsFromHtml(urls, attempt + 1);
+    }
     return result;
   } catch (err) {
-    console.warn("[specialTeams] HTML fallback failed:", (err as Error).message);
+    console.warn(`[specialTeams] HTML fetch failed (attempt ${attempt}):`, (err as Error).message);
+    if (attempt < 2) {
+      await new Promise((r) => setTimeout(r, 400));
+      return fetchSpecialTeamsFromHtml(urls, attempt + 1);
+    }
     return {};
   }
 }
+
 
 // Generic helper: extract <td> cell text contents (tags stripped) from a row.
 function extractTdCells(rowHtml: string): string[] {
@@ -958,26 +986,22 @@ async function fetchTeamCodeMap(urls: Urls): Promise<Record<string, string>> {
   try {
     const res = await fetch(urls.roster, { headers: { "user-agent": "Mozilla/5.0" } });
     const fullHtml = await res.text();
-    const result: Record<string, number> = {};
+    const map: Record<string, string> = {};
 
-    // The page has two tables: Scoring Efficiency then Goalkeeping Efficiency.
-    // Both have SOG at column index 5, so we must isolate the first table only.
-    const scoringStart = fullHtml.indexOf("Scoring Efficiency");
-    const keepingStart = fullHtml.indexOf("Goalkeeping Efficiency");
-    const html =
-      scoringStart >= 0 && keepingStart > scoringStart
-        ? fullHtml.slice(scoringStart, keepingStart)
-        : scoringStart >= 0
-          ? fullHtml.slice(scoringStart)
-          : fullHtml;
-
-    const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
-    let m;
-    while ((m = re.exec(html)) !== null) {
-      const code = m[1].trim();
-      const name = m[2].trim();
-      if (code.length <= 6 && name.length > 2 && !(name in map)) {
-        map[name] = code;
+    // Roster page anchors typically look like:
+    //   <a href="/Teams/Info/Team/12345" title="Full Team Name">CODE</a>
+    // or with the code and name swapped. Capture both shapes defensively.
+    const anchorRe =
+      /<a\s+[^>]*href="\/Teams\/[^"]+"[^>]*(?:title="([^"]+)")?[^>]*>\s*([^<]+?)\s*<\/a>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = anchorRe.exec(fullHtml)) !== null) {
+      const title = (m[1] ?? "").trim();
+      const text = (m[2] ?? "").trim();
+      if (!title || !text) continue;
+      // Team code is typically 2–6 chars, all uppercase/digits.
+      const code = /^[A-ZÅÄÖ0-9]{2,6}$/.test(text) ? text : null;
+      if (code && title.length > 2 && !(title in map)) {
+        map[title] = code;
       }
     }
     return map;
@@ -985,6 +1009,7 @@ async function fetchTeamCodeMap(urls: Urls): Promise<Record<string, string>> {
     return {};
   }
 }
+
 
 export async function parseTeamsFromStandings(
   _md: string,
@@ -1112,8 +1137,9 @@ export async function buildBriefing(
 
   const parsedHomeLast5 = parseLastFiveGames(scheduleMd, home);
   const parsedAwayLast5 = parseLastFiveGames(scheduleMd, away);
-  const homeSpecialTeams = specialTeamsByName[home] ?? { powerPlayPct: null, penaltyKillPct: null };
-  const awaySpecialTeams = specialTeamsByName[away] ?? { powerPlayPct: null, penaltyKillPct: null };
+  const homeSpecialTeams = pickSpecialTeams(specialTeamsByName, home);
+  const awaySpecialTeams = pickSpecialTeams(specialTeamsByName, away);
+
 
   const emptyTeam = (name: string): Briefing["home"] => ({
     name,
@@ -1237,8 +1263,9 @@ export async function buildBriefing(
   const fetchStarted = Date.now();
   const [ppByName, standingsByName, lastFiveByName] = await Promise.all([
     ppPkMissing
-      ? Promise.resolve(specialTeamsByName)
+      ? fetchSpecialTeamsFromHtml(urls).then((fresh) => ({ ...specialTeamsByName, ...fresh }))
       : Promise.resolve({} as Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }>),
+
     standingsNeeded
       ? fetchStandingsFromHtml(urls)
       : Promise.resolve({} as Record<string, { position: number | null; gamesPlayed: number | null; points: number | null }>),
@@ -1266,7 +1293,7 @@ export async function buildBriefing(
       lastFive: name in lastFiveByName,
     };
 
-    const pp = ppByName[name];
+    const pp = pickSpecialTeams(ppByName, name);
     if (pp) {
       if (team.powerPlayPct == null && pp.powerPlayPct != null) {
         team.powerPlayPct = pp.powerPlayPct;
