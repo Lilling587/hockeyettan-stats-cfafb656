@@ -1137,8 +1137,9 @@ export async function buildBriefing(
 
   const parsedHomeLast5 = parseLastFiveGames(scheduleMd, home);
   const parsedAwayLast5 = parseLastFiveGames(scheduleMd, away);
-  const homeSpecialTeams = specialTeamsByName[home] ?? { powerPlayPct: null, penaltyKillPct: null };
-  const awaySpecialTeams = specialTeamsByName[away] ?? { powerPlayPct: null, penaltyKillPct: null };
+  const homeSpecialTeams = pickSpecialTeams(specialTeamsByName, home);
+  const awaySpecialTeams = pickSpecialTeams(specialTeamsByName, away);
+
 
   const emptyTeam = (name: string): Briefing["home"] => ({
     name,
