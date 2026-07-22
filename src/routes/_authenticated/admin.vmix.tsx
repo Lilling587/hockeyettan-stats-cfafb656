@@ -19,7 +19,6 @@ import { toast } from "sonner";
 import { checkIsAdmin } from "@/lib/roles.functions";
 import { getTodaysMatchup, listSeasons, listTeams } from "@/lib/stats.functions";
 import {
- import {
   emptySlots,
   fetchTeamRoster,
   fetchTonightsLineup,
@@ -193,7 +192,6 @@ function VmixAdminPage() {
   const fetchTodays = useServerFn(getTodaysMatchup);
   const fetchActive = useServerFn(getActivePublication);
   const fetchRoster = useServerFn(fetchTeamRoster);
-  const fetchTonightsLineupFn = useServerFn(fetchTonightsLineup);
   const fetchTonightsLineupFn = useServerFn(fetchTonightsLineup);
   
   const publish = useServerFn(publishVmix);
