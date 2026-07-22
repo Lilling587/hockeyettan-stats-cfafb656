@@ -1293,7 +1293,7 @@ export async function buildBriefing(
       lastFive: name in lastFiveByName,
     };
 
-    const pp = ppByName[name];
+    const pp = pickSpecialTeams(ppByName, name);
     if (pp) {
       if (team.powerPlayPct == null && pp.powerPlayPct != null) {
         team.powerPlayPct = pp.powerPlayPct;
