@@ -992,32 +992,14 @@ function computePeriodGoals(
   return out;
 }
 
-async function fetchTeamCodeMap(urls: Urls): Promise<Record<string, string>> {
-  try {
-    const res = await fetch(urls.roster, { headers: { "user-agent": "Mozilla/5.0" } });
-    const fullHtml = await res.text();
-    const map: Record<string, string> = {};
-
-    // Roster page anchors typically look like:
-    //   <a href="/Teams/Info/Team/12345" title="Full Team Name">CODE</a>
-    // or with the code and name swapped. Capture both shapes defensively.
-    const anchorRe =
-      /<a\s+[^>]*href="\/Teams\/[^"]+"[^>]*(?:title="([^"]+)")?[^>]*>\s*([^<]+?)\s*<\/a>/gi;
-    let m: RegExpExecArray | null;
-    while ((m = anchorRe.exec(fullHtml)) !== null) {
-      const title = (m[1] ?? "").trim();
-      const text = (m[2] ?? "").trim();
-      if (!title || !text) continue;
-      // Team code is typically 2–6 chars, all uppercase/digits.
-      const code = /^[A-ZÅÄÖ0-9]{2,6}$/.test(text) ? text : null;
-      if (code && title.length > 2 && !(title in map)) {
-        map[title] = code;
-      }
-    }
-    return map;
-  } catch {
-    return {};
+async function fetchTeamCodeMap(_urls: Urls): Promise<Record<string, string>> {
+  // Team codes are already maintained in team-short-names.ts (sourced from the
+  // same swehockey stats page). No network fetch needed — just invert the map.
+  const map: Record<string, string> = {};
+  for (const name of KNOWN_TEAM_NAMES) {
+    map[name] = shortTeamName(name);
   }
+  return map;
 }
 
 
