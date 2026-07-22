@@ -448,27 +448,48 @@ async function doComputeGameFlow(
     };
   });
 
-  // Lineup diff: compare the last two played game lineups.
-  const lastGame = teamGames[0];
-  const previousGame = teamGames[1];
+// Lineup diff: compare tonight's game lineup vs the last played game lineup.
+  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
   const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 
+  // Tonight's unplayed game for this team
+  const tonightsGame = scheduleGames.find(
+    (g) =>
+      !g.played &&
+      g.id &&
+      g.date === today &&
+      (g.homeTeam === team || g.awayTeam === team),
+  ) ?? null;
+
+  // Last played game for this team
+  const lastPlayedGame = teamGames[0] ?? null;
+
   const emptyDiff: GameFlowResult["lineupDiff"] = {
-    gameId: null,
-    date: null,
-    opponent: null,
-    previousDate: null,
-    previousOpponent: null,
+    gameId: tonightsGame?.id ?? null,
+    date: tonightsGame?.date ?? null,
+    opponent: tonightsGame
+      ? tonightsGame.homeTeam === team
+        ? tonightsGame.awayTeam
+        : tonightsGame.homeTeam
+      : null,
+    previousDate: lastPlayedGame?.date ?? null,
+    previousOpponent: lastPlayedGame
+      ? lastPlayedGame.homeTeam === team
+        ? lastPlayedGame.awayTeam
+        : lastPlayedGame.homeTeam
+      : null,
     newInLineup: [],
     outOfLineup: [],
     lineupAvailable: false,
+    tonightsGameFound: tonightsGame !== null,
   };
 
   let lineupDiff = emptyDiff;
-  if (lastGame?.id && previousGame?.id) {
-    const [lastLineup, prevLineup] = await Promise.all([
-      fetchLineupPage(lastGame.id),
-      fetchLineupPage(previousGame.id),
+
+  if (tonightsGame?.id && lastPlayedGame?.id) {
+    const [tonightLineup, lastLineup] = await Promise.all([
+      fetchLineupPage(tonightsGame.id),
+      fetchLineupPage(lastPlayedGame.id),
     ]);
 
     const teamLineupFor = (byTeam: Record<string, string[]> | undefined) => {
@@ -479,22 +500,16 @@ async function doComputeGameFlow(
       return k ? byTeam[k] : [];
     };
 
+    const tonightPlayed = teamLineupFor(tonightLineup?.byTeam);
     const lastPlayed = teamLineupFor(lastLineup?.byTeam);
-    const prevPlayed = teamLineupFor(prevLineup?.byTeam);
 
-    if (lastPlayed.length > 0 && prevPlayed.length > 0) {
+    if (tonightPlayed.length > 0 && lastPlayed.length > 0) {
+      const tonightSet = new Set(tonightPlayed.map(norm));
       const lastSet = new Set(lastPlayed.map(norm));
-      const prevSet = new Set(prevPlayed.map(norm));
       lineupDiff = {
-        gameId: lastGame.id,
-        date: lastGame.date,
-        opponent: lastGame.homeTeam === team ? lastGame.awayTeam : lastGame.homeTeam,
-        previousDate: previousGame.date,
-        previousOpponent: previousGame.homeTeam === team
-          ? previousGame.awayTeam
-          : previousGame.homeTeam,
-        newInLineup: lastPlayed.filter((n) => !prevSet.has(norm(n))),
-        outOfLineup: prevPlayed.filter((n) => !lastSet.has(norm(n))),
+        ...emptyDiff,
+        newInLineup: tonightPlayed.filter((n) => !lastSet.has(norm(n))),
+        outOfLineup: lastPlayed.filter((n) => !tonightSet.has(norm(n))),
         lineupAvailable: true,
       };
     }
