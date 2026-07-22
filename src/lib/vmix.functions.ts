@@ -650,6 +650,183 @@ export const deleteLineupPreset = createServerFn({ method: "POST" })
   throwIfSupabaseError(error);
     return { ok: true };
   });
+// ---------- Tonight's lineup auto-fill ----------
+
+function fillSlotsFromLineup(
+  teamName: string,
+  teamCode: string,
+  lineupNames: string[],
+  roster: RosterPlayer[],
+): VmixLineupSlots {
+  const slots = emptySlots(teamName, teamCode);
+  if (lineupNames.length === 0) return slots;
+
+  const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+
+  // Match each lineup player to their roster entry for number + position
+  const players = lineupNames.map((lineupName) => {
+    const found = roster.find((r) => norm(r.name) === norm(lineupName));
+    return {
+      name: lineupName,
+      number: found?.number ?? "",
+      position: found?.position ?? null,
+    };
+  });
+
+  const goalies = players.filter((p) => /^(G|GK|MV)$/i.test(p.position ?? ""));
+  const defenders = players.filter((p) => /^(D|B|LD|RD|XD)$/i.test(p.position ?? ""));
+  const forwards = players.filter((p) => !goalies.includes(p) && !defenders.includes(p));
+
+  // Goalie slots
+  if (goalies[0]) slots.GK1 = { name: goalies[0].name, number: goalies[0].number };
+  if (goalies[1]) slots.GK2 = { name: goalies[1].name, number: goalies[1].number };
+
+  // Defender slots — known LD/RD/XD first, then generic D alternating LD/RD
+  const ldSlots: SlotKey[] = ["LD1", "LD2", "LD3", "LD4", "LD5"];
+  const rdSlots: SlotKey[] = ["RD1", "RD2", "RD3", "RD4", "RD5"];
+  const xdSlots: SlotKey[] = ["XD1", "XD2", "XD3", "XD4", "XD5"];
+  let ldIdx = 0, rdIdx = 0, xdIdx = 0;
+
+  for (const d of defenders.filter((p) => /^LD$/i.test(p.position ?? ""))) {
+    if (ldIdx < ldSlots.length) slots[ldSlots[ldIdx++]] = { name: d.name, number: d.number };
+  }
+  for (const d of defenders.filter((p) => /^RD$/i.test(p.position ?? ""))) {
+    if (rdIdx < rdSlots.length) slots[rdSlots[rdIdx++]] = { name: d.name, number: d.number };
+  }
+  for (const d of defenders.filter((p) => /^XD$/i.test(p.position ?? ""))) {
+    if (xdIdx < xdSlots.length) slots[xdSlots[xdIdx++]] = { name: d.name, number: d.number };
+  }
+  let useLD = true;
+  for (const d of defenders.filter((p) => /^(D|B)$/i.test(p.position ?? ""))) {
+    if (useLD && ldIdx < ldSlots.length) {
+      slots[ldSlots[ldIdx++]] = { name: d.name, number: d.number };
+      useLD = false;
+    } else if (!useLD && rdIdx < rdSlots.length) {
+      slots[rdSlots[rdIdx++]] = { name: d.name, number: d.number };
+      useLD = true;
+    } else if (ldIdx < ldSlots.length) {
+      slots[ldSlots[ldIdx++]] = { name: d.name, number: d.number };
+    } else if (rdIdx < rdSlots.length) {
+      slots[rdSlots[rdIdx++]] = { name: d.name, number: d.number };
+    } else if (xdIdx < xdSlots.length) {
+      slots[xdSlots[xdIdx++]] = { name: d.name, number: d.number };
+    }
+  }
+
+  // Forward slots — cycle LW/C/RW for generic forwards
+  const lwSlots: SlotKey[] = ["LW1", "LW2", "LW3", "LW4", "LW5"];
+  const cSlots: SlotKey[] = ["C1", "C2", "C3", "C4", "C5"];
+  const rwSlots: SlotKey[] = ["RW1", "RW2", "RW3", "RW4", "RW5"];
+  let lwIdx = 0, cIdx = 0, rwIdx = 0;
+
+  for (const f of forwards.filter((p) => /^LW$/i.test(p.position ?? ""))) {
+    if (lwIdx < lwSlots.length) slots[lwSlots[lwIdx++]] = { name: f.name, number: f.number };
+  }
+  for (const f of forwards.filter((p) => /^C$/i.test(p.position ?? ""))) {
+    if (cIdx < cSlots.length) slots[cSlots[cIdx++]] = { name: f.name, number: f.number };
+  }
+  for (const f of forwards.filter((p) => /^RW$/i.test(p.position ?? ""))) {
+    if (rwIdx < rwSlots.length) slots[rwSlots[rwIdx++]] = { name: f.name, number: f.number };
+  }
+  let fwdPos = 0;
+  for (const f of forwards.filter(
+    (p) => !p.position || /^(F|W)$/i.test(p.position),
+  )) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const pos = (fwdPos + attempt) % 3;
+      if (pos === 0 && lwIdx < lwSlots.length) {
+        slots[lwSlots[lwIdx++]] = { name: f.name, number: f.number };
+        fwdPos = 1; break;
+      } else if (pos === 1 && cIdx < cSlots.length) {
+        slots[cSlots[cIdx++]] = { name: f.name, number: f.number };
+        fwdPos = 2; break;
+      } else if (pos === 2 && rwIdx < rwSlots.length) {
+        slots[rwSlots[rwIdx++]] = { name: f.name, number: f.number };
+        fwdPos = 0; break;
+      }
+    }
+  }
+
+  return slots;
+}
+
+export const fetchTonightsLineup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        home: z.string().min(1),
+        away: z.string().min(1),
+        homeCode: z.string().default(""),
+        awayCode: z.string().default(""),
+        season: z.string().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{
+    available: boolean;
+    homeSlots: VmixLineupSlots;
+    awaySlots: VmixLineupSlots;
+  }> => {
+    await assertAdmin(context);
+    const season = getSeason(data.season) ?? DEFAULT_SEASON;
+    const today = new Date().toISOString().slice(0, 10);
+
+    const { getScheduleGames } = await import("./stats.server");
+    const { fetchLineupPage } = await import("./game-flow.server");
+    const { scrapeTeamRoster } = await import("./vmix.server");
+
+    const scheduleGames = await getScheduleGames(season);
+    const todaysGame =
+      scheduleGames.find(
+        (g) =>
+          !g.played &&
+          g.id &&
+          g.date === today &&
+          ((g.homeTeam === data.home && g.awayTeam === data.away) ||
+            (g.homeTeam === data.away && g.awayTeam === data.home)),
+      ) ?? null;
+
+    if (!todaysGame?.id) {
+      return {
+        available: false,
+        homeSlots: emptySlots(data.home, data.homeCode),
+        awaySlots: emptySlots(data.away, data.awayCode),
+      };
+    }
+
+    const [lineupPage, homeRoster, awayRoster] = await Promise.all([
+      fetchLineupPage(todaysGame.id),
+      scrapeTeamRoster(data.home, season).catch(() => [] as RosterPlayer[]),
+      scrapeTeamRoster(data.away, season).catch(() => [] as RosterPlayer[]),
+    ]);
+
+    if (!lineupPage) {
+      return {
+        available: false,
+        homeSlots: emptySlots(data.home, data.homeCode),
+        awaySlots: emptySlots(data.away, data.awayCode),
+      };
+    }
+
+    const teamLineupFor = (teamName: string): string[] => {
+      if (!lineupPage.byTeam) return [];
+      const k = Object.keys(lineupPage.byTeam).find(
+        (k) => k.toLowerCase() === teamName.toLowerCase(),
+      );
+      return k ? lineupPage.byTeam[k] : [];
+    };
+
+    const homeNames = teamLineupFor(data.home);
+    const awayNames = teamLineupFor(data.away);
+
+    return {
+      available: homeNames.length > 0 || awayNames.length > 0,
+      homeSlots: fillSlotsFromLineup(data.home, data.homeCode, homeNames, homeRoster),
+      awaySlots: fillSlotsFromLineup(data.away, data.awayCode, awayNames, awayRoster),
+    };
+  });
+
 // ---------- Team logo codes (auto-fill from swehockey, manual overrides) ----------
 
 export type TeamLogoCode = {
