@@ -15,7 +15,7 @@ function VenueRow({
   label: string;
   split: NonNullable<TeamData["venueForm"]>["home"];
 }) {
-  const recent = split.results.slice(0, 10);
+  const recent = split.results.slice(0, 5);
   return (
     <div className="space-y-2 text-sm">
       <div className="flex items-center gap-2">
