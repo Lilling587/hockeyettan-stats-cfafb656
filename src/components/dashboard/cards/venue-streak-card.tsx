@@ -17,22 +17,22 @@ function VenueRow({
 }) {
   const recent = split.results.slice(0, 10);
   return (
-    <div className="space-y-1.5 text-sm sm:flex sm:items-center sm:justify-between sm:gap-3 sm:space-y-0">
-      <div className="flex items-center gap-2 min-w-0">
+    <div className="space-y-2 text-sm">
+      <div className="flex items-center gap-2">
         <span className="font-medium shrink-0">{label}</span>
         <Badge variant={streakVariant(split.streak?.type)} className="tabular-nums shrink-0">
           {streakLabel(split.streak)}
         </Badge>
       </div>
-      <div className="flex items-center gap-1 flex-wrap sm:justify-end">
+      <div className="flex items-center gap-1">
         {recent.length === 0 ? (
-          <span className="text-xs text-muted-foreground">inga</span>
+          <span className="text-sm text-muted-foreground">inga</span>
         ) : (
           recent.map((r, i) => (
             <Badge
               key={i}
               variant={resultVariant(r)}
-              className="text-[10px] px-1.5 h-4"
+              className="text-[10px] px-1.5 h-4 flex-1 min-w-0 justify-center"
               title={`match ${i + 1} av ${split.results.length} (senaste först)`}
             >
               {resultLabel(r)}
@@ -50,7 +50,7 @@ export function VenueStreakCard({ team }: { team: TeamData }) {
       <CardHeader>
         <CardTitle className="text-base">
           {team.name} · Form{" "}
-          <span className="text-xs text-muted-foreground font-normal">sen. 10</span>
+          <span className="text-sm text-muted-foreground font-normal">senaste 10</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
