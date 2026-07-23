@@ -17,14 +17,14 @@ function VenueRow({
 }) {
   const recent = split.results.slice(0, 10);
   return (
-    <div className="flex items-center justify-between gap-3 text-sm">
+    <div className="space-y-1.5 text-sm sm:flex sm:items-center sm:justify-between sm:gap-3 sm:space-y-0">
       <div className="flex items-center gap-2 min-w-0">
         <span className="font-medium shrink-0">{label} · sen. {recent.length}</span>
-        <Badge variant={streakVariant(split.streak?.type)} className="tabular-nums">
+        <Badge variant={streakVariant(split.streak?.type)} className="tabular-nums shrink-0">
           {streakLabel(split.streak)}
         </Badge>
       </div>
-      <div className="flex items-center gap-1 flex-wrap justify-end">
+      <div className="flex items-center gap-1 flex-wrap sm:justify-end">
         {recent.length === 0 ? (
           <span className="text-xs text-muted-foreground">inga</span>
         ) : (
