@@ -32,7 +32,7 @@ function VenueRow({
             <Badge
               key={i}
               variant={resultVariant(r)}
-             className="flex-1 min-w-0 justify-center"
+             className=""
               title={`match ${i + 1} av ${split.results.length} (senaste först)`}
             >
               {resultLabel(r)}
