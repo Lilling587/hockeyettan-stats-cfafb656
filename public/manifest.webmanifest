@@ -1,6 +1,6 @@
 {
-  "name": "Producent-statistik · HockeyEttan Södra",
-  "short_name": "Producent",
+  "name": "HockeyEttan Stats",
+  "short_name": "HE Stats",
   "description": "Matchstatistik för HockeyEttan Södra-sändningar.",
   "start_url": "/",
   "scope": "/",
