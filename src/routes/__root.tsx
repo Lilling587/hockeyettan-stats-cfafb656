@@ -93,8 +93,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Grästorps IK" },
       { name: "twitter:description", content: "Matchstatistik för HockeyEttan Södra-sändningar. Välj två lag och få statistik på sekunder." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/bd502f18-dfa5-4416-8c1a-695ec5f2be37" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/bd502f18-dfa5-4416-8c1a-695ec5f2be37" },
+      { property: "og:image", content: "https://thzytrtjhsaqwtbqlwyi.supabase.co/storage/v1/object/public/icons/android/ic_launcher-playstore-512.png" },
+      { name: "twitter:image", content: "https://thzytrtjhsaqwtbqlwyi.supabase.co/storage/v1/object/public/icons/android/ic_launcher-playstore-512.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
