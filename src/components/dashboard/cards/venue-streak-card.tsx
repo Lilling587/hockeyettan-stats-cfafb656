@@ -17,22 +17,19 @@ function VenueRow({
 }) {
   const recent = split.results.slice(0, 5);
   return (
-    <div className="space-y-2 text-sm">
-      <div className="flex items-center gap-2">
-        <span className="font-medium shrink-0">{label}</span>
-        <Badge variant={streakVariant(split.streak?.type)} className="tabular-nums shrink-0">
-          {streakLabel(split.streak)}
-        </Badge>
-      </div>
+    <div className="flex items-center gap-2 text-sm">
+      <span className="font-medium w-14 shrink-0">{label}</span>
+      <Badge variant={streakVariant(split.streak?.type)} className="tabular-nums shrink-0">
+        {streakLabel(split.streak)}
+      </Badge>
       <div className="flex items-center gap-1">
         {recent.length === 0 ? (
-          <span className="text-sm text-muted-foreground">inga</span>
+          <span className="text-xs text-muted-foreground">inga</span>
         ) : (
           recent.map((r, i) => (
             <Badge
               key={i}
               variant={resultVariant(r)}
-             className=""
               title={`match ${i + 1} av ${split.results.length} (senaste först)`}
             >
               {resultLabel(r)}
@@ -42,7 +39,6 @@ function VenueRow({
       </div>
     </div>
   );
-}
 
 export function VenueStreakCard({ team }: { team: TeamData }) {
   return (
