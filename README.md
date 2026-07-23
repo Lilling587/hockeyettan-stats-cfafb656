@@ -72,6 +72,7 @@ RESEND_API_KEY=your-resend-api-key
 
 ## Project Structure
 
+
 ```text
 .
 ├── scripts/
