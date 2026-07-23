@@ -19,7 +19,7 @@ function VenueRow({
   return (
     <div className="space-y-1.5 text-sm sm:flex sm:items-center sm:justify-between sm:gap-3 sm:space-y-0">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="font-medium shrink-0">{label} · sen. {recent.length}</span>
+        <span className="font-medium shrink-0">{label}</span>
         <Badge variant={streakVariant(split.streak?.type)} className="tabular-nums shrink-0">
           {streakLabel(split.streak)}
         </Badge>
@@ -48,7 +48,10 @@ export function VenueStreakCard({ team }: { team: TeamData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{team.name} · Form</CardTitle>
+        <CardTitle className="text-base">
+          {team.name} · Form{" "}
+          <span className="text-xs text-muted-foreground font-normal">sen. 10</span>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {!team.venueForm ? (
