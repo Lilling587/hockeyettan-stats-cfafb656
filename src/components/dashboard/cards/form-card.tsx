@@ -124,28 +124,30 @@ export function FormCard({ team }: { team: TeamData }) {
           <p className="text-sm text-muted-foreground">Inte tillgängligt.</p>
         ) : (
           <>
-            <ul className="space-y-3 sm:space-y-2">
+            <ul className="divide-y divide-border">
               {games.map((g, i) => (
-                <li
-                  key={i}
-                  className="text-sm border-b border-border pb-2 last:border-0"
-                >
-                  {/* Mobile: two-line layout */}
-                  <div className="flex flex-col gap-1 sm:hidden">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <Badge variant={resultVariant(g.result)}>{resultLabel(g.result)}</Badge>
-                        {g.isHome !== null ? (
-                          <span className="text-[10px] font-medium text-muted-foreground">
-                            {g.isHome ? "HEMMA" : "BORTA"}
-                          </span>
-                        ) : null}
-                      </div>
-                      <span className="font-mono text-xs shrink-0">{g.score}</span>
+                <li key={i} className="py-2 first:pt-0 last:pb-0 text-sm">
+                  {/* Mobile: compact two-line layout */}
+                  <div className="sm:hidden">
+                    <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
+                      <Badge variant={resultVariant(g.result)} className="shrink-0">
+                        {resultLabel(g.result)}
+                      </Badge>
+                      <span className="truncate min-w-0 font-medium">
+                        vs {g.opponent}
+                      </span>
+                      <span className="font-mono tabular-nums text-sm shrink-0">
+                        {g.score}
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                      <span className="truncate min-w-0">vs {g.opponent}</span>
-                      <span className="tabular-nums shrink-0">{g.date || "—"}</span>
+                    <div className="mt-1 pl-1 flex items-center gap-2 text-[11px] text-muted-foreground">
+                      {g.isHome !== null ? (
+                        <span className="font-medium uppercase tracking-wide">
+                          {g.isHome ? "Hemma" : "Borta"}
+                        </span>
+                      ) : null}
+                      {g.isHome !== null && g.date ? <span aria-hidden>·</span> : null}
+                      {g.date ? <span className="tabular-nums">{g.date}</span> : null}
                     </div>
                   </div>
 
