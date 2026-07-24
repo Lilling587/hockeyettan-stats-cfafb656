@@ -229,7 +229,7 @@ export const getMatchupBriefing = createServerFn({ method: "POST" })
     }
     const briefing = await recordScrape(
       { endpoint: "briefing", season: season.label, cacheHit: false, context: { home: data.home, away: data.away } },
-      () => buildBriefing(data.home, data.away, season),
+      () => buildBriefing(data.home, data.away, season, data.force),
     );
     const payload = { briefing, fetchedAt: new Date().toISOString() };
     await setCached(key, payload);

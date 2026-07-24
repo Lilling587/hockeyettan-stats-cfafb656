@@ -1125,6 +1125,7 @@ export async function buildBriefing(
   home: string,
   away: string,
   season: Season = DEFAULT_SEASON,
+  force = false,
 ): Promise<Briefing> {
   const urls = buildUrls(season.competitionId);
 
@@ -1133,9 +1134,12 @@ export async function buildBriefing(
   // top scorers, goalies, AND discipline in one HTTP request via
   // fetchScoringPageData — previously those three fetched urls.scoring
   // independently, up to three times per buildBriefing call).
+  // `force` also busts the in-process schedule cache: without it, a
+  // force-refreshed briefing could still read a schedule fetched hours ago
+  // earlier in the process's lifetime, silently missing newly played games.
  const [scheduleGames, scheduleMd, specialTeamsByName, codeMap, scoringData, sogByName] =
     await Promise.all([
-      getScheduleGames(season),
+      getScheduleGames(season, { force }),
       scrapeMd(urls.schedule),
       fetchSpecialTeamsFromHtml(urls),
       fetchTeamCodeMap(urls),
@@ -1549,17 +1553,29 @@ async function fetchAllScheduleGames(urls: Urls): Promise<ScheduleGame[]> {
   return games;
 }
 
-const scheduleCache = new Map<string, Promise<ScheduleGame[]>>();
-export function getScheduleGames(season: Season): Promise<ScheduleGame[]> {
+// Matches CACHE_TTL_MS in stats.functions.ts — the schedule shouldn't outlive
+// the briefing cache layer that sits on top of it, or a "stale schedule" can
+// survive a force-refreshed briefing indefinitely (see getScheduleGames below).
+const SCHEDULE_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
+
+type ScheduleCacheEntry = { promise: Promise<ScheduleGame[]>; fetchedAt: number };
+const scheduleCache = new Map<string, ScheduleCacheEntry>();
+
+export function getScheduleGames(
+  season: Season,
+  opts: { force?: boolean } = {},
+): Promise<ScheduleGame[]> {
   const key = season.competitionId;
   const existing = scheduleCache.get(key);
-  if (existing) return existing;
-  const p = fetchAllScheduleGames(buildUrls(key)).catch((err) => {
+  const isStale = existing != null && Date.now() - existing.fetchedAt > SCHEDULE_CACHE_TTL_MS;
+  if (existing && !opts.force && !isStale) return existing.promise;
+
+  const promise = fetchAllScheduleGames(buildUrls(key)).catch((err) => {
     scheduleCache.delete(key);
     throw err;
   });
-  scheduleCache.set(key, p);
-  return p;
+  scheduleCache.set(key, { promise, fetchedAt: Date.now() });
+  return promise;
 }
 
 export type AllTimeH2H = {
