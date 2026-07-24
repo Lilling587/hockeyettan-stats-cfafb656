@@ -285,6 +285,7 @@ function extractLastFiveRows(scheduleMd: string, teamName: string): string {
   const scoreRe = /\|\s*(\d+)\s*-\s*(\d+)\s*\|/;
   const rows = scheduleMd
     .split("\n")
+    .map((l) => l.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")) // strip [text](url) → text
     .filter((l) => l.toLowerCase().includes(needle) && dateRe.test(l) && scoreRe.test(l))
     .map((l) => ({ line: l, date: (l.match(dateRe) as RegExpMatchArray)[1] }))
     .filter((v, i, arr) => arr.findIndex((x) => x.line === v.line) === i)
