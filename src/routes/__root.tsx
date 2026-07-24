@@ -17,6 +17,7 @@ import { installPreviewKeepalive } from "../lib/preview-keepalive";
 import { registerServiceWorker } from "../lib/register-sw";
 import { Toaster } from "../components/ui/sonner";
 import { ThemeProvider, themeBootScript } from "../components/theme-provider";
+import { FlushHmrButton } from "../components/dev/flush-hmr-button";
 
 function NotFoundComponent() {
   return (
@@ -142,6 +143,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster />
+        <FlushHmrButton />
       </ThemeProvider>
     </QueryClientProvider>
   );
