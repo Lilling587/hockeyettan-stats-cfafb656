@@ -48,7 +48,7 @@ export function VenueStreakCard({ team }: { team: TeamData }) {
       <CardHeader>
         <CardTitle className="text-base">
           {team.name} · Form{" "}
-          <span className="text-sm text-muted-foreground font-normal">senaste 5</span>
+          <span className="text-sm text-muted-foreground font-normal">senaste 5 hemma/borta</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
