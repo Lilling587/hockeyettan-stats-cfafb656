@@ -39,13 +39,19 @@ export function SpecialTeamsCard({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="text-2xl font-semibold">{fmtPct(team.powerPlayPct)}</div>
-            <div className="text-xs text-muted-foreground">Powerplay</div>
-            {renderEdge(team.powerPlayPct, opponent.powerPlayPct)}
+          <div className="text-sm text-muted-foreground">
+            {team.powerPlayGoals != null ? `${team.powerPlayGoals} mål` : "—"}
           </div>
-          <div>
-            <div className="text-2xl font-semibold">{fmtPct(team.penaltyKillPct)}</div>
-            <div className="text-xs text-muted-foreground">Boxplay</div>
-            {renderEdge(team.penaltyKillPct, opponent.penaltyKillPct)}
+          <div className="text-xs text-muted-foreground">Powerplay</div>
+          {renderEdge(team.powerPlayPct, opponent.powerPlayPct)}
+        </div>
+        <div>
+          <div className="text-2xl font-semibold">{fmtPct(team.penaltyKillPct)}</div>
+          <div className="text-sm text-muted-foreground">
+            {team.penaltyKillGoalsAgainst != null ? `${team.penaltyKillGoalsAgainst} insläppta` : "—"}
+          </div>
+          <div className="text-xs text-muted-foreground">Boxplay</div>
+          {renderEdge(team.penaltyKillPct, opponent.penaltyKillPct)}
           </div>
         </div>
       </CardContent>
