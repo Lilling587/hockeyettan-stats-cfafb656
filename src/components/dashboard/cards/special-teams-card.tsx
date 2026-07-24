@@ -10,22 +10,15 @@ export function SpecialTeamsCard({
   opponent: TeamData;
 }) {
   const fmtPct = (v: number | null) => (v != null ? `${v.toFixed(1)}%` : "—");
-  const renderEdge = (mine: number | null, theirs: number | null) => {
+
+  const edgeBadge = (mine: number | null, theirs: number | null) => {
     if (mine == null || theirs == null) return null;
     const diff = mine - theirs;
     if (Math.abs(diff) < 0.05) {
-      return (
-        <Badge variant="secondary" className="mt-1">
-          Jämnt
-        </Badge>
-      );
+      return <Badge variant="secondary">Jämnt</Badge>;
     }
     if (diff > 0) {
-      return (
-        <Badge variant="default" className="mt-1">
-          +{diff.toFixed(1)}%
-        </Badge>
-      );
+      return <Badge variant="default">+{diff.toFixed(1)}%</Badge>;
     }
     return null;
   };
@@ -37,21 +30,28 @@ export function SpecialTeamsCard({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4">
+          {/* Powerplay */}
           <div>
-            <div className="text-2xl font-semibold">{fmtPct(team.powerPlayPct)}</div>
-          <div className="text-sm text-muted-foreground">
-            {team.powerPlayGoals != null ? `${team.powerPlayGoals} mål` : "—"}
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-semibold">{fmtPct(team.powerPlayPct)}</span>
+              {edgeBadge(team.powerPlayPct, opponent.powerPlayPct)}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {team.powerPlayGoals != null ? `${team.powerPlayGoals} mål` : "—"}
+            </div>
+            <div className="text-xs text-muted-foreground">Powerplay</div>
           </div>
-          <div className="text-xs text-muted-foreground">Powerplay</div>
-          {renderEdge(team.powerPlayPct, opponent.powerPlayPct)}
-        </div>
-        <div>
-          <div className="text-2xl font-semibold">{fmtPct(team.penaltyKillPct)}</div>
-          <div className="text-sm text-muted-foreground">
-            {team.penaltyKillGoalsAgainst != null ? `${team.penaltyKillGoalsAgainst} insläppta` : "—"}
-          </div>
-          <div className="text-xs text-muted-foreground">Boxplay</div>
-          {renderEdge(team.penaltyKillPct, opponent.penaltyKillPct)}
+
+          {/* Boxplay */}
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-semibold">{fmtPct(team.penaltyKillPct)}</span>
+              {edgeBadge(team.penaltyKillPct, opponent.penaltyKillPct)}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {team.penaltyKillGoalsAgainst != null ? `${team.penaltyKillGoalsAgainst} insläppta` : "—"}
+            </div>
+            <div className="text-xs text-muted-foreground">Boxplay</div>
           </div>
         </div>
       </CardContent>
