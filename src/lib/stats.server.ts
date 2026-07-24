@@ -1161,6 +1161,8 @@ export async function buildBriefing(
     topScorers: [],
     powerPlayPct: null,
     penaltyKillPct: null,
+    powerPlayGoals: null,
+    penaltyKillGoalsAgainst: null,
     venueForm: null,
     periodGoals: null,
     goalies: [],
@@ -1183,8 +1185,12 @@ export async function buildBriefing(
   object.away.lastFive = parsedAwayLast5;
   object.home.powerPlayPct = homeSpecialTeams.powerPlayPct;
   object.home.penaltyKillPct = homeSpecialTeams.penaltyKillPct;
+  object.home.powerPlayGoals = homeSpecialTeams.powerPlayGoals;
+  object.home.penaltyKillGoalsAgainst = homeSpecialTeams.penaltyKillGoalsAgainst;
   object.away.powerPlayPct = awaySpecialTeams.powerPlayPct;
   object.away.penaltyKillPct = awaySpecialTeams.penaltyKillPct;
+  object.away.powerPlayGoals = awaySpecialTeams.powerPlayGoals;
+  object.away.penaltyKillGoalsAgainst = awaySpecialTeams.penaltyKillGoalsAgainst;
 
   // Venue form and period goals from the shared schedule games — no network call.
   const emptyVenueForm = (): VenueForm => ({
