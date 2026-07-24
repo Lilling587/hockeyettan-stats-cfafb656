@@ -19,7 +19,7 @@ function VenueRow({
   return (
     <div className="flex items-center gap-2 text-sm">
       <span className="font-medium w-14 shrink-0">{label}</span>
-      <Badge variant={streakVariant(split.streak?.type)} className="tabular-nums shrink-0">
+      <Badge variant={streakVariant(split.streak?.type)} className="tabular-nums shrink-0 text-sm font-bold px-3">
         {streakLabel(split.streak)}
       </Badge>
       <div className="flex items-center gap-1">
