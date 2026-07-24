@@ -419,15 +419,15 @@ function normalizeTeamKey(s: string): string {
 }
 
 function pickSpecialTeams(
-  byName: Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }>,
+  byName: Record<string, SpecialTeamsEntry>,
   teamName: string,
-): { powerPlayPct: number | null; penaltyKillPct: number | null } {
+): SpecialTeamsEntry {
   if (byName[teamName]) return byName[teamName];
   const key = normalizeTeamKey(teamName);
   for (const [k, v] of Object.entries(byName)) {
     if (normalizeTeamKey(k) === key) return v;
   }
-  return { powerPlayPct: null, penaltyKillPct: null };
+  return { powerPlayPct: null, penaltyKillPct: null, powerPlayGoals: null, penaltyKillGoalsAgainst: null };
 }
 
 type SpecialTeamsEntry = {
