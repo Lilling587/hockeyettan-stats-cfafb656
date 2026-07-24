@@ -430,17 +430,24 @@ function pickSpecialTeams(
   return { powerPlayPct: null, penaltyKillPct: null };
 }
 
+type SpecialTeamsEntry = {
+  powerPlayPct: number | null;
+  penaltyKillPct: number | null;
+  powerPlayGoals: number | null;
+  penaltyKillGoalsAgainst: number | null;
+};
+
 async function fetchSpecialTeamsFromHtml(
   urls: Urls,
   attempt = 1,
-): Promise<Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }>> {
+): Promise<Record<string, SpecialTeamsEntry>> {
   try {
     const res = await fetch(urls.specialTeams, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
-    const result: Record<string, { powerPlayPct: number | null; penaltyKillPct: number | null }> = {};
+    const result: Record<string, SpecialTeamsEntry> = {};
     const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
     const titleRe = /<span\s+title="([^"]+)"[^>]*>\s*<strong>([^<]+)<\/strong>/i;
     const cellRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
@@ -478,9 +485,21 @@ async function fetchSpecialTeamsFromHtml(
         }
         const pct = Number(cells[5]?.replace(",", "."));
         if (!Number.isFinite(pct)) continue;
-        const entry = result[teamName] ?? { powerPlayPct: null, penaltyKillPct: null };
-        if (section.key === "pp") entry.powerPlayPct = pct;
-        if (section.key === "pk") entry.penaltyKillPct = pct;
+        const goals = Number(cells[4]?.replace(",", "."));
+        const entry = result[teamName] ?? {
+          powerPlayPct: null,
+          penaltyKillPct: null,
+          powerPlayGoals: null,
+          penaltyKillGoalsAgainst: null,
+        };
+        if (section.key === "pp") {
+          entry.powerPlayPct = pct;
+          if (Number.isFinite(goals)) entry.powerPlayGoals = goals;
+        }
+        if (section.key === "pk") {
+          entry.penaltyKillPct = pct;
+          if (Number.isFinite(goals)) entry.penaltyKillGoalsAgainst = goals;
+        }
         result[teamName] = entry;
       }
     }
@@ -496,7 +515,7 @@ async function fetchSpecialTeamsFromHtml(
       await new Promise((r) => setTimeout(r, 400));
       return fetchSpecialTeamsFromHtml(urls, attempt + 1);
     }
-    return {};
+    return {} as Record<string, SpecialTeamsEntry>;
   }
 }
 
