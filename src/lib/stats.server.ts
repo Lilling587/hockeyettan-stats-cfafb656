@@ -1012,15 +1012,6 @@ function computePeriodGoals(
   return out;
 }
 
-async function fetchTeamCodeMap(_urls: Urls): Promise<Record<string, string>> {
-  // Team codes are already maintained in team-short-names.ts (sourced from the
-  // same swehockey stats page). No network fetch needed — just invert the map.
-  const map: Record<string, string> = {};
-  for (const name of KNOWN_TEAM_NAMES) {
-    map[name] = shortTeamName(name);
-  }
-  return map;
-}
 
 
 export async function parseTeamsFromStandings(
@@ -1143,7 +1134,7 @@ export async function buildBriefing(
   // internally) — if the schedule page is down, catch and degrade those two
   // as well so one unreachable source doesn't fail the entire briefing when
   // special teams / scoring / shots-on-goal fetched fine.
- const [scheduleGames, scheduleMd, specialTeamsByName, codeMap, scoringData, sogByName] =
+ const [scheduleGames, scheduleMd, specialTeamsByName, scoringData, sogByName] =
     await Promise.all([
       getScheduleGames(season, { force }).catch((err) => {
         console.warn("[buildBriefing] schedule fetch failed, degrading gracefully:", (err as Error).message);
@@ -1154,13 +1145,21 @@ export async function buildBriefing(
         return "";
       }),
       fetchSpecialTeamsFromHtml(urls),
-      fetchTeamCodeMap(urls),
       fetchScoringPageData(urls),
       fetchTeamShotsOnGoal(urls),
     ]);
 
-  const homeCode = codeMap[home];
-  const awayCode = codeMap[away];
+  // shortTeamName always returns a best-effort code (e.g. uppercase initials)
+  // even for teams not yet in KNOWN_TEAM_NAMES, so a newly promoted team still
+  // gets faceoff/hot-player data rather than silently falling through as undefined.
+  const homeCode = shortTeamName(home);
+  const awayCode = shortTeamName(away);
+  if (!KNOWN_TEAM_NAMES.has(home)) {
+    console.warn(`[briefing] "${home}" not in KNOWN_TEAM_NAMES — update team-short-names.ts (guessed code: ${homeCode})`);
+  }
+  if (!KNOWN_TEAM_NAMES.has(away)) {
+    console.warn(`[briefing] "${away}" not in KNOWN_TEAM_NAMES — update team-short-names.ts (guessed code: ${awayCode})`);
+  }
   console.log(`[briefing] ${home} -> ${homeCode}, ${away} -> ${awayCode}`);
 
   const parsedHomeLast5 = parseLastFiveGames(scheduleMd, home);
