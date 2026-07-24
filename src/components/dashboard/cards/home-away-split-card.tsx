@@ -67,9 +67,9 @@ export function HomeAwaySplitCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Hemma/borta-split</CardTitle>
+        <CardTitle className="text-base">Tagna poäng på hemma/borta plan</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Vinstprocent och poäng per match fördelat på hemma- och bortamatcher.
+          Snittpoäng per match hemma/borta · Vunna matcher i procent.
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
