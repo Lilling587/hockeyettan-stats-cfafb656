@@ -34,7 +34,7 @@ import { PeriodGoalsCard } from "./cards/period-goals-card";
 import { ScorersCard } from "./cards/scorers-card";
 import { GoaliesCard } from "./cards/goalies-card";
 import { ShotCard } from "./cards/shot-card";
-import { SpecialTeamsTimelineCard } from "./cards/special-teams-timeline-card";
+import { SpecialTeamsCard } from "./cards/special-teams-card";
 import { LineupDiffCard } from "./cards/lineup-diff-card";
 import { WinProbabilityCard } from "./cards/win-probability-card";
 import { HottestPlayerCard } from "./cards/hottest-player-card";
@@ -308,9 +308,9 @@ export function BriefingView({
         />
       </div>
 
-      <div id="special" className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <SpecialTeamsTimelineCard team={data.home} opponent={data.away} flow={homeFlow} />
-        <SpecialTeamsTimelineCard team={data.away} opponent={data.home} flow={awayFlow} />
+     <div id="special" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <SpecialTeamsCard team={data.home} opponent={data.away} />
+        <SpecialTeamsCard team={data.away} opponent={data.home} />
       </div>
 
       <FaceoffsCard briefing={data} />
