@@ -758,6 +758,85 @@ function computeLastFive(
   return result;
 }
 
+type ParsedGoal = {
+  teamCode: string;
+  scorer: string;
+  assists: string[];
+  period: string | null;
+  time: string | null;
+};
+
+function parseGameGoals(
+  html: string,
+  opts?: { onSection?: (period: string) => void },
+): ParsedGoal[] {
+  const goals: ParsedGoal[] = [];
+  const trRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+  const namePartRe = /\d+\.\s*([^<(]+?)(?=\s*<|\s*\(|$)/;
+  const cleanName = (s: string) =>
+    s.replace(/\s+/g, " ").replace(/[,\s]+$/, "").trim();
+  const stripTags = (s: string) =>
+    s
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;|\u00a0/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/\s+/g, " ")
+      .trim();
+  const headerToPeriod = (s: string): string | null => {
+    const t = s.toLowerCase();
+    if (/1st\s*period|första/.test(t)) return "1";
+    if (/2nd\s*period|andra/.test(t)) return "2";
+    if (/3rd\s*period|tredje/.test(t)) return "3";
+    if (/overtime|över?tid|extra/.test(t)) return "OT";
+    if (/shoot.?out|game winning shots|straff/.test(t)) return "SO";
+    return null;
+  };
+  let currentPeriod: string | null = null;
+  let markerRows = 0;
+  let tr: RegExpExecArray | null;
+  while ((tr = trRe.exec(html)) !== null) {
+    const row = tr[1];
+    const h3 = row.match(/<h3>([^<]+)<\/h3>/i);
+    if (h3) {
+      const p = headerToPeriod(h3[1]);
+      if (p) {
+        currentPeriod = p;
+        opts?.onSection?.(p);
+      }
+      continue;
+    }
+    if (!/Total goals scored/i.test(row)) continue;
+    markerRows++;
+    const cells = row.split(/<\/td>/i);
+    if (cells.length < 4) continue;
+    const time = stripTags(cells[0]) || null;
+    const teamCode = stripTags(cells[2]);
+    if (!/^[A-ZÅÄÖ]{2,4}$/.test(teamCode)) continue;
+    const scorerCell = cells[3];
+    // Try span/b/strong as delimiters — scorer name precedes the first inline wrapper
+    const beforeInline = scorerCell.split(/<(?:span|b|strong)[\s>]/i)[0];
+    const scorerM = beforeInline.match(namePartRe);
+    if (!scorerM) continue;
+    const scorer = cleanName(scorerM[1]);
+    const assists: string[] = [];
+    // Match any element whose attribute contains "assist" — catches "Assists in tournament" and variations
+    const assistRe = /\bassist[^"]*"[^>]*>([\s\S]*?)<\/(?:div|span)>/gi;
+    let am: RegExpExecArray | null;
+    while ((am = assistRe.exec(scorerCell)) !== null) {
+      const inner = am[1].replace(/<[^>]+>/g, "");
+      const nm = inner.match(namePartRe);
+      if (nm) assists.push(cleanName(nm[1]));
+    }
+    goals.push({ teamCode, scorer, assists, period: currentPeriod, time });
+  }
+  if (markerRows > 0 && goals.length === 0) {
+    console.warn(
+      `[parseGameGoals] ${markerRows} goal row(s) found but 0 goals extracted — page markup may have changed`,
+    );
+  }
+  return goals;
+}
+
 type HotPlayer = NonNullable<Briefing["home"]["hotPlayer"]>;
 async function fetchHotPlayersFromGameLogs(
   urls: Urls,
@@ -825,45 +904,13 @@ async function fetchHotPlayersFromGameLogs(
         }
       }),
     );
-    type GoalEntry = { teamCode: string; scorer: string; assists: string[] };
-    const parseGoals = (html: string): GoalEntry[] => {
-      const goals: GoalEntry[] = [];
-      const trRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
-      let tr: RegExpExecArray | null;
-      const namePartRe = /\d+\.\s*([^<(]+?)(?=\s*<|\s*\(|$)/;
-      const cleanName = (s: string) =>
-        s.replace(/\s+/g, " ").replace(/[,\s]+$/, "").trim();
-      while ((tr = trRe.exec(html)) !== null) {
-        const row = tr[1];
-        if (!/Total goals scored/i.test(row)) continue;
-        const cells = row.split(/<\/td>/i);
-        if (cells.length < 4) continue;
-        const teamCodeMatch = cells[2].replace(/<[^>]+>/g, "").trim();
-        if (!/^[A-ZÅÄÖ]{2,4}$/.test(teamCodeMatch)) continue;
-        const scorerCell = cells[3];
-        const beforeSpan = scorerCell.split(/<span/i)[0];
-        const scorerM = beforeSpan.match(namePartRe);
-        if (!scorerM) continue;
-        const scorer = cleanName(scorerM[1]);
-        const assists: string[] = [];
-        const assistRe = /Assists in tournament[^"]*"[^>]*>([\s\S]*?)<\/div>/gi;
-        let am: RegExpExecArray | null;
-        while ((am = assistRe.exec(scorerCell)) !== null) {
-          const inner = am[1].replace(/<[^>]+>/g, "");
-          const nm = inner.match(namePartRe);
-          if (nm) assists.push(cleanName(nm[1]));
-        }
-        goals.push({ teamCode: teamCodeMatch, scorer, assists });
-      }
-      return goals;
-    };
     const result: Record<string, HotPlayer> = {};
     for (const [teamName, { code, games }] of perTeam.entries()) {
       const tally = new Map<string, { goals: number; assists: number }>();
       for (const g of games) {
         const html = fetchedPages.get(g.id);
         if (!html) continue;
-        const goals = parseGoals(html);
+        const goals = parseGameGoals(html);
         for (const gl of goals) {
           if (gl.teamCode !== code) continue;
           const sc = tally.get(gl.scorer) ?? { goals: 0, assists: 0 };
@@ -1685,56 +1732,12 @@ export async function fetchLastMeetingRecap(
     };
     [result.homeShots, result.awayShots] = extractPair("Shots");
     [result.homePim, result.awayPim] = extractPair("PIM");
-    const trRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
-    const namePartRe = /\d+\.\s*([^<(]+?)(?=\s*<|\s*\(|$)/;
-    const cleanName = (s: string) =>
-      s.replace(/\s+/g, " ").replace(/[,\s]+$/, "").trim();
-    const stripTags = (s: string) =>
-      s.replace(/<[^>]+>/g, " ").replace(/&nbsp;|\u00a0/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
-    const headerToPeriod = (s: string): string | null => {
-      const t = s.toLowerCase();
-      if (/1st\s*period|första/.test(t)) return "1";
-      if (/2nd\s*period|andra/.test(t)) return "2";
-      if (/3rd\s*period|tredje/.test(t)) return "3";
-      if (/overtime|över?tid|extra/.test(t)) return "OT";
-      if (/shoot.?out|game winning shots|straff/.test(t)) return "SO";
-      return null;
-    };
-    let currentPeriod: string | null = null;
-    let tr: RegExpExecArray | null;
-    while ((tr = trRe.exec(html)) !== null) {
-      const row = tr[1];
-      const h3 = row.match(/<h3>([^<]+)<\/h3>/i);
-      if (h3) {
-        const p = headerToPeriod(h3[1]);
-        if (p) {
-          currentPeriod = p;
-          if (p === "OT") result.wentToOvertime = true;
-          if (p === "SO") result.wentToShootout = true;
-        }
-        continue;
-      }
-      if (!/Total goals scored/i.test(row)) continue;
-      const cells = row.split(/<\/td>/i);
-      if (cells.length < 4) continue;
-      const time = stripTags(cells[0]) || null;
-      const teamCode = stripTags(cells[2]);
-      if (!/^[A-ZÅÄÖ]{2,4}$/.test(teamCode)) continue;
-      const scorerCell = cells[3];
-      const beforeSpan = scorerCell.split(/<span/i)[0];
-      const scorerM = beforeSpan.match(namePartRe);
-      if (!scorerM) continue;
-      const scorer = cleanName(scorerM[1]);
-      const assists: string[] = [];
-      const assistRe = /Assists in tournament[^"]*"[^>]*>([\s\S]*?)<\/div>/gi;
-      let am: RegExpExecArray | null;
-      while ((am = assistRe.exec(scorerCell)) !== null) {
-        const inner = am[1].replace(/<[^>]+>/g, "");
-        const nm = inner.match(namePartRe);
-        if (nm) assists.push(cleanName(nm[1]));
-      }
-      result.goals.push({ teamCode, scorer, assists, period: currentPeriod, time });
-    }
+    for (const g of parseGameGoals(html, {
+      onSection: (p) => {
+        if (p === "OT") result.wentToOvertime = true;
+        if (p === "SO") result.wentToShootout = true;
+      },
+    })) result.goals.push(g);
     const periodRank: Record<string, number> = { "1": 1, "2": 2, "3": 3, OT: 4, SO: 5 };
     const toSec = (t: string | null) => {
       if (!t) return 0;
