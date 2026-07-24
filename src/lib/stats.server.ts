@@ -172,6 +172,17 @@ function buildUrls(competitionId: string): Urls {
   };
 }
 
+// Returns n when it falls within [min, max], otherwise logs a warning and
+// returns null. Surfaces column-shift bugs where wrong-but-plausible numbers
+// would otherwise silently land in the briefing.
+function checkRange(n: number, min: number, max: number, context: string): number | null {
+  if (!Number.isFinite(n) || n < min || n > max) {
+    console.warn(`[column-check] ${context}: value ${n} outside expected range [${min}, ${max}] — possible column shift`);
+    return null;
+  }
+  return n;
+}
+
 function htmlEntityDecode(value: string): string {
   return value
     .replace(/&nbsp;|&#160;|\u00a0/g, " ")
@@ -484,8 +495,8 @@ async function fetchSpecialTeamsFromHtml(
             cellMatch[1].replace(/<[^>]+>/g, "").replace(/&nbsp;|\u00a0/g, " ").trim(),
           );
         }
-        const pct = Number(cells[5]?.replace(",", "."));
-        if (!Number.isFinite(pct)) continue;
+        const pct = checkRange(Number(cells[5]?.replace(",", ".")), 0, 100, `specialTeams.${section.key}Pct(${teamName})`);
+        if (pct == null) continue;
         const goals = Number(cells[4]?.replace(",", "."));
         const entry = result[teamName] ?? {
           powerPlayPct: null,
@@ -552,12 +563,12 @@ async function fetchStandingsFromHtml(
     let rowMatch: RegExpExecArray | null;
     while ((rowMatch = rowRe.exec(html)) !== null) {
       const cells = extractTdCells(rowMatch[1]);
-      if (cells.length < 8) continue;
-      const position = Number(cells[0]);
+      if (cells.length < 9) continue;
+      const position = checkRange(Number(cells[0]), 1, 30, "standings.position");
       const name = cells[1];
-      const gamesPlayed = Number(cells[2]);
-      const points = Number(cells[8]);
-      if (!Number.isFinite(position) || !name || !Number.isFinite(gamesPlayed) || !Number.isFinite(points)) continue;
+      const gamesPlayed = checkRange(Number(cells[2]), 0, 80, "standings.gamesPlayed");
+      const points = checkRange(Number(cells[8]), 0, 300, "standings.points");
+      if (position == null || !name || gamesPlayed == null || points == null) continue;
       if (name in result) continue;
       result[name] = { position, gamesPlayed, points };
     }
@@ -655,22 +666,25 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
         const pim = Number(cells[8]);
 
         // Top scorers: keep first 5 valid rows
-        if (scorerList.length < 5 && Number.isFinite(points)) {
+        const validPoints = checkRange(points, 0, 250, `scoring.points(${teamName}/${name})`);
+        if (scorerList.length < 5 && validPoints != null) {
           scorerList.push({
             name,
-            goals: Number.isFinite(goals) ? goals : null,
-            assists: Number.isFinite(assists) ? assists : null,
-            points,
-            gamesPlayed: Number.isFinite(gp) ? gp : null,
+            goals: checkRange(goals, 0, 100, `scoring.goals(${teamName}/${name})`),
+            assists: checkRange(assists, 0, 200, `scoring.assists(${teamName}/${name})`),
+            points: validPoints,
+            gamesPlayed: checkRange(gp, 0, 80, `scoring.gp(${teamName}/${name})`),
           });
         }
 
         // Discipline: sum all skaters
-        if (Number.isFinite(pim)) {
-          totalPim += pim;
-          if (Number.isFinite(gp) && gp > maxGp) maxGp = gp;
-          if (pim > 0) {
-            offenders.push({ name, pim, gamesPlayed: Number.isFinite(gp) ? gp : null });
+        const validPim = checkRange(pim, 0, 600, `scoring.pim(${teamName}/${name})`);
+        if (validPim != null) {
+          totalPim += validPim;
+          const validGp = checkRange(gp, 0, 80, `scoring.gp(${teamName}/${name})`);
+          if (validGp != null && validGp > maxGp) maxGp = validGp;
+          if (validPim > 0) {
+            offenders.push({ name, pim: validPim, gamesPlayed: validGp ?? null });
           }
         }
 
@@ -680,14 +694,14 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
         const foTotal = cells.length >= 21 ? Number(cells[19]) : NaN;
         const foPctStr = cells.length >= 21 ? cells[20] : "N/A";
         const foPctVal = foPctStr === "N/A" || foPctStr === "" ? null : Number(foPctStr);
+        const validFoPct = foPctVal != null ? checkRange(foPctVal, 0, 100, `scoring.foPct(${teamName}/${name})`) : null;
         if (
           Number.isFinite(foWins) &&
           Number.isFinite(foLosses) &&
           Number.isFinite(foTotal) &&
-          foPctVal !== null &&
-          Number.isFinite(foPctVal)
+          validFoPct != null
         ) {
-          foEntries.push({ name, foWins, foLosses, foTotal, foPct: foPctVal });
+          foEntries.push({ name, foWins, foLosses, foTotal, foPct: validFoPct });
         }
       }
 
@@ -726,6 +740,8 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
           if (!name) continue;
           const gp = parseNum(cells[5]);
           if (gp == null || gp === 0) continue; // skip unused goalies
+          const rawSavePct = parseNum(cells[10]);
+          const rawGaa = parseNum(cells[11]);
           goalieList.push({
             name,
             gamesPlayed: gp,
@@ -733,8 +749,8 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
             goalsAgainst: parseNum(cells[7]),
             saves: parseNum(cells[8]),
             shotsAgainst: parseNum(cells[9]),
-            savePct: parseNum(cells[10]),
-            gaa: parseNum(cells[11]),
+            savePct: rawSavePct != null ? checkRange(rawSavePct, 0, 100, `goalie.savePct(${teamName}/${name})`) : null,
+            gaa: rawGaa != null ? checkRange(rawGaa, 0, 15, `goalie.gaa(${teamName}/${name})`) : null,
             shutouts: parseNum(cells[12]),
             wins: parseNum(cells[13]),
             losses: parseNum(cells[14]),
@@ -1089,7 +1105,9 @@ async function fetchTeamShotsOnGoal(
         const gp = Number(cells[2]);
         const sog = Number(cells[5]);
         if (!Number.isFinite(gp) || gp === 0 || !Number.isFinite(sog) || sog <= 0) continue;
-        out[fullName] = sog / gp;
+        const sogPerGame = sog / gp;
+        if (checkRange(sogPerGame, 0, 80, `teamStats.sogPerGame(${fullName})`) == null) continue;
+        out[fullName] = sogPerGame;
       }
       return out;
     }
