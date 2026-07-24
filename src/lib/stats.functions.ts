@@ -90,6 +90,8 @@ const TeamBriefing = z.object({
   topScorers: z.array(Scorer).max(5),
   powerPlayPct: z.number().nullable().describe("PP% as a percent number"),
   penaltyKillPct: z.number().nullable().describe("PK% as a percent number"),
+  powerPlayGoals: z.number().int().nullable().default(null).describe("PP goals scored this season"),
+  penaltyKillGoalsAgainst: z.number().int().nullable().default(null).describe("PP goals conceded while shorthanded this season"),
   venueForm: z
     .object({ home: VenueSplit, away: VenueSplit })
     .nullable()
