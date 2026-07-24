@@ -36,7 +36,7 @@ export function WinProbabilityCard({ home, away }: { home: TeamData; away: TeamD
                 <p className="font-semibold">Hur beräknas vinstchansen?</p>
                 <p>Varje lags styrka beräknas från två faktorer:</p>
                 <ul className="list-disc pl-4 space-y-1">
-                  <li><span className="font-medium">70%</span> — poäng per match (säsong), normaliserat mot max 3 p/match</li>
+                 <li><span className="font-medium">70%</span> — poäng per match (säsong) ÷ 3 för att normalisera till 0–1</li>
                   <li><span className="font-medium">30%</span> — vinstprocent på hemmaplan (hemmalaget) respektive bortaplan (bortalaget)</li>
                 </ul>
                 <p>Hemmalaget får sedan ett <span className="font-medium">+10% styrketillägg</span> för hemmafördel.</p>
