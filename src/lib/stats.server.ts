@@ -1137,10 +1137,22 @@ export async function buildBriefing(
   // `force` also busts the in-process schedule cache: without it, a
   // force-refreshed briefing could still read a schedule fetched hours ago
   // earlier in the process's lifetime, silently missing newly played games.
+  //
+  // getScheduleGames and scrapeMd are the only two entries here that can
+  // reject (every other fetcher already degrades to an empty result
+  // internally) — if the schedule page is down, catch and degrade those two
+  // as well so one unreachable source doesn't fail the entire briefing when
+  // special teams / scoring / shots-on-goal fetched fine.
  const [scheduleGames, scheduleMd, specialTeamsByName, codeMap, scoringData, sogByName] =
     await Promise.all([
-      getScheduleGames(season, { force }),
-      scrapeMd(urls.schedule),
+      getScheduleGames(season, { force }).catch((err) => {
+        console.warn("[buildBriefing] schedule fetch failed, degrading gracefully:", (err as Error).message);
+        return [] as ScheduleGame[];
+      }),
+      scrapeMd(urls.schedule).catch((err) => {
+        console.warn("[buildBriefing] schedule markdown fetch failed, degrading gracefully:", (err as Error).message);
+        return "";
+      }),
       fetchSpecialTeamsFromHtml(urls),
       fetchTeamCodeMap(urls),
       fetchScoringPageData(urls),
