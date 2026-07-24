@@ -430,6 +430,13 @@ function normalizeTeamKey(s: string): string {
   return s.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+// Use this instead of === when comparing team names scraped from different
+// pages — whitespace encoding (&nbsp;, double-space, trailing space) can
+// differ between the standings page and the schedule page.
+function teamMatches(a: string, b: string): boolean {
+  return normalizeTeamKey(a) === normalizeTeamKey(b);
+}
+
 function pickSpecialTeams(
   byName: Record<string, SpecialTeamsEntry>,
   teamName: string,
@@ -787,11 +794,11 @@ function computeLastFive(
   const result: Record<string, Briefing["home"]["lastFive"]> = {};
   for (const teamName of teamNames) {
     const teamGames = games
-      .filter((g) => g.played && (g.homeTeam === teamName || g.awayTeam === teamName))
+      .filter((g) => g.played && (teamMatches(g.homeTeam, teamName) || teamMatches(g.awayTeam, teamName)))
       .sort((a, b) => (a.date < b.date ? 1 : -1))
       .slice(0, 5)
       .map((g) => {
-        const isHome = g.homeTeam === teamName;
+        const isHome = teamMatches(g.homeTeam, teamName);
         const opponent = isHome ? g.awayTeam : g.homeTeam;
         const teamGoals = (isHome ? g.homeGoals : g.awayGoals) ?? 0;
         const opponentGoals = (isHome ? g.awayGoals : g.homeGoals) ?? 0;
@@ -856,7 +863,7 @@ async function fetchHotPlayersFromGameLogs(
     for (const { name, code } of teamLookups) {
       if (!code) continue;
       const games = allGames
-        .filter((g) => g.homeTeam === name || g.awayTeam === name)
+        .filter((g) => teamMatches(g.homeTeam, name) || teamMatches(g.awayTeam, name))
         .sort((a, b) => (a.date < b.date ? 1 : -1))
         .slice(0, recentGames);
       if (games.length > 0) perTeam.set(name, { code, games });
@@ -976,10 +983,10 @@ function computeVenueForm(
     const home: ResultLetter[] = [];
     const away: ResultLetter[] = [];
     const teamGames = games
-      .filter((g) => g.played && (g.homeTeam === teamName || g.awayTeam === teamName))
+      .filter((g) => g.played && (teamMatches(g.homeTeam, teamName) || teamMatches(g.awayTeam, teamName)))
       .sort((a, b) => (a.date < b.date ? 1 : -1));
     for (const g of teamGames) {
-      const isHome = g.homeTeam === teamName;
+      const isHome = teamMatches(g.homeTeam, teamName);
       const teamGoals = (isHome ? g.homeGoals : g.awayGoals) ?? 0;
       const oppGoals = (isHome ? g.awayGoals : g.homeGoals) ?? 0;
       const wentBeyond = g.periodCount > 3;
@@ -1010,8 +1017,8 @@ function computePeriodGoals(
     const totals: PeriodGoals = { p1: 0, p2: 0, p3: 0, ot: 0, total: 0, games: 0 };
     for (const g of games) {
       if (!g.played) continue;
-      const isHome = g.homeTeam === teamName;
-      const isAway = g.awayTeam === teamName;
+      const isHome = teamMatches(g.homeTeam, teamName);
+      const isAway = teamMatches(g.awayTeam, teamName);
       if (!isHome && !isAway) continue;
       totals.games += 1;
       g.periods.forEach((pair, idx) => {
