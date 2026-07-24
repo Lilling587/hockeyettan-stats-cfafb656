@@ -39,6 +39,8 @@ function VenueRow({
       </div>
     </div>
   );
+}
+
 
 export function VenueStreakCard({ team }: { team: TeamData }) {
   return (
