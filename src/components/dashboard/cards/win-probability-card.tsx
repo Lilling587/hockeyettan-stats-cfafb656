@@ -1,4 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 import { teamPpg, venueWinRate, type TeamData } from "@/lib/dashboard-utils";
 
 export function WinProbabilityCard({ home, away }: { home: TeamData; away: TeamData }) {
@@ -18,7 +25,27 @@ export function WinProbabilityCard({ home, away }: { home: TeamData; away: TeamD
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Vinstchans</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2">
+          Vinstchans
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-72 space-y-2 text-xs">
+                <p className="font-semibold">Hur beräknas vinstchansen?</p>
+                <p>Varje lags styrka beräknas från två faktorer:</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li><span className="font-medium">70%</span> — poäng per match (säsong), normaliserat mot max 3 p/match</li>
+                  <li><span className="font-medium">30%</span> — vinstprocent på hemmaplan (hemmalaget) respektive bortaplan (bortalaget)</li>
+                </ul>
+                <p>Hemmalaget får sedan ett <span className="font-medium">+10% styrketillägg</span> för hemmafördel.</p>
+                <p>Slutlig sannolikhet = hemmastyrkа ÷ (hemmastyrka + bortastyrka)</p>
+                <p className="text-muted-foreground">Modellen är enkel och statistisk — den tar inte hänsyn till skador, form eller taktik.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {homeProb == null ? (
