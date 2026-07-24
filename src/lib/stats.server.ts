@@ -1,36 +1,9 @@
 import Firecrawl from "@mendable/firecrawl-js";
-import { generateText } from "ai";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-import { createLovableAiGatewayProvider } from "./ai-gateway.server";
-import { BriefingSchema, TeamsSchema, type Briefing } from "./stats.functions";
+import { type Briefing } from "./stats.functions";
 import { DEFAULT_SEASON, type Season } from "./seasons.config";
 import { shortTeamName, KNOWN_TEAM_NAMES } from "./team-short-names";
-
-async function generateJson<T extends z.ZodTypeAny>(
-  model: ReturnType<typeof aiModel>,
-  schema: T,
-  prompt: string,
-): Promise<z.infer<T>> {
-  const { text } = await generateText({
-    model,
-    prompt:
-      prompt +
-      `\n\nRespond with ONLY valid JSON matching this requirement, no prose, no markdown code fences.`,
-  });
-  let raw = text.trim();
-  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fence) raw = fence[1].trim();
-  const start = raw.search(/[\[{]/);
-  if (start > 0) raw = raw.slice(start);
-  try {
-    return schema.parse(JSON.parse(raw));
-  } catch (e) {
-    throw new Error(
-      `AI returned data that did not match expected shape: ${(e as Error).message}. Raw start: ${raw.slice(0, 200)}`,
-    );
-  }
-}
 
 // ---------- Clients ----------
 
@@ -111,13 +84,6 @@ function firecrawl() {
     );
   }
   return new Firecrawl({ apiKey: key });
-}
-
-function aiModel() {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("LOVABLE_API_KEY is not configured");
-  const gateway = createLovableAiGatewayProvider(key);
-  return gateway("google/gemini-2.5-flash");
 }
 
 // ---------- Cache ----------
@@ -252,30 +218,6 @@ async function scrapeMd(url: string): Promise<string> {
     logFirecrawlError("scrapeMd", err, url);
   }
   return fetchPageTablesAsMarkdown(url);
-}
-
-function extractTeamSection(md: string, teamName: string): string {
-  const lines = md.split("\n");
-  const start = lines.findIndex((line) =>
-    line.includes(`| | ${teamName} | ${teamName} |`),
-  );
-  if (start === -1) return md.slice(0, 10000);
-  const end = lines.findIndex(
-    (line, index) =>
-      index > start && /^\| \| .+ \| .+ \| \[\\\[Top\\\]\]/.test(line),
-  );
-  return lines.slice(start, end === -1 ? start + 90 : end).join("\n");
-}
-
-function extractRowsForTeam(md: string, needles: string[]): string {
-  const lower = needles.map((n) => n.toLowerCase()).filter(Boolean);
-  const rows = md
-    .split("\n")
-    .filter((line) => {
-      const l = line.toLowerCase();
-      return lower.some((n) => l.includes(n));
-    });
-  return rows.length > 0 ? rows.join("\n") : md.slice(0, 4000);
 }
 
 function extractH2HRows(scheduleMd: string, home: string, away: string): string {
@@ -1050,20 +992,6 @@ export async function parseTeamsFromStandings(
     throw new Error("Could not parse any teams from standings page");
   }
   return teams;
-}
-
-function buildTeamContextMd(
-  urls: Urls,
-  teamName: string,
-  teamCode: string | undefined,
-  rosterMd: string,
-  scoringMd: string,
-  teamStatsMd: string,
-  specialTeamsMd: string,
-  lastFiveMd: string,
-): string {
-  const needles = [teamName, teamCode ?? ""].filter(Boolean);
-  return `Team: ${teamName}${teamCode ? ` (code: ${teamCode})` : ""}\n\nSource: ${urls.roster}\n\n=== SENIOR TEAM ROSTER ===\n${extractTeamSection(rosterMd, teamName)}\n\nSource: ${urls.scoring}\n\n=== PLAYERS-BY-TEAM (full stats incl. G/A/TP, sorted by points) ===\n${extractTeamSection(scoringMd, teamName)}\n\nSource: ${urls.teamStats}\n\n=== TEAM SCORING / GOALKEEPING ===\n${extractRowsForTeam(teamStatsMd, needles)}\n\nSource: ${urls.specialTeams}\n\n=== POWERPLAY / PENALTY KILLING ===\n${extractRowsForTeam(specialTeamsMd, needles)}\n\n=== LAST 5 PLAYED GAMES (most recent first; already filtered & sorted) ===\n${lastFiveMd}`;
 }
 
 async function fetchTeamShotsOnGoal(
