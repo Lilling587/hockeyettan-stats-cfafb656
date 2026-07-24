@@ -38,7 +38,7 @@ export function FlushHmrButton() {
       type="button"
       onClick={flush}
       title="Force buffered src edits to render instantly (dev only)"
-      className="fixed bottom-3 right-3 z-[9999] flex items-center gap-1.5 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-md backdrop-blur transition-colors hover:bg-background"
+      className="fixed bottom-3 left-3 z-[2147483647] flex items-center gap-1.5 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-md backdrop-blur transition-colors hover:bg-background"
     >
       <RefreshCw
         className={`h-3.5 w-3.5 ${state === "flushing" ? "animate-spin" : ""}`}
