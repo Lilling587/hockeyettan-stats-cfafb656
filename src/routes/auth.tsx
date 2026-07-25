@@ -64,6 +64,12 @@ export const Route = createFileRoute("/auth")({
 
 type Mode = "signin" | "signup" | "forgot";
 
+function isExistingAccountSignup(user: unknown): boolean {
+  if (!user || typeof user !== "object") return false;
+  const identities = (user as { identities?: unknown }).identities;
+  return Array.isArray(identities) && identities.length === 0;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
@@ -119,8 +125,17 @@ function AuthPage() {
         toast.success("Check your inbox for a reset link");
         setMode("signin");
       } else if (mode === "signup") {
-        const { data: signUpData, error } = await supabase.auth.signUp({ email, password });
+        const { data: signUpData, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        });
         if (error) throw error;
+        if (isExistingAccountSignup(signUpData.user)) {
+          toast.info("Kontot finns redan. Logga in eller återställ lösenordet om du saknar åtkomst.");
+          setMode("signin");
+          return;
+        }
         if (signUpData.session?.user) {
           void logEvent({ data: { action: "signup" } });
         }
