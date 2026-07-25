@@ -301,6 +301,47 @@ function AdminUsersPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Nekade användare ({rejectedUsers.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {profilesQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Laddar…</p>
+            ) : rejectedUsers.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Inga nekade användare.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {rejectedUsers.map((u) => (
+                  <li
+                    key={u.id}
+                    className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">
+                        {u.email ?? u.id}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Registrerad {new Date(u.createdAt).toLocaleDateString("sv-SE")}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        disabled={approveMutation.isPending}
+                        onClick={() => approveMutation.mutate(u.id)}
+                      >
+                        <Check className="mr-2 h-4 w-4" />
+                        Godkänn
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>
               Notisprenumeranter ({subscribersQuery.data?.length ?? 0})
             </CardTitle>
