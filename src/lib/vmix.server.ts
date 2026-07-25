@@ -47,37 +47,6 @@ function toLastnameFirstname(raw: string): string {
   return `${parts.slice(1).join(" ")}, ${parts[0]}`;
 }
 
-function isGoalie(pos: string | null): boolean {
-  const p = (pos ?? "").toUpperCase().trim();
-  return /^(G|GK|MV|GOALIE|MÅLVAKT|GOALKEEPER)$/i.test(p);
-}
-
-function isLeftDefense(pos: string | null): boolean {
-  return (pos ?? "").toUpperCase().trim() === "LD";
-}
-
-function isRightDefense(pos: string | null): boolean {
-  return (pos ?? "").toUpperCase().trim() === "RD";
-}
-
-function isGenericDefense(pos: string | null): boolean {
-  const p = (pos ?? "").toUpperCase().trim();
-  return /^(D|B|BACK|DEF|DEFENSE|DEFENCE|DEFENSEMAN)$/.test(p);
-}
-
-function isLeftWing(pos: string | null): boolean {
-  return (pos ?? "").toUpperCase().trim() === "LW";
-}
-
-function isCenter(pos: string | null): boolean {
-  const p = (pos ?? "").toUpperCase().trim();
-  return p === "CE" || p === "C";
-}
-
-function isRightWing(pos: string | null): boolean {
-  return (pos ?? "").toUpperCase().trim() === "RW";
-}
-
 /** Fetch with an automatic 10-second abort timeout. If swehockey hangs
  *  instead of refusing, this fails fast rather than blocking the worker. */
 async function fetchWithTimeout(
@@ -306,9 +275,11 @@ export async function scrapeLiveGames(competitionId: string): Promise<
   }>
 > {
   const url = `https://stats.swehockey.se/ScheduleAndResults/Live/${competitionId}`;
-  const res = await fetchWithTimeout(url, {
-    headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-  });
+  const res = await withRetry(() =>
+    fetchWithTimeout(url, {
+      headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
+    }),
+  );
   if (!res.ok) throw new Error(`Live page fetch failed: ${res.status}`);
   const html = await res.text();
 
