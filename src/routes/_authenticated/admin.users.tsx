@@ -137,6 +137,7 @@ function AdminUsersPage() {
     profilesQuery.data?.users ?? [];
   const pendingUsers = users.filter((u) => u.approvalStatus === "pending");
   const approvedUsers = users.filter((u) => u.approvalStatus === "approved");
+  const rejectedUsers = users.filter((u) => u.approvalStatus === "rejected");
 
   return (
     <div className="min-h-screen bg-background">
