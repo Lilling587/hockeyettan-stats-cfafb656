@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Season } from "./seasons.config";
-import { getScheduleGames } from "./stats.server";
+import { getScheduleGames, fetchWithTimeout, withRetry } from "./stats.server";
 
 const STATS_BASE_URL = "https://stats.swehockey.se";
 
@@ -146,9 +146,11 @@ function parseGoalsWithStrength(html: string): ParsedGamePage["goals"] {
   const goals: ParsedGamePage["goals"] = [];
   const trRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
   let tr: RegExpExecArray | null;
+  let markerRows = 0;
   while ((tr = trRe.exec(html)) !== null) {
     const row = tr[1];
     if (!/Total goals scored/i.test(row)) continue;
+    markerRows++;
     const cells = row.split(/<\/td>/i);
     if (cells.length < 4) continue;
     const scoreCell = cells[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -160,12 +162,14 @@ function parseGoalsWithStrength(html: string): ParsedGamePage["goals"] {
     else if (/\bEN\b/i.test(scoreCell)) strength = "EN";
     else if (/\bPS\b/i.test(scoreCell)) strength = "PS";
     const scorerCell = cells[3];
-    const beforeSpan = scorerCell.split(/<span/i)[0];
-    const scorerM = beforeSpan.match(namePartRe);
+    // Try span/b/strong as delimiters — scorer name precedes the first inline wrapper
+    const beforeInline = scorerCell.split(/<(?:span|b|strong)[\s>]/i)[0];
+    const scorerM = beforeInline.match(namePartRe);
     if (!scorerM) continue;
     const scorer = cleanName(scorerM[1]);
     const assists: string[] = [];
-    const assistRe = /Assists in tournament[^"]*"[^>]*>([\s\S]*?)<\/div>/gi;
+    // Match any element whose attribute contains "assist" — catches attribute renames
+    const assistRe = /\bassist[^"]*"[^>]*>([\s\S]*?)<\/(?:div|span)>/gi;
     let am: RegExpExecArray | null;
     while ((am = assistRe.exec(scorerCell)) !== null) {
       const inner = am[1].replace(/<[^>]+>/g, "");
@@ -173,6 +177,9 @@ function parseGoalsWithStrength(html: string): ParsedGamePage["goals"] {
       if (nm) assists.push(cleanName(nm[1]));
     }
     goals.push({ teamCode, strength, scorer, assists });
+  }
+  if (markerRows > 0 && goals.length === 0) {
+    console.warn(`[game-flow] ${markerRows} goal row(s) found but 0 goals extracted — page markup may have changed`);
   }
   return goals;
 }
@@ -187,9 +194,9 @@ async function doFetchEventPage(
   const url = `${STATS_BASE_URL}/Game/Events/${gameId}`;
   let html: string;
   try {
-    const res = await fetch(url, {
+    const res = await withRetry(() => fetchWithTimeout(url, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-    });
+    }));
     if (!res.ok) return null;
     html = await res.text();
     if (!html || html.length < 500) return null;
@@ -297,13 +304,14 @@ async function doFetchLineupPage(gameId: string): Promise<ParsedLineupPage | nul
   const url = `${STATS_BASE_URL}/Game/LineUps/${gameId}`;
   let html: string;
   try {
-    const res = await fetch(url, {
+    const res = await withRetry(() => fetchWithTimeout(url, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-    });
+    }));
     if (!res.ok) return null;
     html = await res.text();
     if (!html || html.length < 500) return null;
-  } catch {
+  } catch (err) {
+    console.warn(`[game-flow] lineup fetch ${gameId} failed: ${(err as Error).message}`);
     return null;
   }
 
@@ -399,7 +407,10 @@ async function doComputeGameFlow(
   season: Season,
   n: number,
 ): Promise<GameFlowResult> {
- const scheduleGames = await getScheduleGames(season);
+  const scheduleGames = await getScheduleGames(season).catch((err) => {
+    console.warn(`[game-flow] schedule fetch failed: ${(err as Error).message}`);
+    return [] as Awaited<ReturnType<typeof getScheduleGames>>;
+  });
   const teamGames = scheduleGames
     .filter((g) => g.played && g.id && (g.homeTeam === team || g.awayTeam === team))
     .sort((a, b) => (a.date < b.date ? 1 : -1))

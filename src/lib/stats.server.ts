@@ -138,13 +138,13 @@ function buildUrls(competitionId: string): Urls {
   };
 }
 
-function fetchWithTimeout(url: string, opts: RequestInit, ms = 10_000): Promise<Response> {
+export function fetchWithTimeout(url: string, opts: RequestInit, ms = 10_000): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), ms);
   return fetch(url, { ...opts, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 
-async function withRetry<T>(
+export async function withRetry<T>(
   fn: () => Promise<T>,
   maxAttempts = 3,
   delayMs = 500,
