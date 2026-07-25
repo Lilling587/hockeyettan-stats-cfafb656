@@ -132,7 +132,13 @@ function AuthPage() {
           password,
         });
         if (error) throw error;
-        const status = await getApprovalStatus(signInData.user!.id);
+        const user = signInData.user!;
+        const [status, roles] = await Promise.all([
+          getApprovalStatus(user.id),
+          getUserRoles(user.id),
+        ]);
+        setUserEmail(user.email ?? null);
+        setUserRoles(roles);
         if (status !== "approved") {
           navigate({ to: "/auth", search: { pending: status ?? "missing" }, replace: true });
           return;
