@@ -30,6 +30,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminUsageRouteImport } from './routes/_authenticated/admin.usage'
 import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin.logs'
 import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
+import { Route as AuthenticatedAdminAuthEmailsRouteImport } from './routes/_authenticated/admin.auth-emails'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin.audit'
 import { Route as AuthenticatedAdminAssetsRouteImport } from './routes/_authenticated/admin.assets'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -154,6 +155,12 @@ const AuthenticatedAdminHealthRoute =
     path: '/admin/health',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminAuthEmailsRoute =
+  AuthenticatedAdminAuthEmailsRouteImport.update({
+    id: '/admin/auth-emails',
+    path: '/admin/auth-emails',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
   id: '/admin/audit',
   path: '/admin/audit',
@@ -255,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/auth-emails': typeof AuthenticatedAdminAuthEmailsRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/usage': typeof AuthenticatedAdminUsageRoute
@@ -292,6 +300,7 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/auth-emails': typeof AuthenticatedAdminAuthEmailsRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/usage': typeof AuthenticatedAdminUsageRoute
@@ -331,6 +340,7 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/admin/assets': typeof AuthenticatedAdminAssetsRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/auth-emails': typeof AuthenticatedAdminAuthEmailsRoute
   '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
   '/_authenticated/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/_authenticated/admin/usage': typeof AuthenticatedAdminUsageRoute
@@ -370,6 +380,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/admin/assets'
     | '/admin/audit'
+    | '/admin/auth-emails'
     | '/admin/health'
     | '/admin/logs'
     | '/admin/usage'
@@ -407,6 +418,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/admin/assets'
     | '/admin/audit'
+    | '/admin/auth-emails'
     | '/admin/health'
     | '/admin/logs'
     | '/admin/usage'
@@ -445,6 +457,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/admin/assets'
     | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/auth-emails'
     | '/_authenticated/admin/health'
     | '/_authenticated/admin/logs'
     | '/_authenticated/admin/usage'
@@ -645,6 +658,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminHealthRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/auth-emails': {
+      id: '/_authenticated/admin/auth-emails'
+      path: '/admin/auth-emails'
+      fullPath: '/admin/auth-emails'
+      preLoaderRoute: typeof AuthenticatedAdminAuthEmailsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/audit': {
       id: '/_authenticated/admin/audit'
       path: '/admin/audit'
@@ -758,6 +778,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedAdminAssetsRoute: typeof AuthenticatedAdminAssetsRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminAuthEmailsRoute: typeof AuthenticatedAdminAuthEmailsRoute
   AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
   AuthenticatedAdminLogsRoute: typeof AuthenticatedAdminLogsRoute
   AuthenticatedAdminUsageRoute: typeof AuthenticatedAdminUsageRoute
@@ -770,6 +791,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedAdminAssetsRoute: AuthenticatedAdminAssetsRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+  AuthenticatedAdminAuthEmailsRoute: AuthenticatedAdminAuthEmailsRoute,
   AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
   AuthenticatedAdminLogsRoute: AuthenticatedAdminLogsRoute,
   AuthenticatedAdminUsageRoute: AuthenticatedAdminUsageRoute,
