@@ -89,28 +89,47 @@ function firecrawl() {
 // ---------- Cache ----------
 
 export async function getCached(key: string, ttlMs: number) {
-  const { data } = await admin()
-    .from("cached_briefings")
-    .select("payload, fetched_at")
-    .eq("matchup_key", key)
-    .maybeSingle();
-  if (!data) return null;
-  const ageMs = Date.now() - new Date(data.fetched_at as string).getTime();
-  if (ageMs > ttlMs) return null;
-  return data.payload as unknown;
+  try {
+    const { data } = await admin()
+      .from("cached_briefings")
+      .select("payload, fetched_at")
+      .eq("matchup_key", key)
+      .maybeSingle();
+    if (!data) return null;
+    const ageMs = Date.now() - new Date(data.fetched_at as string).getTime();
+    if (ageMs > ttlMs) return null;
+    return data.payload as unknown;
+  } catch (err) {
+    console.warn("[cache:get] Supabase unavailable — skipping cache read:", (err as Error).message);
+    return null;
+  }
 }
 
 export async function setCached(key: string, payload: unknown) {
-  await admin()
-    .from("cached_briefings")
-    .upsert(
-      {
-        matchup_key: key,
-        payload: payload as object,
-        fetched_at: new Date().toISOString(),
-      },
-      { onConflict: "matchup_key" },
-    );
+  try {
+    await admin()
+      .from("cached_briefings")
+      .upsert(
+        {
+          matchup_key: key,
+          payload: payload as object,
+          fetched_at: new Date().toISOString(),
+        },
+        { onConflict: "matchup_key" },
+      );
+  } catch (err) {
+    console.warn("[cache:set] Supabase unavailable — cache write skipped:", (err as Error).message);
+  }
+}
+
+function checkServerEnv(): string[] {
+  const issues: string[] = [];
+  if (!process.env.SUPABASE_URL) {
+    issues.push("SUPABASE_URL is not set — briefing caching is disabled");
+  } else if (!process.env.SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_PUBLISHABLE_KEY) {
+    issues.push("Supabase key is not set (need SUPABASE_SERVICE_ROLE_KEY or SUPABASE_PUBLISHABLE_KEY) — briefing caching is disabled");
+  }
+  return issues;
 }
 
 // ---------- Scrape helpers ----------
@@ -1171,7 +1190,7 @@ export async function buildBriefing(
       fetchTeamShotsOnGoal(urls),
     ]);
   const scheduleMd = scrapeMdResult.md;
-  const warnings: string[] = [];
+  const warnings: string[] = checkServerEnv();
   if (scrapeMdResult.usedFallback) {
     warnings.push("Schedule data may be incomplete — Firecrawl unavailable, some rounds may be missing");
   }
