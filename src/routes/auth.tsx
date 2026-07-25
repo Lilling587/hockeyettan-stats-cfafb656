@@ -132,7 +132,13 @@ function AuthPage() {
         });
         if (error) throw error;
         if (isExistingAccountSignup(signUpData.user)) {
-          toast.info("Kontot finns redan. Logga in eller återställ lösenordet om du saknar åtkomst.");
+          const { error: resendError } = await supabase.auth.resend({
+            type: "signup",
+            email,
+            options: { emailRedirectTo: window.location.origin },
+          });
+          if (resendError) throw resendError;
+          toast.info("Kontot finns redan. Om e-posten inte är bekräftad skickades en ny bekräftelselänk.");
           setMode("signin");
           return;
         }
