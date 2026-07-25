@@ -32,9 +32,12 @@ export function parseSeasonOptions(html: string): Array<{
 export async function fetchSeasonOptions(): Promise<
   Array<{ label: string; competitionId: string }>
 > {
-  const res = await fetch(STANDINGS_INDEX_URL, {
-    headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-  });
+  const { fetchWithTimeout, withRetry } = await import("./stats.server");
+  const res = await withRetry(() =>
+    fetchWithTimeout(STANDINGS_INDEX_URL, {
+      headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
+    }),
+  );
   if (!res.ok) throw new Error(`Source returned ${res.status}`);
   const html = await res.text();
   return parseSeasonOptions(html);

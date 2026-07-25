@@ -106,7 +106,8 @@ export async function sendPostgameEmails(
         unsubscribeUrl: `${origin}/api/public/unsubscribe?t=${encodeURIComponent(token)}`,
       });
 
-      const res = await fetch(
+      const { fetchWithTimeout } = await import("./stats.server");
+      const res = await fetchWithTimeout(
         "https://connector-gateway.lovable.dev/resend/emails",
         {
           method: "POST",
@@ -123,6 +124,7 @@ export async function sendPostgameEmails(
             text,
           }),
         },
+        15_000,
       );
       if (!res.ok) {
         failed += 1;
