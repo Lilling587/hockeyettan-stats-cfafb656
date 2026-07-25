@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/integrations/supabase/admin-middleware";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { DEFAULT_SEASON, getSeason, type Season } from "./seasons.config";
 
 async function resolveSeason(label?: string | null): Promise<Season> {
@@ -23,6 +24,26 @@ const TEAMS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const CACHE_VERSION = "v17";
 const HISTORY_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const LEAGUE_SLUG = "hockeyettan-sodra";
+
+type JsonPrimitive = string | number | boolean | null;
+
+async function logAuditEvent(
+  supabase: import("@supabase/supabase-js").SupabaseClient,
+  userId: string,
+  action: string,
+  metadata?: Record<string, JsonPrimitive>,
+): Promise<void> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("audit_events").insert({
+      user_id: userId,
+      action,
+      metadata: metadata ?? null,
+    });
+  } catch {
+    // Non-blocking — audit failures never break the main operation.
+  }
+}
 
 function seasonCachePrefix(seasonLabel: string) {
   return `${seasonLabel}:${LEAGUE_SLUG}:${CACHE_VERSION}`;
@@ -197,6 +218,7 @@ export const listTeams = createServerFn({ method: "POST" })
   });
 
 export const getMatchupBriefing = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -207,7 +229,7 @@ export const getMatchupBriefing = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const season = await resolveSeason(data.season);
     const { getCached, setCached, buildBriefing } = await import(
       "./stats.server"
@@ -221,6 +243,13 @@ export const getMatchupBriefing = createServerFn({ method: "POST" })
           { endpoint: "briefing", season: season.label, cacheHit: true, context: { home: data.home, away: data.away } },
           async () => true,
         );
+        // Log view even on cache hit so usage is visible.
+        await logAuditEvent(context.supabase, context.userId, "briefing_view", {
+          home: data.home,
+          away: data.away,
+          season: season.label,
+          cached: true,
+        });
         return {
           ...(cached as { briefing: Briefing; fetchedAt: string }),
           cached: true,
@@ -234,6 +263,12 @@ export const getMatchupBriefing = createServerFn({ method: "POST" })
     );
     const payload = { briefing, fetchedAt: new Date().toISOString() };
     await setCached(key, payload);
+    await logAuditEvent(context.supabase, context.userId, "briefing_view", {
+      home: data.home,
+      away: data.away,
+      season: season.label,
+      cached: false,
+    });
     return { ...payload, cached: false, season: season.label };
   });
 

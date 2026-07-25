@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link, useSearch } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,13 +8,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { logAuditEvent } from "@/lib/users.functions";
 
-const ALLOWED_NEXT = new Set(["/", "/notifications", "/admin/vmix", "/admin/health", "/admin/logs", "/admin/users"]);
+async function getApprovalStatus(userId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("approval_status")
+    .eq("id", userId)
+    .maybeSingle();
+  return (data as { approval_status?: string } | null)?.approval_status ?? null;
+}
+
+const ALLOWED_NEXT = new Set([
+  "/",
+  "/notifications",
+  "/admin/vmix",
+  "/admin/health",
+  "/admin/logs",
+  "/admin/usage",
+  "/admin/users",
+  "/admin/audit",
+]);
 const DEFAULT_NEXT = "/";
 
 const authSearchSchema = z.object({
   message: z.string().optional(),
   next: z.string().optional(),
+  pending: z.string().optional(),
 });
 
 function safeNext(next: string | undefined): string {
@@ -40,6 +61,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const logEvent = useServerFn(logAuditEvent);
 
   const next = safeNext(search.next);
   const isAdminFlow = next.startsWith("/admin/");
@@ -53,8 +75,14 @@ function AuthPage() {
 
   useEffect(() => {
     let cancelled = false;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!cancelled && data.session?.user) navigate({ to: next, replace: true });
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (cancelled || !data.session?.user) return;
+      const status = await getApprovalStatus(data.session.user.id);
+      if (status !== "approved") {
+        navigate({ to: "/auth", search: { pending: status ?? "missing" }, replace: true });
+        return;
+      }
+      navigate({ to: next, replace: true });
     });
     return () => {
       cancelled = true;
@@ -73,16 +101,25 @@ function AuthPage() {
         toast.success("Check your inbox for a reset link");
         setMode("signin");
       } else if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data: signUpData, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
+        if (signUpData.session?.user) {
+          void logEvent({ data: { action: "signup" } });
+        }
         toast.success("Kontot skapat! Kontrollera din e-post för att bekräfta.");
         setMode("signin");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
+        const status = await getApprovalStatus(signInData.user!.id);
+        if (status !== "approved") {
+          navigate({ to: "/auth", search: { pending: status ?? "missing" }, replace: true });
+          return;
+        }
+        void logEvent({ data: { action: "login" } });
         navigate({ to: next, replace: true });
       }
     } catch (err) {
@@ -102,13 +139,24 @@ function AuthPage() {
           : "Logga in";
 
 
+  const pending = search.pending;
+  const pendingLabel =
+    pending === "rejected"
+      ? "Ditt konto har nekats åtkomst. Kontakta en admin om du tror detta är fel."
+      : "Ditt konto väntar på godkännande av en admin. Du får åtkomst så snart den är klar.";
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle>{pending ? "Väntar på godkännande" : title}</CardTitle>
         </CardHeader>
         <CardContent>
+          {pending && (
+            <div className="mb-4 rounded-md bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
+              {pendingLabel}
+            </div>
+          )}
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

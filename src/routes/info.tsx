@@ -1,0 +1,112 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Monitor, Users } from "lucide-react";
+
+export const Route = createFileRoute("/info")({
+  head: () => ({
+    meta: [
+      { title: "HockeyEttan Södra · Grästorps IK" },
+      {
+        name: "description",
+        content:
+          "Broadcast-statistik för HockeyEttan Södra. Logga in för matchbriefing, spelarstatistik och vMix-integration.",
+      },
+    ],
+  }),
+  component: InfoPage,
+});
+
+function InfoPage() {
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <h1 className="text-lg font-semibold tracking-tight">HockeyEttan Södra</h1>
+          <Button asChild variant="default" size="sm">
+            <Link to="/auth">Logga in</Link>
+          </Button>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-5xl space-y-6 px-6 py-12">
+        <div className="space-y-4 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Broadcast-statistik för Grästorps IK
+          </h2>
+          <p className="mx-auto max-w-2xl text-muted-foreground">
+            Välj hemmalag och bortalag, få en komplett matchbriefing på sekunder
+            och publicera grafik direkt till vMix.
+          </p>
+          <div className="flex justify-center gap-3">
+            <Button asChild size="lg">
+              <Link to="/auth">Logga in för att komma igång</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link to="/spelare">Spelarstatistik</Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Monitor className="h-5 w-5" />
+                Matchbriefing
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Senaste formen, målvakter, skott, special teams, faceoffs och
+                head-to-head-historik – allt på ett ställe.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Users className="h-5 w-5" />
+                Spelarstatistik
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Sök och filtrera bland alla spelare i ligan efter poäng, mål,
+                assist och utvisningsminuter.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="sm:col-span-2 lg:col-span-1">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect width="20" height="14" x="2" y="3" rx="2" />
+                  <line x1="8" x2="16" y1="21" y2="21" />
+                  <line x1="12" x2="12" y1="17" y2="21" />
+                </svg>
+                vMix-integration
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Publicera laguppställningar, resultat och ställning direkt till
+                ditt vMix-produktionsflöde.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+}

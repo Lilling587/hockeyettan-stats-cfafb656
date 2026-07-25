@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
@@ -112,6 +112,7 @@ function NotFound() {
 }
 
 export const Route = createFileRoute("/")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Grästorps IK" },
@@ -122,6 +123,13 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  beforeLoad: async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.user) return;
+    const { data, error } = await supabase.auth.getUser();
+    if (!error && data.user) return;
+    throw redirect({ to: "/info" });
+  },
   validateSearch: zodValidator(searchSchema),
   loader: async ({ context }) => {
     const seasons = await context.queryClient.ensureQueryData(seasonsQueryOptions);

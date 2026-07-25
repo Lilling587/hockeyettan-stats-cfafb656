@@ -131,6 +131,8 @@ function mapRow(row: Record<string, unknown>): VmixPublicationRow {
 };
 }
 
+type JsonPrimitive = string | number | boolean | null;
+
 /** Write a non-blocking audit log entry. Never throws — failures are silently ignored. */
 async function logAuditEvent(
   supabase: import("@supabase/supabase-js").SupabaseClient,
@@ -150,6 +152,26 @@ async function logAuditEvent(
     });
   } catch {
     // Non-blocking — audit failures never break the main operation.
+  }
+
+  // Mirror to the global activity log so admin/audit shows all app usage.
+  try {
+    const metadata: Record<string, JsonPrimitive> = {};
+    for (const [key, value] of Object.entries(details ?? {})) {
+      if (value === null || ["string", "number", "boolean"].includes(typeof value)) {
+        metadata[key] = value as JsonPrimitive;
+      } else {
+        metadata[key] = String(value);
+      }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("audit_events").insert({
+      user_id: userId,
+      action: `vmix_${action}`,
+      metadata,
+    });
+  } catch {
+    // Non-blocking.
   }
 }
 

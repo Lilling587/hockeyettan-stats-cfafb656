@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderUp, Gauge, Home, ScrollText, Tv, Users } from "lucide-react";
+import { Activity, FolderUp, Gauge, Home, ScrollText, ShieldCheck, Tv, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +11,7 @@ const items = [
   { label: "Lagring", to: "/admin/assets", icon: FolderUp },
   { label: "vMix", to: "/admin/vmix", icon: Tv },
   { label: "Användare", to: "/admin/users", icon: Users },
+  { label: "Audit", to: "/admin/audit", icon: ShieldCheck },
 ];
 
 export function AdminNav() {
