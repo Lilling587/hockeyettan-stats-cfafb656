@@ -138,6 +138,12 @@ function buildUrls(competitionId: string): Urls {
   };
 }
 
+function fetchWithTimeout(url: string, opts: RequestInit, ms = 10_000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { ...opts, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function withRetry<T>(
   fn: () => Promise<T>,
   maxAttempts = 3,
@@ -202,7 +208,7 @@ function extractTableRowsAsMarkdown(html: string): string {
 }
 
 async function fetchPageTablesAsMarkdown(url: string): Promise<string> {
-  const response = await withRetry(() => fetch(url, {
+  const response = await withRetry(() => fetchWithTimeout(url, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
   }));
   if (!response.ok) {
@@ -421,7 +427,7 @@ async function fetchSpecialTeamsFromHtml(
   urls: Urls,
 ): Promise<Record<string, SpecialTeamsEntry>> {
   try {
-    const res = await withRetry(() => fetch(urls.specialTeams, {
+    const res = await withRetry(() => fetchWithTimeout(urls.specialTeams, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -515,7 +521,7 @@ async function fetchStandingsFromHtml(
   urls: Urls,
 ): Promise<Record<string, { position: number | null; gamesPlayed: number | null; points: number | null }>> {
   try {
-    const res = await withRetry(() => fetch(urls.standings, {
+    const res = await withRetry(() => fetchWithTimeout(urls.standings, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -572,7 +578,7 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
   }> = {};
 
   try {
-    const res = await withRetry(() => fetch(urls.scoring, {
+    const res = await withRetry(() => fetchWithTimeout(urls.scoring, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -858,7 +864,7 @@ async function fetchHotPlayersFromGameLogs(
   recentGames = 5,
 ): Promise<Record<string, HotPlayer>> {
   try {
-    const schedRes = await withRetry(() => fetch(urls.schedule, {
+    const schedRes = await withRetry(() => fetchWithTimeout(urls.schedule, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
     if (!schedRes.ok) throw new Error(`HTTP ${schedRes.status}`);
@@ -910,7 +916,7 @@ async function fetchHotPlayersFromGameLogs(
     await Promise.all(
       Array.from(gameIds).map(async (id) => {
         try {
-          const r = await withRetry(() => fetch(`https://stats.swehockey.se/Game/Events/${id}`, {
+          const r = await withRetry(() => fetchWithTimeout(`https://stats.swehockey.se/Game/Events/${id}`, {
             headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
           }));
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -1067,7 +1073,7 @@ async function fetchTeamShotsOnGoal(
     nameByAbbr[shortTeamName(name)] = name;
   }
   try {
-    const res = await withRetry(() => fetch(urls.teamStats, {
+    const res = await withRetry(() => fetchWithTimeout(urls.teamStats, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
     if (!res.ok) return {};
@@ -1480,7 +1486,7 @@ export async function findMatchupOnDate(
 ): Promise<{ date: string; home: string; away: string } | null> {
   try {
     const urls = buildUrls(season.competitionId);
-    const res = await withRetry(() => fetch(urls.schedule, {
+    const res = await withRetry(() => fetchWithTimeout(urls.schedule, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1532,7 +1538,7 @@ export type ScheduleGame = {
 };
 
 async function fetchAllScheduleGames(urls: Urls): Promise<ScheduleGame[]> {
-  const res = await withRetry(() => fetch(urls.schedule, {
+  const res = await withRetry(() => fetchWithTimeout(urls.schedule, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
   }));
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1743,7 +1749,7 @@ export async function fetchLastMeetingRecap(
     awayPim: null,
   };
   try {
-    const res = await withRetry(() => fetch(gameUrl, {
+    const res = await withRetry(() => fetchWithTimeout(gameUrl, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1862,7 +1868,7 @@ export type StandingRow = {
 
 export async function fetchFullStandings(season: Season): Promise<StandingRow[]> {
   const urls = buildUrls(season.competitionId);
-  const res = await withRetry(() => fetch(urls.standings, {
+  const res = await withRetry(() => fetchWithTimeout(urls.standings, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
   }));
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -2041,7 +2047,7 @@ export type LeaguePlayerRow = {
 
 export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlayerRow[]> {
   const urls = buildUrls(season.competitionId);
-  const res = await withRetry(() => fetch(urls.scoring, {
+  const res = await withRetry(() => fetchWithTimeout(urls.scoring, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
   }));
   if (!res.ok) throw new Error(`HTTPError ${res.status} ${urls.scoring}`);
