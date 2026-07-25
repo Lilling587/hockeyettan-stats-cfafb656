@@ -7,16 +7,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { logAuditEvent } from "@/lib/users.functions";
 
-async function getApprovalStatus(userId: string): Promise<string | null> {
+type ProfileStatus = "approved" | "pending" | "rejected" | "missing";
+
+async function getApprovalStatus(userId: string): Promise<ProfileStatus | null> {
   const { data } = await supabase
     .from("profiles")
     .select("approval_status")
     .eq("id", userId)
     .maybeSingle();
-  return (data as { approval_status?: string } | null)?.approval_status ?? null;
+  const status = (data as { approval_status?: string } | null)?.approval_status;
+  if (status === "approved" || status === "pending" || status === "rejected") return status;
+  return status ? (status as ProfileStatus) : null;
+}
+
+async function getUserRoles(userId: string): Promise<string[]> {
+  const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+  return (data ?? []).map((r) => r.role);
 }
 
 const ALLOWED_NEXT = new Set([
@@ -61,6 +71,8 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   const logEvent = useServerFn(logAuditEvent);
 
   const next = safeNext(search.next);
@@ -77,7 +89,13 @@ function AuthPage() {
     let cancelled = false;
     supabase.auth.getSession().then(async ({ data }) => {
       if (cancelled || !data.session?.user) return;
-      const status = await getApprovalStatus(data.session.user.id);
+      const user = data.session.user;
+      const [status, roles] = await Promise.all([
+        getApprovalStatus(user.id),
+        getUserRoles(user.id),
+      ]);
+      setUserEmail(user.email ?? null);
+      setUserRoles(roles);
       if (status !== "approved") {
         navigate({ to: "/auth", search: { pending: status ?? "missing" }, replace: true });
         return;
@@ -114,7 +132,13 @@ function AuthPage() {
           password,
         });
         if (error) throw error;
-        const status = await getApprovalStatus(signInData.user!.id);
+        const user = signInData.user!;
+        const [status, roles] = await Promise.all([
+          getApprovalStatus(user.id),
+          getUserRoles(user.id),
+        ]);
+        setUserEmail(user.email ?? null);
+        setUserRoles(roles);
         if (status !== "approved") {
           navigate({ to: "/auth", search: { pending: status ?? "missing" }, replace: true });
           return;
@@ -139,22 +163,49 @@ function AuthPage() {
           : "Logga in";
 
 
-  const pending = search.pending;
+  const pending = search.pending as ProfileStatus | undefined;
   const pendingLabel =
     pending === "rejected"
       ? "Ditt konto har nekats åtkomst. Kontakta en admin om du tror detta är fel."
-      : "Ditt konto väntar på godkännande av en admin. Du får åtkomst så snart den är klar.";
+      : pending === "missing"
+        ? "Din profil saknas i systemet. Kontakta en admin."
+        : "Ditt konto väntar på godkännande av en admin. Du får åtkomst så snart den är klar.";
+
+  const statusBadge =
+    pending === "approved" ? (
+      <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-700">Godkänd</Badge>
+    ) : pending === "rejected" ? (
+      <Badge variant="destructive">Nekad</Badge>
+    ) : (
+      <Badge variant="outline" className="text-amber-600 border-amber-600">Väntar</Badge>
+    );
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>{pending ? "Väntar på godkännande" : title}</CardTitle>
+          <CardTitle>{pending ? "Ditt konto" : title}</CardTitle>
         </CardHeader>
         <CardContent>
           {pending && (
-            <div className="mb-4 rounded-md bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
-              {pendingLabel}
+            <div className="mb-4 space-y-3 rounded-md border border-border bg-muted/50 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-muted-foreground">E-post</span>
+                <span className="truncate text-sm">{userEmail ?? "–"}</span>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-muted-foreground">Status</span>
+                {statusBadge}
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-muted-foreground">Roll</span>
+                <span className="text-sm">
+                  {userRoles.length > 0 ? userRoles.join(", ") : "Användare"}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground pt-1 border-t border-border">
+                {pendingLabel}
+              </p>
             </div>
           )}
           <form onSubmit={submit} className="space-y-4">
