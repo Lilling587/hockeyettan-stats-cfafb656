@@ -7,16 +7,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { logAuditEvent } from "@/lib/users.functions";
 
-async function getApprovalStatus(userId: string): Promise<string | null> {
+type ProfileStatus = "approved" | "pending" | "rejected" | "missing";
+
+async function getApprovalStatus(userId: string): Promise<ProfileStatus | null> {
   const { data } = await supabase
     .from("profiles")
     .select("approval_status")
     .eq("id", userId)
     .maybeSingle();
-  return (data as { approval_status?: string } | null)?.approval_status ?? null;
+  const status = (data as { approval_status?: string } | null)?.approval_status;
+  if (status === "approved" || status === "pending" || status === "rejected") return status;
+  return status ? (status as ProfileStatus) : null;
+}
+
+async function getUserRoles(userId: string): Promise<string[]> {
+  const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+  return (data ?? []).map((r) => r.role);
 }
 
 const ALLOWED_NEXT = new Set([
