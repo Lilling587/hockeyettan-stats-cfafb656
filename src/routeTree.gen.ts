@@ -13,6 +13,7 @@ import { Route as SpelareRouteImport } from './routes/spelare'
 import { Route as SchemaRouteImport } from './routes/schema'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as InfoRouteImport } from './routes/info'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -29,6 +30,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminUsageRouteImport } from './routes/_authenticated/admin.usage'
 import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin.logs'
 import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
+import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin.audit'
 import { Route as AuthenticatedAdminAssetsRouteImport } from './routes/_authenticated/admin.assets'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -62,6 +64,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfoRoute = InfoRouteImport.update({
+  id: '/info',
+  path: '/info',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -147,6 +154,11 @@ const AuthenticatedAdminHealthRoute =
     path: '/admin/health',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
+  id: '/admin/audit',
+  path: '/admin/audit',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminAssetsRoute =
   AuthenticatedAdminAssetsRouteImport.update({
     id: '/admin/assets',
@@ -230,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/info': typeof InfoRoute
   '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
   '/schema': typeof SchemaRoute
@@ -241,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/index/': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/usage': typeof AuthenticatedAdminUsageRoute
@@ -265,6 +279,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/info': typeof InfoRoute
   '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
   '/schema': typeof SchemaRoute
@@ -276,6 +291,7 @@ export interface FileRoutesByTo {
   '/index': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/usage': typeof AuthenticatedAdminUsageRoute
@@ -302,6 +318,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/info': typeof InfoRoute
   '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
   '/schema': typeof SchemaRoute
@@ -313,6 +330,7 @@ export interface FileRoutesById {
   '/index/': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/admin/assets': typeof AuthenticatedAdminAssetsRoute
+  '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
   '/_authenticated/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/_authenticated/admin/usage': typeof AuthenticatedAdminUsageRoute
@@ -339,6 +357,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/compare'
+    | '/info'
     | '/mcp'
     | '/reset-password'
     | '/schema'
@@ -350,6 +369,7 @@ export interface FileRouteTypes {
     | '/index/'
     | '/.mcp/invoke-tool/$tool'
     | '/admin/assets'
+    | '/admin/audit'
     | '/admin/health'
     | '/admin/logs'
     | '/admin/usage'
@@ -374,6 +394,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/compare'
+    | '/info'
     | '/mcp'
     | '/reset-password'
     | '/schema'
@@ -385,6 +406,7 @@ export interface FileRouteTypes {
     | '/index'
     | '/.mcp/invoke-tool/$tool'
     | '/admin/assets'
+    | '/admin/audit'
     | '/admin/health'
     | '/admin/logs'
     | '/admin/usage'
@@ -410,6 +432,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/compare'
+    | '/info'
     | '/mcp'
     | '/reset-password'
     | '/schema'
@@ -421,6 +444,7 @@ export interface FileRouteTypes {
     | '/index/'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/admin/assets'
+    | '/_authenticated/admin/audit'
     | '/_authenticated/admin/health'
     | '/_authenticated/admin/logs'
     | '/_authenticated/admin/usage'
@@ -447,6 +471,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
+  InfoRoute: typeof InfoRoute
   McpRoute: typeof McpRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SchemaRoute: typeof SchemaRoute
@@ -499,6 +524,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/info': {
+      id: '/info'
+      path: '/info'
+      fullPath: '/info'
+      preLoaderRoute: typeof InfoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -613,6 +645,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminHealthRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/audit': {
+      id: '/_authenticated/admin/audit'
+      path: '/admin/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/assets': {
       id: '/_authenticated/admin/assets'
       path: '/admin/assets'
@@ -718,6 +757,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConnectRoute: typeof AuthenticatedConnectRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedAdminAssetsRoute: typeof AuthenticatedAdminAssetsRoute
+  AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
   AuthenticatedAdminLogsRoute: typeof AuthenticatedAdminLogsRoute
   AuthenticatedAdminUsageRoute: typeof AuthenticatedAdminUsageRoute
@@ -729,6 +769,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConnectRoute: AuthenticatedConnectRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedAdminAssetsRoute: AuthenticatedAdminAssetsRoute,
+  AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
   AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
   AuthenticatedAdminLogsRoute: AuthenticatedAdminLogsRoute,
   AuthenticatedAdminUsageRoute: AuthenticatedAdminUsageRoute,
@@ -744,6 +785,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
+  InfoRoute: InfoRoute,
   McpRoute: McpRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SchemaRoute: SchemaRoute,
@@ -771,13 +813,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

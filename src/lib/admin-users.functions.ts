@@ -79,6 +79,11 @@ export const inviteAdmin = createServerFn({ method: "POST" })
       .upsert({ user_id: userId, role: "admin" }, { onConflict: "user_id,role" });
     if (roleErr) throw new Error(roleErr.message);
 
+    // Auto-approve invited admins so they can sign in immediately.
+    await supabaseAdmin
+      .from("profiles")
+      .upsert({ id: userId, email, approval_status: "approved" }, { onConflict: "id" });
+
     return { ok: true, userId, invited };
   });
 

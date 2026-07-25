@@ -1,59 +1,83 @@
-# Minska credit-användning för Lovable Cloud
+# Åtkomstkontroll och användningsinsyn
 
-Baserat på tidigare kartläggning är de största drivarna: admin health-polling, vMix endpoints som pollas, `pg_cron`-jobb (särskilt 5-sekunders email queue processor), och heartbeat/error-loggskrivningar. Nedan är åtgärder ordnade från störst till minst effekt.
+## Nuvarande läge
+- Hela startsidan (`/`) och all matchstatistik är **helt publik** – ingen inloggning krävs.
+- Endast admin-sidor (`/admin/*`, `/notifications`, `/connect`) ligger bakom inloggning.
+- Det finns en `admin`-roll, men ingen generell "godkänd användare"-status.
+- Det finns ingen logg över vilka som besöker eller använder appen.
 
-## 1. Bromsa admin health-pollingen (störst effekt)
+## Mål
+1. Behåll en **publik landningssida** med grundläggande info.
+2. Kräv **inloggning för att se matchstatistik/briefing**.
+3. Nya konton måste **godkännas av en admin** innan de får åtkomst.
+4. Admins ska kunna **se vem som använder appen** via en aktivitetslogg.
 
-I `src/routes/_authenticated/admin.health.tsx` körs tre queries (`scrape-health`, `supabase-health`, `vmix-health`) på samma intervall, default 60 s, men valbart ner till 15 s. Varje tick = 3 server-fn-anrop + DB-läsningar + eventuell heartbeat-INSERT i `error_log`.
+## Plan
 
-Ändringar:
+### 1. Databasändringar
+Skapa två nya tabeller:
 
-- Höj default till **300 s** (5 min) istället för 60 s.
-- Ta bort 15 s och 30 s som val – lämna 60 s / 5 min / 15 min.
-- Pausa refetch när fliken inte är synlig: sätt `refetchIntervalInBackground: false` på alla tre queries.
-- Endast pinga vMix-endpoints när kortet är i viewport (IntersectionObserver) eller kräv manuell "Kontrollera nu".
+- **`public.profiles`**
+  - `id uuid primary key` (kopplas till `auth.users(id)`)
+  - `email text`
+  - `approval_status text` (`pending` / `approved` / `rejected`)
+  - `created_at`, `updated_at`
+  - RLS-policyer så att användare ser sin egen profil och admins ser alla.
 
-## 2. Gör email-queue processorn on-demand istället för var 5:e sekund
+- **`public.audit_events`**
+  - `id uuid primary key`
+  - `user_id uuid nullable` (NULL för ej inloggade publika besök om vi loggar dem)
+  - `action text` (t.ex. `login`, `view_briefing`, `publish_vmix`, `signup`, `approved`)
+  - `metadata jsonb nullable`
+  - `ip_address text nullable`
+  - `created_at`
+  - RLS-policyer så att endast admins kan läsa.
 
-`process-email-queue` schemaläggs var 5:e sekund = 17 280 körningar/dygn även när kön är tom. Enligt `email-infrastructure-guide` är on-demand-schemaläggning stödd: triggers på kötabellerna schemalägger jobbet när ett mail läggs in och avschemalägger sig själv när båda köerna är tomma.
+### 2. Godkännandeflöde för nya användare
+- Vid registrering skapas användaren i auth och en profil med `approval_status = 'pending'`.
+- `_authenticated`-layouten uppdateras så att den kontrollerar både inloggning **och** att profilen är `approved`.
+- Om inloggad men inte godkänd: visa ett "väntar på godkännande"-tillstånd.
 
-Åtgärd: verifiera att on-demand wake-triggers är aktiva; om jobbet ligger kvar statiskt var 5:e sekund, kör `email_domain--setup_email_infra` igen så det byggs om till on-demand-mönstret.
+### 3. Admin-gränssnitt
+- Utöka `/admin/users` så att den visar:
+  - Lista över användare och deras godkännandestatus.
+  - Knappar för **Godkänn** / **Neka** / **Återkalla**.
+  - Senaste inloggning och registreringsdatum.
+- Lägg till en ny `/admin/audit`-sida som visar:
+  - Filtrerbar lista över `audit_events`.
+  - Vem som gjorde vad och när.
 
-## 3. Sänk frekvensen på pg_cron email-jobben (om acceptabelt)
+### 4. Aktivitetsloggning
+- Skapa serverfunktioner för att skriva till `audit_events`.
+- Logga automatiskt vid:
+  - Inloggning / utloggning
+  - Ny registrering
+  - Admin godkänner/nekar användare
+  - Ladda briefing
+  - Publicera till vMix
+  - Ändra notifikationsinställningar
 
-Nuvarande: pregame 11:00 UTC dagligen, postgame 21:00 UTC dagligen, weekly-digest 07:00 UTC dagligen. Om det inte finns match varje dag kan pregame/postgame ändras till att köra endast på matchdagar (t.ex. gatea internt i endpointen på "finns match idag" innan queue-arbete). Det sparar inte cron-triggers men eliminerar dyra queries/inserts på tomma dagar.
+### 5. Publik landningssida
+- Behåll `/` som en enkel publik sida med kort beskrivning och en "Logga in"-knapp.
+- Flytta själva dashboard/statistikvyn till ett autentiserat läge (t.ex. `/_authenticated/dashboard` eller behåll `/` men kräv inloggning där).
+- Se till att `/auth` fortfarande hanterar inloggning/registrering.
 
-## 4. Minska heartbeat-loggningen
+### 6. Säkerhet och RLS
+- Alla nya tabeller får `GRANT` och RLS aktiverat.
+- Ingen icke-admin kan läsa andra användares profiler eller audit-events.
+- Service-role-användning begränsas till admin-funktioner.
 
-`logVmixHeartbeatTransition` skriver till `error_log` vid varje grön↔röd övergång. Kombinerat med tät polling kan detta bli många skrivningar om vMix "flappar". Åtgärder:
+## Vad du får
+- Kontroll över vilka som kan se matchstatistiken.
+- En tydlig kö av nya användare som väntar på godkännande.
+- En fullständig logg över vem som loggar in, vilka briefings som laddas och vilka vMix-publiceringar som görs.
+- En fortsatt publik landningssida så att obehöriga kan se att appen finns.
 
-- Kräv N stabila fel i rad (t.ex. 2) innan tillstånd byts – undviker skrivning vid enstaka timeouts.
-- Behåll skrivningen men se till att den bara körs efter #1 ovan (5 min polling ⇒ max 288 potentiella transitions/dygn istället för 5 760 vid 15 s).
-
-## 5. Cachea vMix-endpoint-läsningar
-
-`admin/vmix`-sidan och externa vMix-anrop läser `vmix_publications`, `cached_briefings` och `team_logos` ofta. Lägg till `staleTime` (t.ex. 60 s) på TanStack Query-läsningarna i admin-vyerna så samma användare inte återhämtar samma data flera gånger vid navigering.
-
-## 6. Storage och publika listningar
-
-Publika bucket-listningar är avstängda (bra). Kontrollera att `vmix-assets`-buckets logotypanrop cachas i browser (via `use-team-logos.ts` – redan localStorage-cachat med `lovable.teamlogos.v2`). Ingen extra åtgärd förutom att låta cachen leva längre om möjligt.
-
-## Föreslagen ordning
-
-1. Ändra health-page polling (fil: `src/routes/_authenticated/admin.health.tsx`).
-2. Kör `email_domain--setup_email_infra` igen för att säkerställa on-demand queue processor.
-3. Lägg debounce (2 misslyckade i rad) i vMix heartbeat-transition-logiken.
-4. Lägg `staleTime` på admin-queries där lämpligt.
-5. (Valfritt) Gate pregame/postgame-endpoints på "match idag".
-
-## Tekniska detaljer
-
-- Alla ändringar är rent frontend + endpoint-nivå – inga schemaändringar.
-- Ingen befintlig data påverkas.
-- pg_cron-listning görs via `supabase--read_query` mot `cron.job` för att bekräfta att email-processorn är on-demand.
-
-Vill du att jag kör hela listan, eller bara #1 + #2 som ger absolut störst effekt med minst risk?
-
-Kör hela listan
-
-&nbsp;
+## Teknisk omfattning
+- 1 migration (`profiles` + `audit_events` + uppdaterade policies).
+- Uppdatering av `_authenticated/route.tsx` för godkännandekoll.
+- Uppdatering av `/auth` för att skapa pending-profil vid registrering.
+- Uppdatering av `/admin/users` med godkännande-UI.
+- Ny `/admin/audit`-sida.
+- Nya serverfunktioner för loggning och användarhantering.
+- Eventuellt en ny publik landningssida om vi flyttar dashboard.

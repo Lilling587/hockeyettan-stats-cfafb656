@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Trash2, UserPlus } from "lucide-react";
+import { Check, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
@@ -12,6 +12,12 @@ import {
   revokeAdmin,
   type AdminUser,
 } from "@/lib/admin-users.functions";
+import {
+  listUserProfiles,
+  approveUser,
+  rejectUser,
+  type Profile,
+} from "@/lib/users.functions";
 import {
   listNotificationSubscribers,
   type NotificationSubscriber,
@@ -44,8 +50,11 @@ function AdminUsersPage() {
   const fetchIsAdmin = useServerFn(checkIsAdmin);
   const fetchList = useServerFn(listAdmins);
   const fetchSubscribers = useServerFn(listNotificationSubscribers);
+  const fetchProfiles = useServerFn(listUserProfiles);
   const invite = useServerFn(inviteAdmin);
   const revoke = useServerFn(revokeAdmin);
+  const approve = useServerFn(approveUser);
+  const reject = useServerFn(rejectUser);
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -79,10 +88,17 @@ function AdminUsersPage() {
     enabled: adminQuery.data?.isAdmin === true,
   });
 
+  const profilesQuery = useQuery({
+    queryKey: ["user-profiles"],
+    queryFn: () => fetchProfiles(),
+    enabled: adminQuery.data?.isAdmin === true,
+  });
+
   const inviteMutation = useMutation({
     mutationFn: (e: string) => invite({ data: { email: e } }),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
       setEmail("");
       toast.success(res.invited ? "Inbjudan skickad" : "Admin-behörighet tillagd");
     },
@@ -98,7 +114,29 @@ function AdminUsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const approveMutation = useMutation({
+    mutationFn: (userId: string) => approve({ data: { userId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
+      toast.success("Användaren godkänd");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (userId: string) => reject({ data: { userId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
+      toast.success("Användaren nekad");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const admins: AdminUser[] = listQuery.data?.admins ?? [];
+  const users: (Profile & { isAdmin: boolean; lastSignInAt: string | null })[] =
+    profilesQuery.data?.users ?? [];
+  const pendingUsers = users.filter((u) => u.approvalStatus === "pending");
+  const approvedUsers = users.filter((u) => u.approvalStatus === "approved");
 
   return (
     <div className="min-h-screen bg-background">
@@ -109,7 +147,7 @@ function AdminUsersPage() {
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Admin-användare</h1>
               <p className="text-sm text-muted-foreground">
-                Bjud in nya administratörer och hantera behörigheter.
+                Hantera godkännanden, administratörer och notisprenumeranter.
               </p>
             </div>
           </div>
@@ -150,6 +188,113 @@ function AdminUsersPage() {
               Personen får ett mejl för att sätta sitt lösenord. Om kontot redan
               finns läggs admin-rollen till direkt.
             </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Väntar på godkännande ({pendingUsers.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {profilesQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Laddar…</p>
+            ) : pendingUsers.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Inga användare väntar på godkännande.
+              </p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {pendingUsers.map((u) => (
+                  <li
+                    key={u.id}
+                    className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">
+                        {u.email ?? u.id}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Registrerad {new Date(u.createdAt).toLocaleDateString("sv-SE")}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        disabled={approveMutation.isPending}
+                        onClick={() => approveMutation.mutate(u.id)}
+                      >
+                        <Check className="mr-2 h-4 w-4" />
+                        Godkänn
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={rejectMutation.isPending}
+                        onClick={() => rejectMutation.mutate(u.id)}
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Neka
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Godkända användare ({approvedUsers.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {profilesQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Laddar…</p>
+            ) : approvedUsers.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Inga godkända användare.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {approvedUsers.map((u) => {
+                  const isSelf = u.id === currentUserId;
+                  return (
+                    <li
+                      key={u.id}
+                      className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium">
+                          {u.email ?? u.id}
+                          {u.isAdmin && (
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              (admin)
+                            </span>
+                          )}
+                          {isSelf && (
+                            <span className="ml-2 text-xs text-muted-foreground">(du)</span>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {u.lastSignInAt
+                            ? `Senast inloggad ${new Date(u.lastSignInAt).toLocaleDateString("sv-SE")}`
+                            : "Har ännu inte loggat in"}
+                        </div>
+                      </div>
+                      {!u.isAdmin && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isSelf || rejectMutation.isPending}
+                          onClick={() => rejectMutation.mutate(u.id)}
+                        >
+                          <X className="mr-2 h-4 w-4" />
+                          Återkalla åtkomst
+                        </Button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </CardContent>
         </Card>
 

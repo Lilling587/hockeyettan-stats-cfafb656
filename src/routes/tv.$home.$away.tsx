@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
@@ -10,6 +10,7 @@ import { getMatchupBriefing } from "@/lib/stats.functions";
 import type { Briefing } from "@/lib/stats.functions";
 import { TeamLogo } from "@/components/team-logo";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const tvSearch = z.object({
   season: fallback(z.string(), "").default(""),
@@ -18,6 +19,13 @@ const tvSearch = z.object({
 
 export const Route = createFileRoute("/tv/$home/$away")({
   ssr: false,
+  beforeLoad: async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.user) return;
+    const { data, error } = await supabase.auth.getUser();
+    if (!error && data.user) return;
+    throw redirect({ to: "/auth" });
+  },
   validateSearch: zodValidator(tvSearch),
   head: ({ params }) => ({
     meta: [
