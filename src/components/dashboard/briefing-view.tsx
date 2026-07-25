@@ -136,6 +136,12 @@ export function BriefingView({
         </p>
       </div>
 
+      {data.warnings && data.warnings.length > 0 && (
+        <div className="rounded-md border border-yellow-400 bg-yellow-50 px-3 py-2 text-xs text-yellow-800 dark:border-yellow-600 dark:bg-yellow-950 dark:text-yellow-300" data-export-hide="true">
+          {data.warnings.map((w, i) => <div key={i}>⚠ {w}</div>)}
+        </div>
+      )}
+
       <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between" data-export-hide="true">
         <div className="text-xs text-muted-foreground">
           {cached ? "Cached" : "Fresh"} · fetched{" "}

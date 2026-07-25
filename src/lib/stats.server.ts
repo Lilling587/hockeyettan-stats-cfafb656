@@ -211,14 +211,14 @@ async function fetchPageTablesAsMarkdown(url: string): Promise<string> {
   return extractTableRowsAsMarkdown(await response.text());
 }
 
-async function scrapeMd(url: string): Promise<string> {
+async function scrapeMd(url: string): Promise<{ md: string; usedFallback: boolean }> {
   const { key, missingVars } = resolveFirecrawlKey();
   if (!key) {
     console.warn(
       `[firecrawl:scrapeMd] API key missing; using direct stats HTML fallback`,
       JSON.stringify({ url, missingEnvVars: missingVars }),
     );
-    return fetchPageTablesAsMarkdown(url);
+    return { md: await fetchPageTablesAsMarkdown(url), usedFallback: true };
   }
 
   try {
@@ -231,12 +231,12 @@ async function scrapeMd(url: string): Promise<string> {
       (res as { markdown?: string }).markdown ??
       (res as { data?: { markdown?: string } }).data?.markdown ??
       "";
-    if (md.trim().length > 0) return md;
+    if (md.trim().length > 0) return { md, usedFallback: false };
     console.warn(`[firecrawl:scrapeMd] empty markdown response; falling back`, JSON.stringify({ url }));
   } catch (err) {
     logFirecrawlError("scrapeMd", err, url);
   }
-  return fetchPageTablesAsMarkdown(url);
+  return { md: await fetchPageTablesAsMarkdown(url), usedFallback: true };
 }
 
 function extractH2HRows(scheduleMd: string, home: string, away: string): string {
@@ -1150,7 +1150,7 @@ export async function buildBriefing(
   // internally) — if the schedule page is down, catch and degrade those two
   // as well so one unreachable source doesn't fail the entire briefing when
   // special teams / scoring / shots-on-goal fetched fine.
- const [scheduleGames, scheduleMd, specialTeamsByName, scoringData, sogByName] =
+  const [scheduleGames, scrapeMdResult, specialTeamsByName, scoringData, sogByName] =
     await Promise.all([
       getScheduleGames(season, { force }).catch((err) => {
         console.warn("[buildBriefing] schedule fetch failed, degrading gracefully:", (err as Error).message);
@@ -1158,12 +1158,17 @@ export async function buildBriefing(
       }),
       scrapeMd(urls.schedule).catch((err) => {
         console.warn("[buildBriefing] schedule markdown fetch failed, degrading gracefully:", (err as Error).message);
-        return "";
+        return { md: "", usedFallback: true };
       }),
       fetchSpecialTeamsFromHtml(urls),
       fetchScoringPageData(urls),
       fetchTeamShotsOnGoal(urls),
     ]);
+  const scheduleMd = scrapeMdResult.md;
+  const warnings: string[] = [];
+  if (scrapeMdResult.usedFallback) {
+    warnings.push("Schedule data may be incomplete — Firecrawl unavailable, some rounds may be missing");
+  }
 
   // shortTeamName always returns a best-effort code (e.g. uppercase initials)
   // even for teams not yet in KNOWN_TEAM_NAMES, so a newly promoted team still
@@ -1211,6 +1216,7 @@ export async function buildBriefing(
     away: emptyTeam(away),
     headToHead: await enrichH2HWithGameIds(parseHeadToHead(scheduleMd, home, away), season),
     notes: "",
+    warnings,
   };
 
   object.home.lastFive = parsedHomeLast5;

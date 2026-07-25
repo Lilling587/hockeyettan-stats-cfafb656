@@ -158,6 +158,7 @@ const BriefingSchema = z.object({
     )
     .describe("Previous meetings this season between these two teams"),
   notes: z.string().describe("Short summary or caveats; empty string if none"),
+  warnings: z.array(z.string()).default([]).describe("Operator-visible data-quality warnings, e.g. degraded scrape paths"),
 });
 
 export type Briefing = z.infer<typeof BriefingSchema>;
