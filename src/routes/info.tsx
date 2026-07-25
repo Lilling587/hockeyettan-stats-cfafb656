@@ -27,16 +27,101 @@ type UserState = {
 } | null;
 
 function InfoPage() {
+  const [user, setUser] = useState<UserState>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getSession().then(async ({ data }) => {
+      const sessionUser = data.session?.user;
+      if (!sessionUser || cancelled) return;
+      const [{ data: profile }, { data: roles }] = await Promise.all([
+        supabase.from("profiles").select("approval_status").eq("id", sessionUser.id).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", sessionUser.id),
+      ]);
+      const status = profile?.approval_status ?? "missing";
+      setUser({
+        email: sessionUser.email ?? null,
+        roles: (roles ?? []).map((r) => r.role),
+        status:
+          status === "approved" || status === "pending" || status === "rejected"
+            ? status
+            : "missing",
+      });
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") setUser(null);
+      if (event === "SIGNED_IN" && session?.user) {
+        const u = session.user;
+        void Promise.all([
+          supabase.from("profiles").select("approval_status").eq("id", u.id).maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", u.id),
+        ]).then(([{ data: profile }, { data: roles }]) => {
+          const status = profile?.approval_status ?? "missing";
+          setUser({
+            email: u.email ?? null,
+            roles: (roles ?? []).map((r) => r.role),
+            status:
+              status === "approved" || status === "pending" || status === "rejected"
+                ? status
+                : "missing",
+          });
+        });
+      }
+    });
+    return () => {
+      cancelled = true;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const isApproved = user?.status === "approved";
+  const statusBadge =
+    user?.status === "approved" ? (
+      <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-700">Godkänd</Badge>
+    ) : user?.status === "rejected" ? (
+      <Badge variant="destructive">Nekad</Badge>
+    ) : (
+      <Badge variant="outline" className="text-amber-600 border-amber-600">Väntar</Badge>
+    );
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <h1 className="text-lg font-semibold tracking-tight">HockeyEttan Södra</h1>
-          <Button asChild variant="default" size="sm">
-            <Link to="/auth">Logga in</Link>
-          </Button>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="hidden text-sm text-muted-foreground sm:inline">{user.email}</span>
+              {statusBadge}
+              <Button asChild variant="outline" size="sm">
+                <Link to="/auth">Byt konto</Link>
+              </Button>
+            </div>
+          ) : (
+            <Button asChild variant="default" size="sm">
+              <Link to="/auth">Logga in</Link>
+            </Button>
+          )}
         </div>
       </header>
+
+      {user && (
+        <div className="border-b border-border bg-muted/30">
+          <div className="mx-auto flex max-w-5xl flex-col gap-2 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm">
+              <span className="font-medium">Inloggad som:</span>{" "}
+              <span className="text-muted-foreground">{user.email}</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Roll:</span>
+              <span>{user.roles.length > 0 ? user.roles.join(", ") : "Användare"}</span>
+              <span className="mx-1 text-muted-foreground">·</span>
+              <span className="text-muted-foreground">Status:</span>
+              {statusBadge}
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto max-w-5xl space-y-6 px-6 py-12">
         <div className="space-y-4 text-center">
@@ -47,10 +132,20 @@ function InfoPage() {
             Välj hemmalag och bortalag, få en komplett matchbriefing på sekunder
             och publicera grafik direkt till vMix.
           </p>
-          <div className="flex justify-center gap-3">
-            <Button asChild size="lg">
-              <Link to="/auth">Logga in för att komma igång</Link>
-            </Button>
+          <div className="flex flex-wrap justify-center gap-3">
+            {isApproved ? (
+              <Button asChild size="lg">
+                <Link to="/">Gå till dashboard</Link>
+              </Button>
+            ) : user ? (
+              <Button size="lg" disabled>
+                {user.status === "rejected" ? "Konto nekat" : "Väntar på godkännande"}
+              </Button>
+            ) : (
+              <Button asChild size="lg">
+                <Link to="/auth">Logga in för att komma igång</Link>
+              </Button>
+            )}
             <Button asChild variant="outline" size="lg">
               <Link to="/spelare">Spelarstatistik</Link>
             </Button>
