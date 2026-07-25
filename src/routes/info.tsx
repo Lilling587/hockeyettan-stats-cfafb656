@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Monitor, Users } from "lucide-react";
 
@@ -16,6 +19,12 @@ export const Route = createFileRoute("/info")({
   }),
   component: InfoPage,
 });
+
+type UserState = {
+  email: string | null;
+  roles: string[];
+  status: "approved" | "pending" | "rejected" | "missing";
+} | null;
 
 function InfoPage() {
   return (
