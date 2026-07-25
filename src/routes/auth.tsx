@@ -71,6 +71,8 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   const logEvent = useServerFn(logAuditEvent);
 
   const next = safeNext(search.next);
@@ -87,7 +89,13 @@ function AuthPage() {
     let cancelled = false;
     supabase.auth.getSession().then(async ({ data }) => {
       if (cancelled || !data.session?.user) return;
-      const status = await getApprovalStatus(data.session.user.id);
+      const user = data.session.user;
+      const [status, roles] = await Promise.all([
+        getApprovalStatus(user.id),
+        getUserRoles(user.id),
+      ]);
+      setUserEmail(user.email ?? null);
+      setUserRoles(roles);
       if (status !== "approved") {
         navigate({ to: "/auth", search: { pending: status ?? "missing" }, replace: true });
         return;
