@@ -103,7 +103,7 @@ function AuthPage() {
       } else if (mode === "signup") {
         const { data: signUpData, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        if (signUpData.user) {
+        if (signUpData.session?.user) {
           void logEvent({ data: { action: "signup" } });
         }
         toast.success("Kontot skapat! Kontrollera din e-post för att bekräfta.");
