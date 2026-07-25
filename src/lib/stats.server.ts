@@ -518,6 +518,7 @@ async function fetchStandingsFromHtml(
     const res = await withRetry(() => fetch(urls.standings, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
     const result: Record<string, { position: number | null; gamesPlayed: number | null; points: number | null }> = {};
     const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
@@ -574,6 +575,7 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
     const res = await withRetry(() => fetch(urls.scoring, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
 
     // Each team's data lives between anchor tags:
@@ -859,6 +861,7 @@ async function fetchHotPlayersFromGameLogs(
     const schedRes = await withRetry(() => fetch(urls.schedule, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
+    if (!schedRes.ok) throw new Error(`HTTP ${schedRes.status}`);
     const schedHtml = await schedRes.text();
     type Game = { id: string; date: string; homeTeam: string; awayTeam: string };
     const allGames: Game[] = [];
@@ -910,6 +913,7 @@ async function fetchHotPlayersFromGameLogs(
           const r = await withRetry(() => fetch(`https://stats.swehockey.se/Game/Events/${id}`, {
             headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
           }));
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
           fetchedPages.set(id, await r.text());
         } catch {
           // ignore individual page failures
@@ -1473,6 +1477,7 @@ export async function findMatchupOnDate(
     const res = await withRetry(() => fetch(urls.schedule, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
     const dateRe = /\b(\d{4}-\d{2}-\d{2})\b/;
     const matchupRe = /^(.+?)\s+-\s+(.+?)$/;
@@ -1524,6 +1529,7 @@ async function fetchAllScheduleGames(urls: Urls): Promise<ScheduleGame[]> {
   const res = await withRetry(() => fetch(urls.schedule, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
   }));
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const html = await res.text();
   const dateRe = /\b(\d{4}-\d{2}-\d{2})\b/;
   const matchupRe = /^(.+?)\s+-\s+(.+?)$/;
@@ -1734,6 +1740,7 @@ export async function fetchLastMeetingRecap(
     const res = await withRetry(() => fetch(gameUrl, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
     const extractPair = (label: string): [number | null, number | null] => {
       const re = new RegExp(`${label}\\s*</td>\\s*<td[^>]*>\\s*<strong>\\s*(\\d+)\\s*</strong>`, "gi");
@@ -1852,6 +1859,7 @@ export async function fetchFullStandings(season: Season): Promise<StandingRow[]>
   const res = await withRetry(() => fetch(urls.standings, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
   }));
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const html = await res.text();
   const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
   const rows: StandingRow[] = [];
