@@ -138,6 +138,25 @@ function buildUrls(competitionId: string): Urls {
   };
 }
 
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts = 3,
+  delayMs = 500,
+): Promise<T> {
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, delayMs * attempt));
+      }
+    }
+  }
+  throw lastErr;
+}
+
 // Returns n when it falls within [min, max], otherwise logs a warning and
 // returns null. Surfaces column-shift bugs where wrong-but-plausible numbers
 // would otherwise silently land in the briefing.
@@ -183,9 +202,9 @@ function extractTableRowsAsMarkdown(html: string): string {
 }
 
 async function fetchPageTablesAsMarkdown(url: string): Promise<string> {
-  const response = await fetch(url, {
+  const response = await withRetry(() => fetch(url, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-  });
+  }));
   if (!response.ok) {
     throw new Error(`Direct stats fetch failed [${response.status}] for ${url}`);
   }
@@ -400,12 +419,11 @@ type SpecialTeamsEntry = {
 
 async function fetchSpecialTeamsFromHtml(
   urls: Urls,
-  attempt = 1,
 ): Promise<Record<string, SpecialTeamsEntry>> {
   try {
-    const res = await fetch(urls.specialTeams, {
+    const res = await withRetry(() => fetch(urls.specialTeams, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-    });
+    }));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
     const result: Record<string, SpecialTeamsEntry> = {};
@@ -464,18 +482,12 @@ async function fetchSpecialTeamsFromHtml(
         result[teamName] = entry;
       }
     }
-    if (Object.keys(result).length === 0 && attempt < 2) {
-      console.warn("[specialTeams] empty result, retrying once");
-      await new Promise((r) => setTimeout(r, 400));
-      return fetchSpecialTeamsFromHtml(urls, attempt + 1);
+    if (Object.keys(result).length === 0) {
+      console.warn("[specialTeams] empty result after retries");
     }
     return result;
   } catch (err) {
-    console.warn(`[specialTeams] HTML fetch failed (attempt ${attempt}):`, (err as Error).message);
-    if (attempt < 2) {
-      await new Promise((r) => setTimeout(r, 400));
-      return fetchSpecialTeamsFromHtml(urls, attempt + 1);
-    }
+    console.warn(`[specialTeams] HTML fetch failed:`, (err as Error).message);
     return {} as Record<string, SpecialTeamsEntry>;
   }
 }
@@ -503,9 +515,9 @@ async function fetchStandingsFromHtml(
   urls: Urls,
 ): Promise<Record<string, { position: number | null; gamesPlayed: number | null; points: number | null }>> {
   try {
-    const res = await fetch(urls.standings, {
+    const res = await withRetry(() => fetch(urls.standings, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-    });
+    }));
     const html = await res.text();
     const result: Record<string, { position: number | null; gamesPlayed: number | null; points: number | null }> = {};
     const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
@@ -559,9 +571,9 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
   }> = {};
 
   try {
-    const res = await fetch(urls.scoring, {
+    const res = await withRetry(() => fetch(urls.scoring, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-    });
+    }));
     const html = await res.text();
 
     // Each team's data lives between anchor tags:
@@ -844,9 +856,9 @@ async function fetchHotPlayersFromGameLogs(
   recentGames = 5,
 ): Promise<Record<string, HotPlayer>> {
   try {
-    const schedRes = await fetch(urls.schedule, {
+    const schedRes = await withRetry(() => fetch(urls.schedule, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-    });
+    }));
     const schedHtml = await schedRes.text();
     type Game = { id: string; date: string; homeTeam: string; awayTeam: string };
     const allGames: Game[] = [];
@@ -895,9 +907,9 @@ async function fetchHotPlayersFromGameLogs(
     await Promise.all(
       Array.from(gameIds).map(async (id) => {
         try {
-          const r = await fetch(`https://stats.swehockey.se/Game/Events/${id}`, {
+          const r = await withRetry(() => fetch(`https://stats.swehockey.se/Game/Events/${id}`, {
             headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-          });
+          }));
           fetchedPages.set(id, await r.text());
         } catch {
           // ignore individual page failures
@@ -1051,9 +1063,9 @@ async function fetchTeamShotsOnGoal(
     nameByAbbr[shortTeamName(name)] = name;
   }
   try {
-    const res = await fetch(urls.teamStats, {
+    const res = await withRetry(() => fetch(urls.teamStats, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-    });
+    }));
     if (!res.ok) return {};
     const fullHtml = await res.text();
 
@@ -1458,9 +1470,9 @@ export async function findMatchupOnDate(
 ): Promise<{ date: string; home: string; away: string } | null> {
   try {
     const urls = buildUrls(season.competitionId);
-    const res = await fetch(urls.schedule, {
+    const res = await withRetry(() => fetch(urls.schedule, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-    });
+    }));
     const html = await res.text();
     const dateRe = /\b(\d{4}-\d{2}-\d{2})\b/;
     const matchupRe = /^(.+?)\s+-\s+(.+?)$/;
@@ -1509,9 +1521,9 @@ export type ScheduleGame = {
 };
 
 async function fetchAllScheduleGames(urls: Urls): Promise<ScheduleGame[]> {
-  const res = await fetch(urls.schedule, {
+  const res = await withRetry(() => fetch(urls.schedule, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-  });
+  }));
   const html = await res.text();
   const dateRe = /\b(\d{4}-\d{2}-\d{2})\b/;
   const matchupRe = /^(.+?)\s+-\s+(.+?)$/;
@@ -1719,9 +1731,9 @@ export async function fetchLastMeetingRecap(
     awayPim: null,
   };
   try {
-    const res = await fetch(gameUrl, {
+    const res = await withRetry(() => fetch(gameUrl, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-    });
+    }));
     const html = await res.text();
     const extractPair = (label: string): [number | null, number | null] => {
       const re = new RegExp(`${label}\\s*</td>\\s*<td[^>]*>\\s*<strong>\\s*(\\d+)\\s*</strong>`, "gi");
@@ -1837,9 +1849,9 @@ export type StandingRow = {
 
 export async function fetchFullStandings(season: Season): Promise<StandingRow[]> {
   const urls = buildUrls(season.competitionId);
-  const res = await fetch(urls.standings, {
+  const res = await withRetry(() => fetch(urls.standings, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-  });
+  }));
   const html = await res.text();
   const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
   const rows: StandingRow[] = [];
@@ -2015,9 +2027,9 @@ export type LeaguePlayerRow = {
 
 export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlayerRow[]> {
   const urls = buildUrls(season.competitionId);
-  const res = await fetch(urls.scoring, {
+  const res = await withRetry(() => fetch(urls.scoring, {
     headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
-  });
+  }));
   if (!res.ok) throw new Error(`HTTPError ${res.status} ${urls.scoring}`);
   const html = await res.text();
   const anchorRe = /<a\s+id="([^"]+)">\s*<\/a>/g;
