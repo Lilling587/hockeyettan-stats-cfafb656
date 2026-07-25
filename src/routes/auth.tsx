@@ -163,22 +163,49 @@ function AuthPage() {
           : "Logga in";
 
 
-  const pending = search.pending;
+  const pending = search.pending as ProfileStatus | undefined;
   const pendingLabel =
     pending === "rejected"
       ? "Ditt konto har nekats åtkomst. Kontakta en admin om du tror detta är fel."
-      : "Ditt konto väntar på godkännande av en admin. Du får åtkomst så snart den är klar.";
+      : pending === "missing"
+        ? "Din profil saknas i systemet. Kontakta en admin."
+        : "Ditt konto väntar på godkännande av en admin. Du får åtkomst så snart den är klar.";
+
+  const statusBadge =
+    pending === "approved" ? (
+      <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-700">Godkänd</Badge>
+    ) : pending === "rejected" ? (
+      <Badge variant="destructive">Nekad</Badge>
+    ) : (
+      <Badge variant="outline" className="text-amber-600 border-amber-600">Väntar</Badge>
+    );
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>{pending ? "Väntar på godkännande" : title}</CardTitle>
+          <CardTitle>{pending ? "Ditt konto" : title}</CardTitle>
         </CardHeader>
         <CardContent>
           {pending && (
-            <div className="mb-4 rounded-md bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
-              {pendingLabel}
+            <div className="mb-4 space-y-3 rounded-md border border-border bg-muted/50 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-muted-foreground">E-post</span>
+                <span className="truncate text-sm">{userEmail ?? "–"}</span>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-muted-foreground">Status</span>
+                {statusBadge}
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-muted-foreground">Roll</span>
+                <span className="text-sm">
+                  {userRoles.length > 0 ? userRoles.join(", ") : "Användare"}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground pt-1 border-t border-border">
+                {pendingLabel}
+              </p>
             </div>
           )}
           <form onSubmit={submit} className="space-y-4">
