@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
   Clock,
   Copy,
   Download,
@@ -2456,6 +2457,7 @@ const PRESEASON_COMPETITION_ID = "21138";
 
 function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: RosterPlayer[], team: string) => void }) {
   const fetchRosterByComp = useServerFn(fetchRosterByCompetition);
+  const [open, setOpen] = useState(false);
   const [teamName, setTeamName] = useState("");
   const [competitionId, setCompetitionId] = useState(PRESEASON_COMPETITION_ID);
   const [players, setPlayers] = useState<RosterPlayer[] | null>(null);
@@ -2486,13 +2488,23 @@ function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: Ros
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Försäsong</CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Hämta spelarlista för valfritt lag via ett tävlings-ID från stats.swehockey.se.
-          Standard-ID 21138 = Preseason Games Herr. Tävlings-ID finns i URL:en på stats.swehockey.se.
-        </p>
+      <CardHeader
+        className="cursor-pointer select-none"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">Försäsong</CardTitle>
+          <ChevronDown
+            className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          />
+        </div>
+        {!open && (
+          <p className="text-xs text-muted-foreground">
+            Hämta spelartrupp för försäsongsmatcher
+          </p>
+        )}
       </CardHeader>
+      {open && (
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-end gap-2">
           <div className="flex-1 min-w-[180px]">
@@ -2558,6 +2570,7 @@ function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: Ros
           </div>
         )}
       </CardContent>
+      )}
     </Card>
   );
 }
