@@ -13,7 +13,7 @@ const items = [
   { label: "vMix", to: "/admin/vmix", icon: Tv },
   { label: "Användare", to: "/admin/users", icon: Users },
   { label: "Maillogg", to: "/admin/auth-emails", icon: Mail },
-  { label: "Anslut AI", to: "/connect", icon: Info },
+  { label: "AI-integration", to: "/connect", icon: Info },
 ];
 
 export function AdminNav() {

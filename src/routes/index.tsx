@@ -635,7 +635,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   <DropdownMenuItem asChild>
                     <Link to="/connect" className="flex items-center">
                       <Info className="mr-2 h-4 w-4" />
-                      Anslut AI
+                      AI-integration
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
