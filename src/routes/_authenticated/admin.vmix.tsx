@@ -2458,7 +2458,7 @@ function PreseasonRosterCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Truppuppslag – försäsong</CardTitle>
+        <CardTitle className="text-base">Försäsong</CardTitle>
         <p className="text-xs text-muted-foreground">
           Hämta spelarlista för valfritt lag via ett tävlings-ID från stats.swehockey.se.
           Standard-ID 21138 = Preseason Games Herr. Tävlings-ID finns i URL:en på stats.swehockey.se.
