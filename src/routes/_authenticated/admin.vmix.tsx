@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   CalendarDays,
   CheckCircle2,
-  ChevronDown,
   Clock,
   Copy,
   Download,
@@ -2488,21 +2487,11 @@ function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: Ros
 
   return (
     <Card>
-      <CardHeader
-        className="cursor-pointer select-none"
-        onClick={() => setOpen((o) => !o)}
-      >
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Försäsong</CardTitle>
-          <ChevronDown
-            className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          />
-        </div>
-        {!open && (
-          <p className="text-xs text-muted-foreground">
-            Hämta spelartrupp för försäsongsmatcher
-          </p>
-        )}
+      <CardHeader className="cursor-pointer select-none" onClick={() => setOpen((o) => !o)}>
+        <CardTitle className="text-base flex items-center gap-2">
+          Försäsong
+          <span className="ml-auto text-xs text-muted-foreground font-normal">{open ? "Dölj" : "Visa"}</span>
+        </CardTitle>
       </CardHeader>
       {open && (
       <CardContent className="space-y-4">
