@@ -29,7 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, AlertCircle, CalendarDays, FolderUp, Gauge, Info, Loader2, LogOut, Mail, Monitor, RefreshCw, Scale, ScrollText, Settings, ShieldCheck, Star, Tv, Users, X } from "lucide-react";
+import { Activity, AlertCircle, CalendarDays, ChevronDown, FolderUp, Gauge, Info, Loader2, LogOut, Mail, Monitor, RefreshCw, Scale, ScrollText, Settings, ShieldCheck, Star, Tv, Users, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -580,6 +580,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   <Button variant="outline" size="sm" className="w-full sm:w-auto">
                     <Settings className="mr-2 h-4 w-4 shrink-0" />
                     Admin
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
