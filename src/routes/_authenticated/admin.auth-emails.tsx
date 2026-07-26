@@ -24,6 +24,8 @@ import {
   TEMPLATE_LABELS,
   type NotificationEmailRow,
 } from "@/lib/email-log.functions";
+import { listAuditEvents, type AuditEvent } from "@/lib/users.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { AdminNav } from "@/components/admin-nav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,6 +41,19 @@ export const Route = createFileRoute("/_authenticated/admin/auth-emails")({
   }),
   component: EmailLogPage,
 });
+
+// ---------- audit helpers ----------
+
+const ACTION_LABELS: Record<string, string> = {
+  login: "Inloggning",
+  signup: "Kontoregistrering",
+  briefing_view: "Öppnade matchbriefing",
+  vmix_publish: "Publicerade till vMix",
+  vmix_unpublish: "Avpublicerade från vMix",
+  vmix_restore: "Återställde vMix-publicering",
+  approve_user: "Godkände användare",
+  reject_user: "Nekade användare",
+};
 
 // ---------- shared helpers ----------
 
@@ -87,10 +102,16 @@ function EmailLogPage() {
   const fetchAuthStatus   = useServerFn(listAuthEmailStatus);
   const fetchNotifEmails  = useServerFn(listNotificationEmails);
   const resend            = useServerFn(resendNotificationEmail);
+  const fetchEvents       = useServerFn(listAuditEvents);
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState("");
   const [onlyProblems, setOnlyProblems] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
+  }, []);
 
   const adminQuery = useQuery({
     queryKey: ["is-admin"],
@@ -120,6 +141,12 @@ function EmailLogPage() {
     enabled: isAdmin,
   });
 
+  const eventsQuery = useQuery({
+    queryKey: ["audit-events"],
+    queryFn: () => fetchEvents(),
+    enabled: isAdmin,
+  });
+
   const resendMutation = useMutation({
     mutationFn: (logId: string) => resend({ data: { logId } }),
     onSuccess: () => {
@@ -131,6 +158,7 @@ function EmailLogPage() {
 
   const authUsers: AuthEmailUser[] = authQuery.data?.users ?? [];
   const notifRows: NotificationEmailRow[] = notifQuery.data?.rows ?? [];
+  const auditEvents: AuditEvent[] = eventsQuery.data?.events ?? [];
 
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
@@ -164,7 +192,7 @@ function EmailLogPage() {
     });
   }
 
-  const isFetching = authQuery.isFetching || notifQuery.isFetching;
+  const isFetching = authQuery.isFetching || notifQuery.isFetching || eventsQuery.isFetching;
 
   return (
     <div className="min-h-screen bg-background">
@@ -184,6 +212,7 @@ function EmailLogPage() {
               onClick={() => {
                 queryClient.invalidateQueries({ queryKey: ["auth-email-status"] });
                 queryClient.invalidateQueries({ queryKey: ["notification-emails"] });
+                queryClient.invalidateQueries({ queryKey: ["audit-events"] });
               }}
               disabled={isFetching}
               className="gap-1.5"
@@ -377,6 +406,53 @@ function EmailLogPage() {
                           )}
                         </div>
                       )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+        {/* ── Audit log ── */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Aktivitetslogg ({auditEvents.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {eventsQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Laddar…</p>
+            ) : auditEvents.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Inga händelser ännu.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {auditEvents.map((e) => {
+                  const isSelf = e.userId === currentUserId;
+                  const details = Object.entries(e.metadata ?? {})
+                    .map(([k, v]) => `${k}: ${String(v)}`)
+                    .join(" · ");
+                  return (
+                    <li key={e.id} className="py-3">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2 text-sm">
+                            <Badge variant="secondary">
+                              {ACTION_LABELS[e.action] ?? e.action}
+                            </Badge>
+                            <span className="truncate font-medium">
+                              {e.email ?? "Okänd användare"}
+                            </span>
+                            {isSelf && (
+                              <span className="text-xs text-muted-foreground">(du)</span>
+                            )}
+                          </div>
+                          {details && (
+                            <div className="mt-1 text-xs text-muted-foreground">{details}</div>
+                          )}
+                        </div>
+                        <div className="whitespace-nowrap text-xs text-muted-foreground">
+                          {new Date(e.createdAt).toLocaleString("sv-SE")}
+                        </div>
+                      </div>
                     </li>
                   );
                 })}

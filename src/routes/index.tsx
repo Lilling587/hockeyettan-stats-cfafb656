@@ -29,7 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, AlertCircle, CalendarDays, ChevronDown, FolderUp, Gauge, Info, Loader2, LogOut, Mail, Monitor, RefreshCw, Scale, ScrollText, Settings, ShieldCheck, Star, Tv, Users, X } from "lucide-react";
+import { Activity, AlertCircle, CalendarDays, ChevronDown, FolderUp, Gauge, Info, Loader2, LogOut, Mail, Monitor, RefreshCw, Scale, ScrollText, Settings, Star, Tv, Users, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -630,12 +630,6 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                     <Link to="/admin/auth-emails" className="flex items-center">
                       <Mail className="mr-2 h-4 w-4" />
                       Mejllogg
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/audit" className="flex items-center">
-                      <ShieldCheck className="mr-2 h-4 w-4" />
-                      Audit
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

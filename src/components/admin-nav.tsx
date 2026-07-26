@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderUp, Gauge, Home, Info, Mail, ScrollText, ShieldCheck, Star, Tv, Users } from "lucide-react";
+import { Activity, FolderUp, Gauge, Home, Info, Mail, ScrollText, Star, Tv, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -13,7 +13,6 @@ const items = [
   { label: "vMix", to: "/admin/vmix", icon: Tv },
   { label: "Användare", to: "/admin/users", icon: Users },
   { label: "Mejllogg", to: "/admin/auth-emails", icon: Mail },
-  { label: "Audit", to: "/admin/audit", icon: ShieldCheck },
   { label: "Anslut AI", to: "/connect", icon: Info },
 ];
 
