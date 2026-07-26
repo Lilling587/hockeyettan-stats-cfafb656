@@ -9,76 +9,46 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as CompareRouteImport } from './routes/compare'
-import { Route as InfoRouteImport } from './routes/info'
-import { Route as McpRouteImport } from './routes/mcp'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as SchemaRouteImport } from './routes/schema'
 import { Route as SpelareRouteImport } from './routes/spelare'
+import { Route as SchemaRouteImport } from './routes/schema'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as InfoRouteImport } from './routes/info'
+import { Route as CompareRouteImport } from './routes/compare'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as IndexIndexRouteImport } from './routes/index.index'
-import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
-import { Route as AuthenticatedConnectRouteImport } from './routes/_authenticated/connect'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
-import { Route as AuthenticatedAdminAssetsRouteImport } from './routes/_authenticated/admin.assets'
-import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin.audit'
-import { Route as AuthenticatedAdminAuthEmailsRouteImport } from './routes/_authenticated/admin.auth-emails'
-import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
-import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin.logs'
-import { Route as AuthenticatedAdminUsageRouteImport } from './routes/_authenticated/admin.usage'
-import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
-import { Route as AuthenticatedAdminVmixRouteImport } from './routes/_authenticated/admin.vmix'
-import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
+import { Route as AuthenticatedConnectRouteImport } from './routes/_authenticated/connect'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as TvHomeAwayRouteImport } from './routes/tv.$home.$away'
-import { Route as ApiPublicHooksPostgameEmailsRouteImport } from './routes/api/public/hooks/postgame-emails'
-import { Route as ApiPublicHooksPregameEmailsRouteImport } from './routes/api/public/hooks/pregame-emails'
-import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
-import { Route as ApiPublicVmixCurrentRouteImport } from './routes/api/public/vmix/current'
-import { Route as ApiPublicVmixPlayerRouteImport } from './routes/api/public/vmix/player'
-import { Route as ApiPublicVmixStandingsRouteImport } from './routes/api/public/vmix/standings'
-import { Route as ApiPublicVmixTitlecardRouteImport } from './routes/api/public/vmix/titlecard'
-import { Route as ApiPublicVmixTodaysGamesRouteImport } from './routes/api/public/vmix/todays-games'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
+import { Route as AuthenticatedAdminVmixRouteImport } from './routes/_authenticated/admin.vmix'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
+import { Route as AuthenticatedAdminUsageRouteImport } from './routes/_authenticated/admin.usage'
+import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin.logs'
+import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
+import { Route as AuthenticatedAdminAuthEmailsRouteImport } from './routes/_authenticated/admin.auth-emails'
+import { Route as AuthenticatedAdminAssetsRouteImport } from './routes/_authenticated/admin.assets'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicVmixTodaysGamesRouteImport } from './routes/api/public/vmix/todays-games'
+import { Route as ApiPublicVmixTitlecardRouteImport } from './routes/api/public/vmix/titlecard'
+import { Route as ApiPublicVmixStandingsRouteImport } from './routes/api/public/vmix/standings'
+import { Route as ApiPublicVmixPlayerRouteImport } from './routes/api/public/vmix/player'
+import { Route as ApiPublicVmixCurrentRouteImport } from './routes/api/public/vmix/current'
+import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
+import { Route as ApiPublicHooksPregameEmailsRouteImport } from './routes/api/public/hooks/pregame-emails'
+import { Route as ApiPublicHooksPostgameEmailsRouteImport } from './routes/api/public/hooks/postgame-emails'
 import { Route as ApiPublicVmixLineupVersionRouteImport } from './routes/api/public/vmix/lineup.$version'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CompareRoute = CompareRouteImport.update({
-  id: '/compare',
-  path: '/compare',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InfoRoute = InfoRouteImport.update({
-  id: '/info',
-  path: '/info',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const SpelareRoute = SpelareRouteImport.update({
+  id: '/spelare',
+  path: '/spelare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SchemaRoute = SchemaRouteImport.update({
@@ -86,9 +56,38 @@ const SchemaRoute = SchemaRouteImport.update({
   path: '/schema',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SpelareRoute = SpelareRouteImport.update({
-  id: '/spelare',
-  path: '/spelare',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfoRoute = InfoRouteImport.update({
+  id: '/info',
+  path: '/info',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexIndexRoute = IndexIndexRouteImport.update({
@@ -96,27 +95,75 @@ const IndexIndexRoute = IndexIndexRouteImport.update({
   path: '/index/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedConnectRoute = AuthenticatedConnectRouteImport.update({
   id: '/connect',
   path: '/connect',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedNotificationsRoute =
-  AuthenticatedNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const TvHomeAwayRoute = TvHomeAwayRouteImport.update({
+  id: '/tv/$home/$away',
+  path: '/tv/$home/$away',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
+  id: '/api/public/unsubscribe',
+  path: '/api/public/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminVmixRoute = AuthenticatedAdminVmixRouteImport.update({
+  id: '/admin/vmix',
+  path: '/admin/vmix',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminUsageRoute = AuthenticatedAdminUsageRouteImport.update({
+  id: '/admin/usage',
+  path: '/admin/usage',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminLogsRoute = AuthenticatedAdminLogsRouteImport.update({
+  id: '/admin/logs',
+  path: '/admin/logs',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminHealthRoute =
+  AuthenticatedAdminHealthRouteImport.update({
+    id: '/admin/health',
+    path: '/admin/health',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminAuthEmailsRoute =
+  AuthenticatedAdminAuthEmailsRouteImport.update({
+    id: '/admin/auth-emails',
+    path: '/admin/auth-emails',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminAssetsRoute =
+  AuthenticatedAdminAssetsRouteImport.update({
+    id: '/admin/assets',
+    path: '/admin/assets',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
@@ -125,95 +172,20 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedAdminAssetsRoute =
-  AuthenticatedAdminAssetsRouteImport.update({
-    id: '/admin/assets',
-    path: '/admin/assets',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
-  id: '/admin/audit',
-  path: '/admin/audit',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAdminAuthEmailsRoute =
-  AuthenticatedAdminAuthEmailsRouteImport.update({
-    id: '/admin/auth-emails',
-    path: '/admin/auth-emails',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminHealthRoute =
-  AuthenticatedAdminHealthRouteImport.update({
-    id: '/admin/health',
-    path: '/admin/health',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdminLogsRoute = AuthenticatedAdminLogsRouteImport.update({
-  id: '/admin/logs',
-  path: '/admin/logs',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAdminUsageRoute = AuthenticatedAdminUsageRouteImport.update({
-  id: '/admin/usage',
-  path: '/admin/usage',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
-  id: '/admin/users',
-  path: '/admin/users',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAdminVmixRoute = AuthenticatedAdminVmixRouteImport.update({
-  id: '/admin/vmix',
-  path: '/admin/vmix',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
-  id: '/api/public/unsubscribe',
-  path: '/api/public/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TvHomeAwayRoute = TvHomeAwayRouteImport.update({
-  id: '/tv/$home/$away',
-  path: '/tv/$home/$away',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicHooksPostgameEmailsRoute =
-  ApiPublicHooksPostgameEmailsRouteImport.update({
-    id: '/api/public/hooks/postgame-emails',
-    path: '/api/public/hooks/postgame-emails',
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksPregameEmailsRoute =
-  ApiPublicHooksPregameEmailsRouteImport.update({
-    id: '/api/public/hooks/pregame-emails',
-    path: '/api/public/hooks/pregame-emails',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksWeeklyDigestRoute =
-  ApiPublicHooksWeeklyDigestRouteImport.update({
-    id: '/api/public/hooks/weekly-digest',
-    path: '/api/public/hooks/weekly-digest',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicVmixCurrentRoute = ApiPublicVmixCurrentRouteImport.update({
-  id: '/api/public/vmix/current',
-  path: '/api/public/vmix/current',
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicVmixPlayerRoute = ApiPublicVmixPlayerRouteImport.update({
-  id: '/api/public/vmix/player',
-  path: '/api/public/vmix/player',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicVmixStandingsRoute = ApiPublicVmixStandingsRouteImport.update({
-  id: '/api/public/vmix/standings',
-  path: '/api/public/vmix/standings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicVmixTitlecardRoute = ApiPublicVmixTitlecardRouteImport.update({
-  id: '/api/public/vmix/titlecard',
-  path: '/api/public/vmix/titlecard',
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicVmixTodaysGamesRoute =
@@ -222,20 +194,42 @@ const ApiPublicVmixTodaysGamesRoute =
     path: '/api/public/vmix/todays-games',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
-  id: '/lovable/email/auth/preview',
-  path: '/lovable/email/auth/preview',
+const ApiPublicVmixTitlecardRoute = ApiPublicVmixTitlecardRouteImport.update({
+  id: '/api/public/vmix/titlecard',
+  path: '/api/public/vmix/titlecard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
+const ApiPublicVmixStandingsRoute = ApiPublicVmixStandingsRouteImport.update({
+  id: '/api/public/vmix/standings',
+  path: '/api/public/vmix/standings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
+const ApiPublicVmixPlayerRoute = ApiPublicVmixPlayerRouteImport.update({
+  id: '/api/public/vmix/player',
+  path: '/api/public/vmix/player',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVmixCurrentRoute = ApiPublicVmixCurrentRouteImport.update({
+  id: '/api/public/vmix/current',
+  path: '/api/public/vmix/current',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksWeeklyDigestRoute =
+  ApiPublicHooksWeeklyDigestRouteImport.update({
+    id: '/api/public/hooks/weekly-digest',
+    path: '/api/public/hooks/weekly-digest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPregameEmailsRoute =
+  ApiPublicHooksPregameEmailsRouteImport.update({
+    id: '/api/public/hooks/pregame-emails',
+    path: '/api/public/hooks/pregame-emails',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPostgameEmailsRoute =
+  ApiPublicHooksPostgameEmailsRouteImport.update({
+    id: '/api/public/hooks/postgame-emails',
+    path: '/api/public/hooks/postgame-emails',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicVmixLineupVersionRoute =
@@ -261,7 +255,6 @@ export interface FileRoutesByFullPath {
   '/index/': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
-  '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/auth-emails': typeof AuthenticatedAdminAuthEmailsRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
@@ -299,7 +292,6 @@ export interface FileRoutesByTo {
   '/index': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
-  '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/auth-emails': typeof AuthenticatedAdminAuthEmailsRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
@@ -339,7 +331,6 @@ export interface FileRoutesById {
   '/index/': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/admin/assets': typeof AuthenticatedAdminAssetsRoute
-  '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/auth-emails': typeof AuthenticatedAdminAuthEmailsRoute
   '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
   '/_authenticated/admin/logs': typeof AuthenticatedAdminLogsRoute
@@ -379,7 +370,6 @@ export interface FileRouteTypes {
     | '/index/'
     | '/.mcp/invoke-tool/$tool'
     | '/admin/assets'
-    | '/admin/audit'
     | '/admin/auth-emails'
     | '/admin/health'
     | '/admin/logs'
@@ -417,7 +407,6 @@ export interface FileRouteTypes {
     | '/index'
     | '/.mcp/invoke-tool/$tool'
     | '/admin/assets'
-    | '/admin/audit'
     | '/admin/auth-emails'
     | '/admin/health'
     | '/admin/logs'
@@ -456,7 +445,6 @@ export interface FileRouteTypes {
     | '/index/'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/admin/assets'
-    | '/_authenticated/admin/audit'
     | '/_authenticated/admin/auth-emails'
     | '/_authenticated/admin/health'
     | '/_authenticated/admin/logs'
@@ -511,53 +499,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/compare': {
-      id: '/compare'
-      path: '/compare'
-      fullPath: '/compare'
-      preLoaderRoute: typeof CompareRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/info': {
-      id: '/info'
-      path: '/info'
-      fullPath: '/info'
-      preLoaderRoute: typeof InfoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+    '/spelare': {
+      id: '/spelare'
+      path: '/spelare'
+      fullPath: '/spelare'
+      preLoaderRoute: typeof SpelareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/schema': {
@@ -567,11 +513,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SchemaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/spelare': {
-      id: '/spelare'
-      path: '/spelare'
-      fullPath: '/spelare'
-      preLoaderRoute: typeof SpelareRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/info': {
+      id: '/info'
+      path: '/info'
+      fullPath: '/info'
+      preLoaderRoute: typeof InfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/index/': {
@@ -581,19 +569,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.mcp/list-tools': {
-      id: '/.mcp/list-tools'
-      path: '/.mcp/list-tools'
-      fullPath: '/.mcp/list-tools'
-      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/connect': {
       id: '/_authenticated/connect'
@@ -602,81 +583,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConnectRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/notifications': {
-      id: '/_authenticated/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin/assets': {
-      id: '/_authenticated/admin/assets'
-      path: '/admin/assets'
-      fullPath: '/admin/assets'
-      preLoaderRoute: typeof AuthenticatedAdminAssetsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/audit': {
-      id: '/_authenticated/admin/audit'
-      path: '/admin/audit'
-      fullPath: '/admin/audit'
-      preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/auth-emails': {
-      id: '/_authenticated/admin/auth-emails'
-      path: '/admin/auth-emails'
-      fullPath: '/admin/auth-emails'
-      preLoaderRoute: typeof AuthenticatedAdminAuthEmailsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/health': {
-      id: '/_authenticated/admin/health'
-      path: '/admin/health'
-      fullPath: '/admin/health'
-      preLoaderRoute: typeof AuthenticatedAdminHealthRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/logs': {
-      id: '/_authenticated/admin/logs'
-      path: '/admin/logs'
-      fullPath: '/admin/logs'
-      preLoaderRoute: typeof AuthenticatedAdminLogsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/usage': {
-      id: '/_authenticated/admin/usage'
-      path: '/admin/usage'
-      fullPath: '/admin/usage'
-      preLoaderRoute: typeof AuthenticatedAdminUsageRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/users': {
-      id: '/_authenticated/admin/users'
-      path: '/admin/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/vmix': {
-      id: '/_authenticated/admin/vmix'
-      path: '/admin/vmix'
-      fullPath: '/admin/vmix'
-      preLoaderRoute: typeof AuthenticatedAdminVmixRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/api/public/unsubscribe': {
-      id: '/api/public/unsubscribe'
-      path: '/api/public/unsubscribe'
-      fullPath: '/api/public/unsubscribe'
-      preLoaderRoute: typeof ApiPublicUnsubscribeRouteImport
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tv/$home/$away': {
@@ -686,67 +604,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TvHomeAwayRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/postgame-emails': {
-      id: '/api/public/hooks/postgame-emails'
-      path: '/api/public/hooks/postgame-emails'
-      fullPath: '/api/public/hooks/postgame-emails'
-      preLoaderRoute: typeof ApiPublicHooksPostgameEmailsRouteImport
+    '/api/public/unsubscribe': {
+      id: '/api/public/unsubscribe'
+      path: '/api/public/unsubscribe'
+      fullPath: '/api/public/unsubscribe'
+      preLoaderRoute: typeof ApiPublicUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/pregame-emails': {
-      id: '/api/public/hooks/pregame-emails'
-      path: '/api/public/hooks/pregame-emails'
-      fullPath: '/api/public/hooks/pregame-emails'
-      preLoaderRoute: typeof ApiPublicHooksPregameEmailsRouteImport
+    '/_authenticated/admin/vmix': {
+      id: '/_authenticated/admin/vmix'
+      path: '/admin/vmix'
+      fullPath: '/admin/vmix'
+      preLoaderRoute: typeof AuthenticatedAdminVmixRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/usage': {
+      id: '/_authenticated/admin/usage'
+      path: '/admin/usage'
+      fullPath: '/admin/usage'
+      preLoaderRoute: typeof AuthenticatedAdminUsageRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/logs': {
+      id: '/_authenticated/admin/logs'
+      path: '/admin/logs'
+      fullPath: '/admin/logs'
+      preLoaderRoute: typeof AuthenticatedAdminLogsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/health': {
+      id: '/_authenticated/admin/health'
+      path: '/admin/health'
+      fullPath: '/admin/health'
+      preLoaderRoute: typeof AuthenticatedAdminHealthRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/auth-emails': {
+      id: '/_authenticated/admin/auth-emails'
+      path: '/admin/auth-emails'
+      fullPath: '/admin/auth-emails'
+      preLoaderRoute: typeof AuthenticatedAdminAuthEmailsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/assets': {
+      id: '/_authenticated/admin/assets'
+      path: '/admin/assets'
+      fullPath: '/admin/assets'
+      preLoaderRoute: typeof AuthenticatedAdminAssetsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/weekly-digest': {
-      id: '/api/public/hooks/weekly-digest'
-      path: '/api/public/hooks/weekly-digest'
-      fullPath: '/api/public/hooks/weekly-digest'
-      preLoaderRoute: typeof ApiPublicHooksWeeklyDigestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/vmix/current': {
-      id: '/api/public/vmix/current'
-      path: '/api/public/vmix/current'
-      fullPath: '/api/public/vmix/current'
-      preLoaderRoute: typeof ApiPublicVmixCurrentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/vmix/player': {
-      id: '/api/public/vmix/player'
-      path: '/api/public/vmix/player'
-      fullPath: '/api/public/vmix/player'
-      preLoaderRoute: typeof ApiPublicVmixPlayerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/vmix/standings': {
-      id: '/api/public/vmix/standings'
-      path: '/api/public/vmix/standings'
-      fullPath: '/api/public/vmix/standings'
-      preLoaderRoute: typeof ApiPublicVmixStandingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/vmix/titlecard': {
-      id: '/api/public/vmix/titlecard'
-      path: '/api/public/vmix/titlecard'
-      fullPath: '/api/public/vmix/titlecard'
-      preLoaderRoute: typeof ApiPublicVmixTitlecardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/vmix/todays-games': {
-      id: '/api/public/vmix/todays-games'
-      path: '/api/public/vmix/todays-games'
-      fullPath: '/api/public/vmix/todays-games'
-      preLoaderRoute: typeof ApiPublicVmixTodaysGamesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/preview': {
-      id: '/lovable/email/auth/preview'
-      path: '/lovable/email/auth/preview'
-      fullPath: '/lovable/email/auth/preview'
-      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/auth/webhook': {
@@ -756,11 +681,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/vmix/todays-games': {
+      id: '/api/public/vmix/todays-games'
+      path: '/api/public/vmix/todays-games'
+      fullPath: '/api/public/vmix/todays-games'
+      preLoaderRoute: typeof ApiPublicVmixTodaysGamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/vmix/titlecard': {
+      id: '/api/public/vmix/titlecard'
+      path: '/api/public/vmix/titlecard'
+      fullPath: '/api/public/vmix/titlecard'
+      preLoaderRoute: typeof ApiPublicVmixTitlecardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/vmix/standings': {
+      id: '/api/public/vmix/standings'
+      path: '/api/public/vmix/standings'
+      fullPath: '/api/public/vmix/standings'
+      preLoaderRoute: typeof ApiPublicVmixStandingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/vmix/player': {
+      id: '/api/public/vmix/player'
+      path: '/api/public/vmix/player'
+      fullPath: '/api/public/vmix/player'
+      preLoaderRoute: typeof ApiPublicVmixPlayerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/vmix/current': {
+      id: '/api/public/vmix/current'
+      path: '/api/public/vmix/current'
+      fullPath: '/api/public/vmix/current'
+      preLoaderRoute: typeof ApiPublicVmixCurrentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/weekly-digest': {
+      id: '/api/public/hooks/weekly-digest'
+      path: '/api/public/hooks/weekly-digest'
+      fullPath: '/api/public/hooks/weekly-digest'
+      preLoaderRoute: typeof ApiPublicHooksWeeklyDigestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/pregame-emails': {
+      id: '/api/public/hooks/pregame-emails'
+      path: '/api/public/hooks/pregame-emails'
+      fullPath: '/api/public/hooks/pregame-emails'
+      preLoaderRoute: typeof ApiPublicHooksPregameEmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/postgame-emails': {
+      id: '/api/public/hooks/postgame-emails'
+      path: '/api/public/hooks/postgame-emails'
+      fullPath: '/api/public/hooks/postgame-emails'
+      preLoaderRoute: typeof ApiPublicHooksPostgameEmailsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/vmix/lineup/$version': {
@@ -777,7 +758,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConnectRoute: typeof AuthenticatedConnectRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedAdminAssetsRoute: typeof AuthenticatedAdminAssetsRoute
-  AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminAuthEmailsRoute: typeof AuthenticatedAdminAuthEmailsRoute
   AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
   AuthenticatedAdminLogsRoute: typeof AuthenticatedAdminLogsRoute
@@ -790,7 +770,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConnectRoute: AuthenticatedConnectRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedAdminAssetsRoute: AuthenticatedAdminAssetsRoute,
-  AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
   AuthenticatedAdminAuthEmailsRoute: AuthenticatedAdminAuthEmailsRoute,
   AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
   AuthenticatedAdminLogsRoute: AuthenticatedAdminLogsRoute,
