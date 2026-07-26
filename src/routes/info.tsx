@@ -201,8 +201,8 @@ function InfoPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Publicera laguppställningar, resultat och ställning direkt till
-                ditt vMix-produktionsflöde.
+                Publicera laguppställningar, resultat och tabell direkt till
+              vMix.
               </p>
             </CardContent>
           </Card>
