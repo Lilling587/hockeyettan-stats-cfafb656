@@ -159,7 +159,7 @@ function InfoPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Senaste form, målvakter, skott, special teams, faceoffs och
+                Senaste form, målvakter, skott, special teams, tekningar och
                 head-to-head – allt på ett ställe.
               </p>
             </CardContent>
