@@ -1087,7 +1087,19 @@ const restoreMut = useMutation({
       </CardErrorBoundary>
       </div>
       <AuditLogCard entries={auditQuery.data ?? []} loading={auditQuery.isLoading} />
-<div className="flex items-center gap-2">
+
+      <div id="forsasongstrupp">
+        <PreseasonRosterCard
+          onRosterLoaded={(pool, team) => {
+            setAwayPool(pool);
+            setAwayRosterError(null);
+            setAwayTeam(team);
+            setAwaySlots(emptySlots(team, codesMap[team] ?? ""));
+          }}
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
         <span className="text-xs text-muted-foreground">Säsong för spelarlistan:</span>
         <Select
           value={adminSeason ?? ""}
@@ -1104,17 +1116,6 @@ const restoreMut = useMutation({
             ))}
           </SelectContent>
         </Select>
-      </div>
-
-      <div id="forsasongstrupp">
-        <PreseasonRosterCard
-          onRosterLoaded={(pool, team) => {
-            setAwayPool(pool);
-            setAwayRosterError(null);
-            setAwayTeam(team);
-            setAwaySlots(emptySlots(team, codesMap[team] ?? ""));
-          }}
-        />
       </div>
 
       <div id="kalla">
