@@ -1107,7 +1107,7 @@ const restoreMut = useMutation({
       </div>
 
       <div id="forsasongstrupp">
-        <PreseasonRosterCard />
+        <PreseasonRosterCard onRosterLoaded={(pool) => { setAwayPool(pool); setAwayRosterError(null); }} />
       </div>
 
       <div id="kalla">
@@ -2431,7 +2431,7 @@ function AuditLogCard({ entries, loading }: { entries: AuditLogRow[]; loading: b
 
 const PRESEASON_COMPETITION_ID = "21138";
 
-function PreseasonRosterCard() {
+function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: RosterPlayer[]) => void }) {
   const fetchRosterByComp = useServerFn(fetchRosterByCompetition);
   const [teamName, setTeamName] = useState("");
   const [competitionId, setCompetitionId] = useState(PRESEASON_COMPETITION_ID);
@@ -2446,6 +2446,12 @@ function PreseasonRosterCard() {
     onSuccess: (pool) => {
       setPlayers(pool);
       setFetchError(null);
+      onRosterLoaded(pool);
+      if (pool.length > 0) {
+        toast.success(`${pool.length} spelare laddade till Bortalag-lineup`);
+      } else {
+        toast.info("Inga spelare registrerade – prova ett annat tävlings-ID");
+      }
     },
     onError: (e) => {
       setFetchError((e as Error).message);
