@@ -126,11 +126,10 @@ function InfoPage() {
       <main className="mx-auto max-w-5xl space-y-6 px-6 py-12">
         <div className="space-y-4 text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Broadcast-statistik för Grästorps IK
+            HockeyEttan Stats
           </h2>
           <p className="mx-auto max-w-2xl text-muted-foreground">
-            Välj hemmalag och bortalag, få en komplett matchbriefing på sekunder
-            och publicera grafik direkt till vMix.
+            Välj lag, få en komplett matchbriefing på sekunder och publicera data direkt till vMix.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             {isApproved ? (
