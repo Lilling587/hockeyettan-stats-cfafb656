@@ -35,7 +35,7 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/_authenticated/admin/auth-emails")({
   head: () => ({
     meta: [
-      { title: "Mejllogg · HockeyEttan Södra" },
+      { title: "Maillog · HockeyEttan Södra" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -201,9 +201,9 @@ function EmailLogPage() {
           <AdminNav />
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Mejllogg</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">Maillog</h1>
               <p className="text-sm text-muted-foreground">
-                Notismejl (med skicka-igen) och auth-mail per användare.
+                Skickade notismejl (med skicka-igen), auth-mail per användare och aktivitetslogg.
               </p>
             </div>
             <Button

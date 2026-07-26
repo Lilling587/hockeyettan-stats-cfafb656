@@ -629,7 +629,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   <DropdownMenuItem asChild>
                     <Link to="/admin/auth-emails" className="flex items-center">
                       <Mail className="mr-2 h-4 w-4" />
-                      Mejllogg
+                      Maillog
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

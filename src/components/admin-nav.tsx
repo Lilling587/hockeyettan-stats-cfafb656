@@ -12,7 +12,7 @@ const items = [
   { label: "Lagring", to: "/admin/assets", icon: FolderUp },
   { label: "vMix", to: "/admin/vmix", icon: Tv },
   { label: "Användare", to: "/admin/users", icon: Users },
-  { label: "Mejllogg", to: "/admin/auth-emails", icon: Mail },
+  { label: "Maillog", to: "/admin/auth-emails", icon: Mail },
   { label: "Anslut AI", to: "/connect", icon: Info },
 ];
 
