@@ -7,12 +7,12 @@ const items = [
   { label: "Hem", to: "/", icon: Home },
   { label: "Notiser", to: "/notifications", icon: Star },
   { label: "Hälsa", to: "/admin/health", icon: Activity },
-  { label: "Loggbok", to: "/admin/logs", icon: ScrollText },
+  { label: "Systemlogg", to: "/admin/logs", icon: ScrollText },
   { label: "Användning", to: "/admin/usage", icon: Gauge },
   { label: "Lagring", to: "/admin/assets", icon: FolderUp },
   { label: "vMix", to: "/admin/vmix", icon: Tv },
   { label: "Användare", to: "/admin/users", icon: Users },
-  { label: "Maillog", to: "/admin/auth-emails", icon: Mail },
+  { label: "Maillogg", to: "/admin/auth-emails", icon: Mail },
   { label: "Anslut AI", to: "/connect", icon: Info },
 ];
 

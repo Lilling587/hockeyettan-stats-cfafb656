@@ -599,7 +599,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   <DropdownMenuItem asChild>
                     <Link to="/admin/logs" className="flex items-center">
                       <ScrollText className="mr-2 h-4 w-4" />
-                      Loggbok
+                      Systemlogg
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -629,7 +629,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   <DropdownMenuItem asChild>
                     <Link to="/admin/auth-emails" className="flex items-center">
                       <Mail className="mr-2 h-4 w-4" />
-                      Maillog
+                      Maillogg
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
