@@ -141,11 +141,7 @@ function InfoPage() {
               <Button size="lg" disabled>
                 {user.status === "rejected" ? "Konto nekat" : "Väntar på godkännande"}
               </Button>
-            ) : (
-              <Button asChild size="lg">
-                <Link to="/auth">Logga in för att komma igång</Link>
-              </Button>
-            )}
+            ) : null}
             <Button asChild variant="outline" size="lg">
               <Link to="/spelare">Spelarstatistik</Link>
             </Button>
