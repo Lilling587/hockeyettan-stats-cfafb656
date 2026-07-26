@@ -591,15 +591,27 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link to="/admin/health" className="flex items-center">
+                      <Activity className="mr-2 h-4 w-4" />
+                      Hälsa
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/admin/logs" className="flex items-center">
                       <ScrollText className="mr-2 h-4 w-4" />
                       Loggbok
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/admin/health" className="flex items-center">
-                      <Activity className="mr-2 h-4 w-4" />
-                      Hälsa
+                    <Link to="/admin/usage" className="flex items-center">
+                      <Gauge className="mr-2 h-4 w-4" />
+                      Användning
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/assets" className="flex items-center">
+                      <FolderUp className="mr-2 h-4 w-4" />
+                      Lagring
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -612,18 +624,6 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                     <Link to="/admin/users" className="flex items-center">
                       <Users className="mr-2 h-4 w-4" />
                       Användare
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/assets" className="flex items-center">
-                      <FolderUp className="mr-2 h-4 w-4" />
-                      Lagring
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/usage" className="flex items-center">
-                      <Gauge className="mr-2 h-4 w-4" />
-                      Användning
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
