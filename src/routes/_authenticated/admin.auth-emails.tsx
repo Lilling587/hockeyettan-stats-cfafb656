@@ -227,7 +227,7 @@ function EmailLogPage() {
       <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
 
         {/* ── Notification emails ── */}
-        <Card>
+        <Card id="notismejl">
           <CardHeader>
             <CardTitle>Notismejl ({notifRows.length})</CardTitle>
           </CardHeader>
@@ -298,7 +298,7 @@ function EmailLogPage() {
         </div>
 
         {/* ── Auth emails per user ── */}
-        <Card>
+        <Card id="auth-mail">
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>Auth-mail per användare ({filtered.length})</CardTitle>
             <div className="flex flex-wrap items-center gap-2">
@@ -414,7 +414,7 @@ function EmailLogPage() {
           </CardContent>
         </Card>
         {/* ── Audit log ── */}
-        <Card>
+        <Card id="aktivitetslogg">
           <CardHeader>
             <CardTitle>Aktivitetslogg ({auditEvents.length})</CardTitle>
           </CardHeader>

@@ -955,7 +955,7 @@ const restoreMut = useMutation({
       </header>
 
       <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-      <Card className={`border-2 ${
+      <Card id="publicering" className={`border-2 ${
         readinessChecks.every((c) => c.status === "ok")
           ? "border-emerald-500/30"
           : readinessChecks.some((c) => c.status === "error")
@@ -1034,6 +1034,7 @@ const restoreMut = useMutation({
           </Button>
         </div>
       )}
+      <div id="logotypkoder">
       <CardErrorBoundary title="Logotypkoder">
         <TeamCodesCard
           codes={codesQuery.data ?? []}
@@ -1055,11 +1056,15 @@ const restoreMut = useMutation({
           }}
         />
       </CardErrorBoundary>
+      </div>
 
-   <CardErrorBoundary title="vMix-endpoints">
+      <div id="endpoints">
+      <CardErrorBoundary title="vMix-endpoints">
         <EndpointTester endpoints={endpoints} autoFetchTrigger={autoFetchTrigger} />
       </CardErrorBoundary>
+      </div>
 
+      <div id="historik">
       <CardErrorBoundary title="Publiceringshistorik">
         <PublicationHistory
           publications={historyQuery.data ?? []}
@@ -1079,6 +1084,7 @@ const restoreMut = useMutation({
           }}
         />
       </CardErrorBoundary>
+      </div>
       <AuditLogCard entries={auditQuery.data ?? []} loading={auditQuery.isLoading} />
 <div className="flex items-center gap-2">
         <span className="text-xs text-muted-foreground">Säsong för spelarlistan:</span>
@@ -1099,6 +1105,7 @@ const restoreMut = useMutation({
         </Select>
       </div>
 
+      <div id="kalla">
       <DataSourceCard
         sourceMode={sourceMode}
         loading={todaysQuery.isLoading}
@@ -1110,8 +1117,9 @@ const restoreMut = useMutation({
         onRerunAuto={rerunAuto}
         hasLive={!!activeQuery.data}
       />
+      </div>
 
-      
+      <div id="hemmalag">
       <SlotLineupEditor
         title="Hemmalag – lineup"
         teamName={homeTeam}
@@ -1125,7 +1133,9 @@ const restoreMut = useMutation({
         poolLoaded={homePool.length > 0}
         rosterError={homeRosterError}
       />
+      </div>
 
+      <div id="bortalag">
       <SlotLineupEditor
         title="Bortalag – lineup"
         teamName={awayTeam || ""}
@@ -1141,7 +1151,9 @@ const restoreMut = useMutation({
         poolLoaded={awayPool.length > 0}
         rosterError={awayRosterError}
       />
-<Card>
+      </div>
+
+      <Card id="lineup-mallar">
         <CardHeader
           className="cursor-pointer select-none"
           onClick={() => setShowSavePreset((v) => !v)}

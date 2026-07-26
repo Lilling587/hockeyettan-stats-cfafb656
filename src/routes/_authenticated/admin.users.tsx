@@ -156,7 +156,7 @@ function AdminUsersPage() {
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-        <Card>
+        <Card id="bjud-in">
           <CardHeader>
             <CardTitle>Bjud in admin</CardTitle>
           </CardHeader>
@@ -192,7 +192,7 @@ function AdminUsersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="vantar">
           <CardHeader>
             <CardTitle>Väntar på godkännande ({pendingUsers.length})</CardTitle>
           </CardHeader>
@@ -244,7 +244,7 @@ function AdminUsersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="godkanda">
           <CardHeader>
             <CardTitle>Godkända användare ({approvedUsers.length})</CardTitle>
           </CardHeader>
@@ -299,7 +299,7 @@ function AdminUsersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="nekade">
           <CardHeader>
             <CardTitle>Nekade användare ({rejectedUsers.length})</CardTitle>
           </CardHeader>
@@ -340,7 +340,7 @@ function AdminUsersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="prenumeranter">
           <CardHeader>
             <CardTitle>
               Notisprenumeranter ({subscribersQuery.data?.length ?? 0})
@@ -394,7 +394,7 @@ function AdminUsersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="administratorer">
           <CardHeader>
             <CardTitle>Nuvarande administratörer ({admins.length})</CardTitle>
           </CardHeader>

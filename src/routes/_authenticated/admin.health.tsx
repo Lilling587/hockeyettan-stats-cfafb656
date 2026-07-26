@@ -224,26 +224,33 @@ function HealthPage() {
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-        <VmixOverallBanner
-          data={vmixHealthQuery.data}
-          isLoading={vmixHealthQuery.isLoading}
-          error={vmixHealthQuery.error}
-        />
+        <div id="vmix-status">
+          <VmixOverallBanner
+            data={vmixHealthQuery.data}
+            isLoading={vmixHealthQuery.isLoading}
+            error={vmixHealthQuery.error}
+          />
+        </div>
 
-        <SupabaseHealthCard
-          data={supabaseHealthQuery.data}
-          isLoading={supabaseHealthQuery.isLoading}
-          error={supabaseHealthQuery.error}
-        />
+        <div id="supabase">
+          <SupabaseHealthCard
+            data={supabaseHealthQuery.data}
+            isLoading={supabaseHealthQuery.isLoading}
+            error={supabaseHealthQuery.error}
+          />
+        </div>
 
-        <VmixHealthCard
-          data={vmixHealthQuery.data}
-          isLoading={vmixHealthQuery.isLoading}
-          isFetching={vmixHealthQuery.isFetching}
-          error={vmixHealthQuery.error}
-          onRefresh={() => vmixHealthQuery.refetch()}
-        />
+        <div id="vmix-endpoints">
+          <VmixHealthCard
+            data={vmixHealthQuery.data}
+            isLoading={vmixHealthQuery.isLoading}
+            isFetching={vmixHealthQuery.isFetching}
+            error={vmixHealthQuery.error}
+            onRefresh={() => vmixHealthQuery.refetch()}
+          />
+        </div>
 
+        <div id="scraper">
         {!data ? (
           <p className="text-sm text-muted-foreground">Laddar…</p>
         ) : (
@@ -370,6 +377,7 @@ function HealthPage() {
             </Card>
           </>
         )}
+        </div>
       </main>
     </div>
   );

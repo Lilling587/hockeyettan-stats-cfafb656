@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "description": "Navigeringsgenvägar för Bitfocus Companion / Stream Deck. Alla URL:er kräver en inloggad webbläsarsession. Konfigurera varje knapp som en 'Open URL'-åtgärd med URL:en nedan.",
+  "baseUrl": "https://hockeyettan-stats.spdproduktion.se",
+  "groups": [
+    {
+      "id": "sidor",
+      "label": "Sidnavigering",
+      "description": "Navigera till olika sidor i appen",
+      "shortcuts": [
+        { "id": "dashboard",  "label": "Dashboard",        "path": "/",         "url": "https://hockeyettan-stats.spdproduktion.se/" },
+        { "id": "spelare",    "label": "Spelarstatistik",  "path": "/spelare",  "url": "https://hockeyettan-stats.spdproduktion.se/spelare" },
+        { "id": "compare",    "label": "Jämförelse",       "path": "/compare",  "url": "https://hockeyettan-stats.spdproduktion.se/compare" },
+        { "id": "notiser",    "label": "Notiser",          "path": "/notifications", "url": "https://hockeyettan-stats.spdproduktion.se/notifications" }
+      ]
+    },
+    {
+      "id": "briefing",
+      "label": "Dashboard – briefingavsnitt",
+      "description": "Scrollar direkt till ett avsnitt i matchbriefingen. Kräver att en match är vald.",
+      "shortcuts": [
+        { "id": "briefing-capture", "label": "Toppen (hela briefingen)",  "path": "/#briefing-capture", "url": "https://hockeyettan-stats.spdproduktion.se/#briefing-capture" },
+        { "id": "form",             "label": "Form",                      "path": "/#form",             "url": "https://hockeyettan-stats.spdproduktion.se/#form" },
+        { "id": "venue",            "label": "Hemma/borta-svit",          "path": "/#venue",            "url": "https://hockeyettan-stats.spdproduktion.se/#venue" },
+        { "id": "periods",          "label": "Periodmål",                 "path": "/#periods",          "url": "https://hockeyettan-stats.spdproduktion.se/#periods" },
+        { "id": "h2h",              "label": "Inbördes möten",            "path": "/#h2h",              "url": "https://hockeyettan-stats.spdproduktion.se/#h2h" },
+        { "id": "scorers",          "label": "Toppscorers",               "path": "/#scorers",          "url": "https://hockeyettan-stats.spdproduktion.se/#scorers" },
+        { "id": "goalies",          "label": "Målvakter",                 "path": "/#goalies",          "url": "https://hockeyettan-stats.spdproduktion.se/#goalies" },
+        { "id": "shots",            "label": "Skottvolym",                "path": "/#shots",            "url": "https://hockeyettan-stats.spdproduktion.se/#shots" },
+        { "id": "special",          "label": "Special teams",             "path": "/#special",          "url": "https://hockeyettan-stats.spdproduktion.se/#special" },
+        { "id": "probability",      "label": "Vinstsannolikhet",          "path": "/#probability",      "url": "https://hockeyettan-stats.spdproduktion.se/#probability" },
+        { "id": "hot",              "label": "Hetaste spelaren",          "path": "/#hot",              "url": "https://hockeyettan-stats.spdproduktion.se/#hot" },
+        { "id": "streaks",          "label": "Streak alerts",             "path": "/#streaks",          "url": "https://hockeyettan-stats.spdproduktion.se/#streaks" },
+        { "id": "discipline",       "label": "Disciplin",                 "path": "/#discipline",       "url": "https://hockeyettan-stats.spdproduktion.se/#discipline" }
+      ]
+    },
+    {
+      "id": "admin-vmix",
+      "label": "vMix (operatör)",
+      "description": "vMix-sidan och dess avsnitt. Kräver admin-behörighet.",
+      "shortcuts": [
+        { "id": "vmix",           "label": "vMix (toppen)",         "path": "/admin/vmix",                   "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix" },
+        { "id": "publicering",    "label": "Publicering",           "path": "/admin/vmix#publicering",       "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#publicering" },
+        { "id": "kalla",          "label": "Datakälla",             "path": "/admin/vmix#kalla",             "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#kalla" },
+        { "id": "hemmalag",       "label": "Hemmalag – lineup",     "path": "/admin/vmix#hemmalag",          "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#hemmalag" },
+        { "id": "bortalag",       "label": "Bortalag – lineup",     "path": "/admin/vmix#bortalag",          "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#bortalag" },
+        { "id": "lineup-mallar",  "label": "Lineup-mallar",         "path": "/admin/vmix#lineup-mallar",     "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#lineup-mallar" },
+        { "id": "logotypkoder",   "label": "Logotypkoder",          "path": "/admin/vmix#logotypkoder",      "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#logotypkoder" },
+        { "id": "endpoints",      "label": "vMix-endpoints",        "path": "/admin/vmix#endpoints",         "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#endpoints" },
+        { "id": "historik",       "label": "Publiceringshistorik",  "path": "/admin/vmix#historik",          "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#historik" }
+      ]
+    },
+    {
+      "id": "admin-health",
+      "label": "Hälsa (operatör)",
+      "description": "Scraper- och systemhälsa. Kräver admin-behörighet.",
+      "shortcuts": [
+        { "id": "health",         "label": "Hälsa (toppen)",     "path": "/admin/health",                   "url": "https://hockeyettan-stats.spdproduktion.se/admin/health" },
+        { "id": "vmix-status",    "label": "vMix-status",        "path": "/admin/health#vmix-status",       "url": "https://hockeyettan-stats.spdproduktion.se/admin/health#vmix-status" },
+        { "id": "supabase",       "label": "Supabase",           "path": "/admin/health#supabase",          "url": "https://hockeyettan-stats.spdproduktion.se/admin/health#supabase" },
+        { "id": "vmix-endpoints", "label": "vMix-endpoints",     "path": "/admin/health#vmix-endpoints",    "url": "https://hockeyettan-stats.spdproduktion.se/admin/health#vmix-endpoints" },
+        { "id": "scraper",        "label": "Scraper-metrics",    "path": "/admin/health#scraper",           "url": "https://hockeyettan-stats.spdproduktion.se/admin/health#scraper" }
+      ]
+    },
+    {
+      "id": "admin-users",
+      "label": "Användare (operatör)",
+      "description": "Användarhantering. Kräver admin-behörighet.",
+      "shortcuts": [
+        { "id": "users",            "label": "Användare (toppen)",         "path": "/admin/users",                      "url": "https://hockeyettan-stats.spdproduktion.se/admin/users" },
+        { "id": "bjud-in",          "label": "Bjud in admin",              "path": "/admin/users#bjud-in",              "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#bjud-in" },
+        { "id": "vantar",           "label": "Väntar på godkännande",      "path": "/admin/users#vantar",               "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#vantar" },
+        { "id": "godkanda",         "label": "Godkända användare",         "path": "/admin/users#godkanda",             "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#godkanda" },
+        { "id": "nekade",           "label": "Nekade användare",           "path": "/admin/users#nekade",               "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#nekade" },
+        { "id": "prenumeranter",    "label": "Notisprenumeranter",         "path": "/admin/users#prenumeranter",        "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#prenumeranter" },
+        { "id": "administratorer",  "label": "Nuvarande administratörer",  "path": "/admin/users#administratorer",      "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#administratorer" }
+      ]
+    },
+    {
+      "id": "admin-lagring",
+      "label": "Lagring (operatör)",
+      "description": "Fillagring och logotyper. Kräver admin-behörighet.",
+      "shortcuts": [
+        { "id": "lagring",               "label": "Lagring (toppen)",          "path": "/admin/assets",                          "url": "https://hockeyettan-stats.spdproduktion.se/admin/assets" },
+        { "id": "sandningsmallar",        "label": "Sändningsmallar",           "path": "/admin/assets#sandningsmallar",           "url": "https://hockeyettan-stats.spdproduktion.se/admin/assets#sandningsmallar" },
+        { "id": "logotyper-vmix",         "label": "Logotyper (vMix)",          "path": "/admin/assets#logotyper-vmix",           "url": "https://hockeyettan-stats.spdproduktion.se/admin/assets#logotyper-vmix" },
+        { "id": "logotyper-statistik",    "label": "Logotyper (statistiksida)", "path": "/admin/assets#logotyper-statistik",      "url": "https://hockeyettan-stats.spdproduktion.se/admin/assets#logotyper-statistik" }
+      ]
+    },
+    {
+      "id": "admin-maillogg",
+      "label": "Maillogg (operatör)",
+      "description": "Mejl- och aktivitetslogg. Kräver admin-behörighet.",
+      "shortcuts": [
+        { "id": "maillogg",         "label": "Maillogg (toppen)",        "path": "/admin/auth-emails",                       "url": "https://hockeyettan-stats.spdproduktion.se/admin/auth-emails" },
+        { "id": "notismejl",        "label": "Notismejl",                "path": "/admin/auth-emails#notismejl",             "url": "https://hockeyettan-stats.spdproduktion.se/admin/auth-emails#notismejl" },
+        { "id": "auth-mail",        "label": "Auth-mail per användare",  "path": "/admin/auth-emails#auth-mail",             "url": "https://hockeyettan-stats.spdproduktion.se/admin/auth-emails#auth-mail" },
+        { "id": "aktivitetslogg",   "label": "Aktivitetslogg",           "path": "/admin/auth-emails#aktivitetslogg",        "url": "https://hockeyettan-stats.spdproduktion.se/admin/auth-emails#aktivitetslogg" }
+      ]
+    },
+    {
+      "id": "admin-ovrigt",
+      "label": "Övrigt admin (operatör)",
+      "description": "Övriga admin-sidor. Kräver admin-behörighet.",
+      "shortcuts": [
+        { "id": "systemlogg",   "label": "Systemlogg",    "path": "/admin/logs",   "url": "https://hockeyettan-stats.spdproduktion.se/admin/logs" },
+        { "id": "anvandning",   "label": "Användning",    "path": "/admin/usage",  "url": "https://hockeyettan-stats.spdproduktion.se/admin/usage" }
+      ]
+    }
+  ]
+}

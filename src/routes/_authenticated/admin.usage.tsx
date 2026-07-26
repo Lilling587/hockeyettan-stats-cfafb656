@@ -117,7 +117,7 @@ function UsagePage() {
         </p>
 
         {snap && (
-          <Card className="border-primary/40">
+          <Card id="credits" className="border-primary/40">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Coins className="h-5 w-5" /> Uppskattade credits
@@ -149,7 +149,7 @@ function UsagePage() {
           </div>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div id="endpoints" className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader><CardTitle>Endpoints (scraper)</CardTitle></CardHeader>
             <CardContent className="max-h-96 overflow-auto p-0">
@@ -190,7 +190,7 @@ function UsagePage() {
           </Card>
         </div>
 
-        <Card>
+        <Card id="aktivitet">
           <CardHeader><CardTitle>Senaste aktivitet</CardTitle></CardHeader>
           <CardContent className="max-h-[32rem] overflow-auto p-0">
             <Table>

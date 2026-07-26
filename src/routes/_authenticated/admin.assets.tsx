@@ -179,7 +179,7 @@ function AdminAssetsPage() {
       <main className="mx-auto max-w-5xl space-y-8 p-6">
 
         {/* ── Broadcast templates ── */}
-        <Card>
+        <Card id="sandningsmallar">
           <CardHeader>
             <CardTitle>Sändningsmallar</CardTitle>
             <CardDescription>
@@ -200,7 +200,7 @@ function AdminAssetsPage() {
         </Card>
 
         {/* ── vMix team logos ── */}
-        <Card>
+        <Card id="logotyper-vmix">
           <CardHeader>
             <CardTitle>Logotyper (vMix)</CardTitle>
             <CardDescription>
@@ -269,7 +269,7 @@ function AdminAssetsPage() {
         </Card>
 
         {/* ── Briefing logo cache ── */}
-        <Card>
+        <Card id="logotyper-statistik">
           <CardHeader>
            <CardTitle>Logotyper (statistiksida)</CardTitle>
             <CardDescription>
