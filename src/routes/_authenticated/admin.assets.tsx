@@ -255,14 +255,18 @@ function AdminAssetsPage() {
                           getVmixLogoPath(c.logoCode, "large"),
                           file,
                         );
-                        // Uploading large logo also serves the stats page —
-                        // clear the briefing logo cache so it picks up the new file.
                         if (ok) invalidateLogos();
                         return ok;
                       }}
                     />
                   </div>
                 ))}
+                <CustomLogoUploader
+                  bump={bump}
+                  onUpload={(code, size, file) =>
+                    uploadTo(getVmixLogoPath(code, size), file)
+                  }
+                />
               </div>
             )}
           </CardContent>
@@ -513,6 +517,98 @@ function ResourceTile({
         )}
         <span className="ml-1.5">Ladda upp</span>
       </Button>
+    </div>
+  );
+}
+
+function CustomLogoUploader({
+  bump,
+  onUpload,
+}: {
+  bump: number;
+  onUpload: (code: string, size: "small" | "large", file: File) => Promise<boolean>;
+}) {
+  const [code, setCode] = useState("");
+  const smallRef = useRef<HTMLInputElement>(null);
+  const largeRef = useRef<HTMLInputElement>(null);
+  const [busySmall, setBusySmall] = useState(false);
+  const [busyLarge, setBusyLarge] = useState(false);
+  const trimmedCode = code.trim().toUpperCase();
+
+  const previewSmall = trimmedCode
+    ? withCacheBuster(getVmixLogoUrl(ASSET_BASE, trimmedCode, "small"), bump)
+    : null;
+  const previewLarge = trimmedCode
+    ? withCacheBuster(getVmixLogoUrl(ASSET_BASE, trimmedCode, "large"), bump)
+    : null;
+
+  const handleUpload = async (size: "small" | "large", file: File) => {
+    if (!trimmedCode) return;
+    if (size === "small") setBusySmall(true);
+    else setBusyLarge(true);
+    await onUpload(trimmedCode, size, file);
+    if (size === "small") { setBusySmall(false); if (smallRef.current) smallRef.current.value = ""; }
+    else { setBusyLarge(false); if (largeRef.current) largeRef.current.value = ""; }
+  };
+
+  return (
+    <div className="pt-4">
+      <p className="mb-2 text-xs font-medium text-muted-foreground">
+        Ladda upp för nytt lag (t.ex. försäsongsmotståndare)
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="w-28">
+          <Input
+            className="h-8 font-mono uppercase text-sm"
+            placeholder="Kod, t.ex. SOR"
+            maxLength={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+          />
+          <p className="mt-0.5 text-[10px] text-muted-foreground">Logotypkod</p>
+        </div>
+
+        {/* Small preview + upload */}
+        <div className="flex items-center gap-2">
+          {previewSmall && (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-muted/40">
+              <img src={previewSmall} alt="small" className="max-h-full max-w-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0.15"; }} />
+            </div>
+          )}
+          <input ref={smallRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload("small", f); }} />
+          <div>
+            <Button variant="outline" size="sm" disabled={!trimmedCode || busySmall}
+              onClick={() => smallRef.current?.click()}>
+              {busySmall ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              <span className="ml-1.5">Small</span>
+            </Button>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">{trimmedCode ? `${trimmedCode}_small.png` : "–"}</p>
+          </div>
+        </div>
+
+        {/* Large preview + upload */}
+        <div className="flex items-center gap-2">
+          {previewLarge && (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-muted/40">
+              <img src={previewLarge} alt="large" className="max-h-full max-w-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0.15"; }} />
+            </div>
+          )}
+          <input ref={largeRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload("large", f); }} />
+          <div>
+            <Button variant="outline" size="sm" disabled={!trimmedCode || busyLarge}
+              onClick={() => largeRef.current?.click()}>
+              {busyLarge ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              <span className="ml-1.5">Large</span>
+            </Button>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">{trimmedCode ? `${trimmedCode}_large.png` : "–"}</p>
+          </div>
+        </div>
+      </div>
+      <p className="mt-2 text-[10px] text-muted-foreground">
+        Efter uppladdning: lägg till lagnamn → kod i Logotypkoder-kortet på /admin/vmix.
+      </p>
     </div>
   );
 }
