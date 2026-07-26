@@ -1,10 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, FolderUp, Gauge, Home, Mail, ScrollText, ShieldCheck, Tv, Users } from "lucide-react";
+import { Activity, FolderUp, Gauge, Home, Info, Mail, ScrollText, ShieldCheck, Star, Tv, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 const items = [
   { label: "Hem", to: "/", icon: Home },
+  { label: "Notiser", to: "/notifications", icon: Star },
   { label: "Hälsa", to: "/admin/health", icon: Activity },
   { label: "Loggbok", to: "/admin/logs", icon: ScrollText },
   { label: "Användning", to: "/admin/usage", icon: Gauge },
@@ -13,6 +14,7 @@ const items = [
   { label: "Användare", to: "/admin/users", icon: Users },
   { label: "Mejllogg", to: "/admin/auth-emails", icon: Mail },
   { label: "Audit", to: "/admin/audit", icon: ShieldCheck },
+  { label: "Anslut AI", to: "/connect", icon: Info },
 ];
 
 export function AdminNav() {
