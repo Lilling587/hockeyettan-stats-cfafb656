@@ -2492,6 +2492,12 @@ function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: Ros
           Försäsong
           <span className="ml-auto text-xs text-muted-foreground font-normal">{open ? "Dölj" : "Visa"}</span>
         </CardTitle>
+        {open && (
+          <p className="text-xs text-muted-foreground">
+            Hämta spelarlista för valfritt lag via ett tävlings-ID från stats.swehockey.se.
+            Standard-ID 21138 = Preseason Games Herr. Tävlings-ID finns i URL:en på stats.swehockey.se.
+          </p>
+        )}
       </CardHeader>
       {open && (
       <CardContent className="space-y-4">
