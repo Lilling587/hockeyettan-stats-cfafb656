@@ -915,43 +915,46 @@ const restoreMut = useMutation({
     );
   }
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
-      <header className="space-y-4">
-        <AdminNav />
-        {sessionExpiryWarning && (
-          <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span className="flex-1">
-              Din inloggning går snart ut. Logga ut och in igen för att undvika problem under sändningen.
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={() => setSessionExpiryWarning(false)}
-            >
-              Stäng
-            </Button>
-          </div>
-        )}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">vMix broadcast data</h1>
-            <p className="text-sm text-muted-foreground">
-              Publicera dagens Grästorps IK-match som JSON-feeds för vMix GT
-              Designer.
-            </p>
-          </div>
-          <div className="text-right text-xs text-muted-foreground">
-            {activeQuery.data ? (
-              <Badge variant="default">LIVE</Badge>
-            ) : (
-              <Badge variant="outline">Ingen aktiv publicering</Badge>
-            )}
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
+          <AdminNav />
+          {sessionExpiryWarning && (
+            <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span className="flex-1">
+                Din inloggning går snart ut. Logga ut och in igen för att undvika problem under sändningen.
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setSessionExpiryWarning(false)}
+              >
+                Stäng
+              </Button>
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold">vMix broadcast data</h1>
+              <p className="text-sm text-muted-foreground">
+                Publicera dagens Grästorps IK-match som JSON-feeds för vMix GT
+                Designer.
+              </p>
+            </div>
+            <div className="text-right text-xs text-muted-foreground">
+              {activeQuery.data ? (
+                <Badge variant="default">LIVE</Badge>
+              ) : (
+                <Badge variant="outline">Ingen aktiv publicering</Badge>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
+      <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
       <Card className={`border-2 ${
         readinessChecks.every((c) => c.status === "ok")
           ? "border-emerald-500/30"
@@ -1461,6 +1464,7 @@ const restoreMut = useMutation({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   );
 }

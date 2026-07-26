@@ -74,14 +74,14 @@ function UsagePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b bg-card">
-        <div className="container mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <h1 className="text-lg font-semibold">Användning & jobb</h1>
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
           <AdminNav />
+          <h1 className="text-2xl font-semibold tracking-tight">Användning & jobb</h1>
         </div>
-      </div>
+      </header>
 
-      <main className="container mx-auto space-y-6 px-4 py-6">
+      <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
         <div className="flex flex-wrap items-center gap-3">
           <Select value={String(hours)} onValueChange={(v) => setHours(Number(v))}>
             <SelectTrigger className="w-52">

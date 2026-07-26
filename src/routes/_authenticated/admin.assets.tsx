@@ -169,10 +169,10 @@ function AdminAssetsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-6 py-3">
-          <h1 className="mr-4 text-lg font-semibold">Lagring</h1>
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6">
           <AdminNav />
+          <h1 className="text-2xl font-semibold tracking-tight">Lagring</h1>
         </div>
       </header>
 
