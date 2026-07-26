@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
-import { DEFAULT_SEASON, getSeason } from "./seasons.config";
+import { DEFAULT_SEASON, getSeason, type Season } from "./seasons.config";
 
 type Json = Database["public"]["Tables"]["cached_briefings"]["Row"]["payload"];
 type StandingsJson = Json;
@@ -286,6 +286,23 @@ export const fetchTeamRoster = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<RosterPlayer[]> => {
     await assertAdmin(context);
     const season = getSeason(data.season) ?? DEFAULT_SEASON;
+    const { scrapeTeamRoster } = await import("./vmix.server");
+    return scrapeTeamRoster(data.team, season);
+  });
+
+export const fetchRosterByCompetition = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        team: z.string().min(1),
+        competitionId: z.string().min(1),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<RosterPlayer[]> => {
+    await assertAdmin(context);
+    const season: Season = { label: "custom", competitionId: data.competitionId };
     const { scrapeTeamRoster } = await import("./vmix.server");
     return scrapeTeamRoster(data.team, season);
   });

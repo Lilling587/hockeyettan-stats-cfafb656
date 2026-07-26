@@ -47,7 +47,8 @@
         { "id": "lineup-mallar",  "label": "Lineup-mallar",         "path": "/admin/vmix#lineup-mallar",     "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#lineup-mallar" },
         { "id": "logotypkoder",   "label": "Logotypkoder",          "path": "/admin/vmix#logotypkoder",      "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#logotypkoder" },
         { "id": "endpoints",      "label": "vMix-endpoints",        "path": "/admin/vmix#endpoints",         "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#endpoints" },
-        { "id": "historik",       "label": "Publiceringshistorik",  "path": "/admin/vmix#historik",          "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#historik" }
+        { "id": "historik",           "label": "Publiceringshistorik",  "path": "/admin/vmix#historik",            "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#historik" },
+        { "id": "forsasongstrupp",    "label": "Truppuppslag försäsong", "path": "/admin/vmix#forsasongstrupp",    "url": "https://hockeyettan-stats.spdproduktion.se/admin/vmix#forsasongstrupp" }
       ]
     },
     {

@@ -44,6 +44,7 @@ import {
   listLineupPresets,
   saveLineupPreset,
   deleteLineupPreset,
+  fetchRosterByCompetition,
 } from "@/lib/vmix.functions";
 
 import { Button } from "@/components/ui/button";
@@ -1103,6 +1104,10 @@ const restoreMut = useMutation({
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div id="forsasongstrupp">
+        <PreseasonRosterCard />
       </div>
 
       <div id="kalla">
@@ -2422,6 +2427,112 @@ function AuditLogCard({ entries, loading }: { entries: AuditLogRow[]; loading: b
     </Card>
   );
 }
+// ---------- Pre-season roster lookup ----------
+
+const PRESEASON_COMPETITION_ID = "21138";
+
+function PreseasonRosterCard() {
+  const fetchRosterByComp = useServerFn(fetchRosterByCompetition);
+  const [teamName, setTeamName] = useState("");
+  const [competitionId, setCompetitionId] = useState(PRESEASON_COMPETITION_ID);
+  const [players, setPlayers] = useState<RosterPlayer[] | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const fetchMut = useMutation({
+    mutationFn: () =>
+      fetchRosterByComp({
+        data: { team: teamName.trim(), competitionId: competitionId.trim() },
+      }),
+    onSuccess: (pool) => {
+      setPlayers(pool);
+      setFetchError(null);
+    },
+    onError: (e) => {
+      setFetchError((e as Error).message);
+      setPlayers(null);
+    },
+  });
+
+  const canFetch = teamName.trim().length > 0 && competitionId.trim().length > 0;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Truppuppslag – försäsong</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Hämta spelarlista för valfritt lag via ett tävlings-ID från stats.swehockey.se.
+          Standard-ID 21138 = Preseason Games Herr. Tävlings-ID finns i URL:en på stats.swehockey.se.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="flex-1 min-w-[180px]">
+            <Label className="text-[11px]">Lagnamn</Label>
+            <Input
+              className="h-8 text-sm"
+              placeholder="t.ex. Sörhaga/Alingsås HK"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && canFetch) fetchMut.mutate(); }}
+            />
+          </div>
+          <div className="w-28">
+            <Label className="text-[11px]">Tävlings-ID</Label>
+            <Input
+              className="h-8 text-sm font-mono"
+              placeholder={PRESEASON_COMPETITION_ID}
+              value={competitionId}
+              onChange={(e) => setCompetitionId(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && canFetch) fetchMut.mutate(); }}
+            />
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!canFetch || fetchMut.isPending}
+            onClick={() => fetchMut.mutate()}
+          >
+            {fetchMut.isPending && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+            Hämta trupp
+          </Button>
+        </div>
+
+        {fetchError && (
+          <div className="rounded bg-destructive/10 border border-destructive/30 px-3 py-2 text-xs text-destructive">
+            {fetchError}
+          </div>
+        )}
+
+        {players !== null && players.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            Inga spelare registrerade för <strong>{teamName}</strong> i tävling {competitionId}.
+            Prova lagets ordinarie serie-ID (t.ex. HockeyTvåan).
+          </p>
+        )}
+
+        {players && players.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">{players.length} spelare hittade</p>
+            <div className="max-h-72 overflow-auto rounded border divide-y divide-border text-xs">
+              {players.map((p, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-1.5">
+                  <span className="w-6 text-right font-mono text-muted-foreground shrink-0">
+                    {p.number !== "" ? `${p.number}` : "–"}
+                  </span>
+                  <span className="flex-1 font-medium">{p.name}</span>
+                  {p.position && (
+                    <span className="text-muted-foreground">{p.position}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ---------- Data source (auto / manual) ----------
 function DataSourceCard({
   sourceMode,
