@@ -84,6 +84,16 @@ export const inviteAdmin = createServerFn({ method: "POST" })
       .from("profiles")
       .upsert({ id: userId, email, approval_status: "approved" }, { onConflict: "id" });
 
+    // Notify existing users that they have been promoted — new users get the
+    // Supabase invite email with a set-password link instead.
+    if (!invited) {
+      void import("./admin-notify.server").then(({ notifyUserAdminGranted }) =>
+        notifyUserAdminGranted(email).catch((err) =>
+          console.warn("[inviteAdmin] promotion email failed:", (err as Error).message),
+        ),
+      );
+    }
+
     return { ok: true, userId, invited };
   });
 

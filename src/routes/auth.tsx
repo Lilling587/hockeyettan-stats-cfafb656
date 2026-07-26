@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { logAuditEvent } from "@/lib/users.functions";
+import { notifyAdminsNewSignupFn } from "@/lib/admin-notify.functions";
 
 type ProfileStatus = "approved" | "pending" | "rejected" | "missing";
 
@@ -80,6 +81,7 @@ function AuthPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const logEvent = useServerFn(logAuditEvent);
+  const notifyAdmins = useServerFn(notifyAdminsNewSignupFn);
 
   const next = safeNext(search.next);
   const isAdminFlow = next.startsWith("/admin/");
@@ -145,6 +147,7 @@ function AuthPage() {
         if (signUpData.session?.user) {
           void logEvent({ data: { action: "signup" } });
         }
+        void notifyAdmins({ data: { email } });
         toast.success("Kontot skapat! Kontrollera din e-post för att bekräfta.");
         setMode("signin");
       } else {
