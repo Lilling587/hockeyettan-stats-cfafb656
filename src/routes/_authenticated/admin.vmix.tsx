@@ -1107,7 +1107,14 @@ const restoreMut = useMutation({
       </div>
 
       <div id="forsasongstrupp">
-        <PreseasonRosterCard onRosterLoaded={(pool) => { setAwayPool(pool); setAwayRosterError(null); }} />
+        <PreseasonRosterCard
+          onRosterLoaded={(pool, team) => {
+            setAwayPool(pool);
+            setAwayRosterError(null);
+            setAwayTeam(team);
+            setAwaySlots(emptySlots(team, codesMap[team] ?? ""));
+          }}
+        />
       </div>
 
       <div id="kalla">
@@ -1873,18 +1880,34 @@ function SlotLineupEditor({
           </div>
           <div className="w-full sm:w-48">
             <Label className="text-[11px]">Lag</Label>
-            <Select value={teamName} onValueChange={onTeamChange}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder={placeholder ?? "Välj lag"} />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {teamName && !teams.includes(teamName) ? (
+              <div className="flex h-8 items-center gap-1">
+                <span className="flex-1 truncate rounded border border-input bg-background px-2 text-sm leading-8">
+                  {teamName}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 px-2 text-xs shrink-0"
+                  onClick={() => onTeamChange("")}
+                >
+                  Ändra
+                </Button>
+              </div>
+            ) : (
+              <Select value={teamName} onValueChange={onTeamChange}>
+                <SelectTrigger className="h-8">
+                  <SelectValue placeholder={placeholder ?? "Välj lag"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div className="w-20 sm:w-28">
             <Label className="text-[11px]">Logotypkod</Label>
@@ -2431,7 +2454,7 @@ function AuditLogCard({ entries, loading }: { entries: AuditLogRow[]; loading: b
 
 const PRESEASON_COMPETITION_ID = "21138";
 
-function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: RosterPlayer[]) => void }) {
+function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: RosterPlayer[], team: string) => void }) {
   const fetchRosterByComp = useServerFn(fetchRosterByCompetition);
   const [teamName, setTeamName] = useState("");
   const [competitionId, setCompetitionId] = useState(PRESEASON_COMPETITION_ID);
@@ -2446,7 +2469,7 @@ function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: Ros
     onSuccess: (pool) => {
       setPlayers(pool);
       setFetchError(null);
-      onRosterLoaded(pool);
+      onRosterLoaded(pool, teamName.trim());
       if (pool.length > 0) {
         toast.success(`${pool.length} spelare laddade till Bortalag-lineup`);
       } else {
