@@ -66,7 +66,7 @@ function AuditPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-4xl flex-col gap-4 px-6 py-6">
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
           <AdminNav />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Aktivitetslogg</h1>
@@ -77,7 +77,7 @@ function AuditPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-6 py-8">
+      <main className="mx-auto max-w-5xl px-6 py-8">
         <Card>
           <CardHeader>
             <CardTitle>Händelser ({events.length})</CardTitle>
