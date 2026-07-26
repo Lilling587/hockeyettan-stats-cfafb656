@@ -86,12 +86,15 @@ export const inviteAdmin = createServerFn({ method: "POST" })
 
     // Notify existing users that they have been promoted — new users get the
     // Supabase invite email with a set-password link instead.
+    // Must be awaited: Cloudflare Workers terminate once the response is sent,
+    // so a fire-and-forget void promise would be killed before it runs.
     if (!invited) {
-      void import("./admin-notify.server").then(({ notifyUserAdminGranted }) =>
-        notifyUserAdminGranted(email).catch((err) =>
-          console.warn("[inviteAdmin] promotion email failed:", (err as Error).message),
-        ),
-      );
+      try {
+        const { notifyUserAdminGranted } = await import("./admin-notify.server");
+        await notifyUserAdminGranted(email);
+      } catch (err) {
+        console.warn("[inviteAdmin] promotion email failed:", (err as Error).message);
+      }
     }
 
     return { ok: true, userId, invited };
