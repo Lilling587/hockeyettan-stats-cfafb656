@@ -142,7 +142,7 @@ function AdminUsersPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-3xl flex-col gap-4 px-6 py-6">
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
           <AdminNav />
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -155,7 +155,7 @@ function AdminUsersPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl space-y-6 px-6 py-8">
+      <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
         <Card>
           <CardHeader>
             <CardTitle>Bjud in admin</CardTitle>
