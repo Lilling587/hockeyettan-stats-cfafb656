@@ -526,29 +526,23 @@ function CustomLogoUploader({
   onUpload,
 }: {
   bump: number;
-  onUpload: (code: string, size: "small" | "large", file: File) => Promise<boolean>;
+  onUpload: (code: string, size: "large", file: File) => Promise<boolean>;
 }) {
   const [code, setCode] = useState("");
-  const smallRef = useRef<HTMLInputElement>(null);
   const largeRef = useRef<HTMLInputElement>(null);
-  const [busySmall, setBusySmall] = useState(false);
   const [busyLarge, setBusyLarge] = useState(false);
   const trimmedCode = code.trim().toUpperCase();
 
-  const previewSmall = trimmedCode
-    ? withCacheBuster(getVmixLogoUrl(ASSET_BASE, trimmedCode, "small"), bump)
-    : null;
   const previewLarge = trimmedCode
     ? withCacheBuster(getVmixLogoUrl(ASSET_BASE, trimmedCode, "large"), bump)
     : null;
 
-  const handleUpload = async (size: "small" | "large", file: File) => {
+  const handleUpload = async (file: File) => {
     if (!trimmedCode) return;
-    if (size === "small") setBusySmall(true);
-    else setBusyLarge(true);
-    await onUpload(trimmedCode, size, file);
-    if (size === "small") { setBusySmall(false); if (smallRef.current) smallRef.current.value = ""; }
-    else { setBusyLarge(false); if (largeRef.current) largeRef.current.value = ""; }
+    setBusyLarge(true);
+    await onUpload(trimmedCode, "large", file);
+    setBusyLarge(false);
+    if (largeRef.current) largeRef.current.value = "";
   };
 
   return (
@@ -568,26 +562,6 @@ function CustomLogoUploader({
           <p className="mt-0.5 text-[10px] text-muted-foreground">Logotypkod</p>
         </div>
 
-        {/* Small preview + upload */}
-        <div className="flex items-center gap-2">
-          {previewSmall && (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-muted/40">
-              <img src={previewSmall} alt="small" className="max-h-full max-w-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0.15"; }} />
-            </div>
-          )}
-          <input ref={smallRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload("small", f); }} />
-          <div>
-            <Button variant="outline" size="sm" disabled={!trimmedCode || busySmall}
-              onClick={() => smallRef.current?.click()}>
-              {busySmall ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              <span className="ml-1.5">Small</span>
-            </Button>
-            <p className="mt-0.5 text-[10px] text-muted-foreground">{trimmedCode ? `${trimmedCode}_small.png` : "–"}</p>
-          </div>
-        </div>
-
-        {/* Large preview + upload */}
         <div className="flex items-center gap-2">
           {previewLarge && (
             <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-muted/40">
@@ -595,12 +569,12 @@ function CustomLogoUploader({
             </div>
           )}
           <input ref={largeRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload("large", f); }} />
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
           <div>
             <Button variant="outline" size="sm" disabled={!trimmedCode || busyLarge}
               onClick={() => largeRef.current?.click()}>
               {busyLarge ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              <span className="ml-1.5">Large</span>
+              <span className="ml-1.5">Ladda upp</span>
             </Button>
             <p className="mt-0.5 text-[10px] text-muted-foreground">{trimmedCode ? `${trimmedCode}_large.png` : "–"}</p>
           </div>
