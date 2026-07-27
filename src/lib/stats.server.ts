@@ -1400,7 +1400,7 @@ export async function buildBriefing(
 
     standingsNeeded
       ? fetchStandingsFromHtml(urls)
-      : Promise.resolve({} as Record<string, { position: number | null; gamesPlayed: number | null; points: number | null }>),
+      : Promise.resolve({} as Record<string, StandingsBriefingRow>),
     lastFiveNeeded
       ? Promise.resolve(computeLastFive(scheduleGames, [home, away]))
       : Promise.resolve({} as Record<string, Briefing["home"]["lastFive"]>),
