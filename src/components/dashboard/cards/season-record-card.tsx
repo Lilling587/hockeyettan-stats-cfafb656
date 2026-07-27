@@ -36,7 +36,7 @@ function TeamCol({ team }: { team: TeamData }) {
       {rec && (
         <div>
           <div className="text-xl font-semibold tabular-nums">{rec}</div>
-          <div className="text-xs text-muted-foreground">V–OT+–OT-–F</div>
+          <div className="text-xs text-muted-foreground">W–OTW–OTL–L</div>
         </div>
       )}
       <div className="flex gap-4">
