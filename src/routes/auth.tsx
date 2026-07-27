@@ -325,7 +325,7 @@ function AuthPage() {
 
             <div className="text-center">
               <Link to="/" className="text-xs text-muted-foreground hover:underline">
-                ← Tillbaka till matchstatistik
+                ← Tillbaka till första sidan
               </Link>
             </div>
           </form>
