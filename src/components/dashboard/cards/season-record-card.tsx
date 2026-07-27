@@ -33,7 +33,7 @@ function TeamCol({ team }: { team: TeamData }) {
           {winCols.map(({ val, label }) => (
             <div
               key={label}
-              className="flex flex-col items-center rounded-md px-2 py-1.5 bg-emerald-100 dark:bg-emerald-950"
+              className="flex flex-col items-center rounded-md w-12 py-1.5 bg-emerald-100 dark:bg-emerald-950"
             >
               <span className="text-xl font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{val}</span>
               <span className="text-[10px] font-medium text-emerald-600/80 dark:text-emerald-500 mt-0.5">{label}</span>
@@ -43,7 +43,7 @@ function TeamCol({ team }: { team: TeamData }) {
           {lossCols.map(({ val, label }) => (
             <div
               key={label}
-              className="flex flex-col items-center rounded-md px-2 py-1.5 bg-destructive/10"
+              className="flex flex-col items-center rounded-md w-12 py-1.5 bg-destructive/10"
             >
               <span className="text-xl font-semibold tabular-nums text-destructive">{val}</span>
               <span className="text-[10px] font-medium text-destructive/70 mt-0.5">{label}</span>
