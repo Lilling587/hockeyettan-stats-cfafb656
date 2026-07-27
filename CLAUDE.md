@@ -18,6 +18,7 @@
 
 ## Project Constants
 - **Grästorps IK ID:** 570 (Default team) | **2025-26 Comp ID:** 18271
+- **Pre-season Comp ID:** 21138 (`Preseason Games Herr` on stats.swehockey.se)
 - **Rate Limit:** 120 req/min per IP (internal exempt)
 - **Cache:** Bumps via `CACHE_VERSION` in `stats.functions.ts`
 - **vMix Slots:** 32 per team (GK1-2, LD1-5, RD1-5, XD1-5, LW1-5, C1-5, RW1-5)
@@ -42,9 +43,15 @@
 3. Populate in `buildBriefing`.
 4. Bump `CACHE_VERSION` (e.g., v16 -> v17).
 
+## Auth & Approval Rules
+- **Email sending:** Never use `supabaseAdmin.auth.admin.generateLink()` to send auth emails — it bypasses the Lovable Send Email hook entirely (nothing gets sent or logged). Use the correct per-type methods: `resetPasswordForEmail` (recovery), `signInWithOtp` (magiclink), `auth.resend` (signup), `admin.inviteUserByEmail` (invite).
+- **Approval gate:** `_authenticated/route.tsx` enforces `approval_status === 'approved'` for all `/admin/*` routes. `index.tsx` (`/`) is outside that layout and has its own identical check in `beforeLoad` — both must be kept in sync. Email verification links land on `/` directly, bypassing the sign-in flow.
+- **Manual email log:** `sendAuthEmail` (in `admin-users.functions.ts`) writes directly to `email_send_log` after each send so all manually triggered emails appear in admin/auth-emails regardless of hook behaviour.
+
 ## Strict Banned Practices
 - Do not use `www.` in production URL.
 - Do not modify `public/briefing-anchors.json` structure (Stream Deck dependency).
 - Do not use standard `supabase` client for admin; use `supabaseAdmin` (service role).
 - Do not reference legacy storage buckets (`logos`, `team-logos`).
 - Do not bump `CACHE_VERSION` without updating `emptyTeam()`.
+- Do not use `generateLink()` for sending auth emails (see Auth & Approval Rules above).
