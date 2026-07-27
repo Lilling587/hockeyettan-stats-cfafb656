@@ -1,4 +1,4 @@
-# Origin Point Play – Improvement Backlog
+# HockeyEttan Stats – Improvement Backlog
 *Created: July 2026 · Updated: July 2026*
 
 ---
@@ -127,6 +127,64 @@
 
 ---
 
+## Briefing dashboard – card improvements (items 68–83)
+
+| # | Item | Status |
+|---|---|---|
+| 68 | ShotCard: 4-stat layout — SF/SA senaste 5, SF/SA säsong per team | ✅ Done |
+| 69 | ShotCard: season SF from ScoringAndGoalkeeping page (SOG÷GP), season SA from Goalkeeping Efficiency | ✅ Done |
+| 70 | ShotCard: table layout with team name columns, center stat labels, green winning value | ✅ Done |
+| 71 | ShotCard: section divider between senaste 5 and säsong sections | ✅ Done |
+| 72 | ShotCard: removed per-period breakdown (confusing for broadcast use) | ✅ Done |
+| 73 | VenueStreakCard: reduced from 10 to 5 games (form-relevant window) | ✅ Done |
+| 74 | VenueStreakCard: single-row layout — streak badge and result badges on same line | ✅ Done |
+| 75 | VenueStreakCard: streak badge (W2/L3 etc.) made larger and bold to stand out | ✅ Done |
+| 76 | LineupDiffCard: simplified to in/out diff between tonight's lineup and last played game | ✅ Done |
+| 77 | LineupDiffCard: fetches /Game/LineUps/{gameId} for tonight — shows "Ej publicerad" if not yet up | ✅ Done |
+| 78 | HomeAwaySplitCard: renamed header to "Tagna poäng på hemma/borta plan" | ✅ Done |
+| 79 | SpecialTeamsCard: added PP goals (PPGF) and PK goals against (PPGA) under percentages | ✅ Done |
+| 80 | SpecialTeamsCard: Powerplay/Boxplay labels moved above percentage | ✅ Done |
+| 81 | SpecialTeamsTimelineCard: deleted (replaced by improved SpecialTeamsCard) | ✅ Done |
+| 82 | WinProbabilityCard: added hover tooltip explaining calculation formula | ✅ Done |
+| 83 | FormCard: fixed lastFive — Firecrawl markdown link stripping (scores in [N-N](url) format were missed) | ✅ Done |
+
+---
+
+## Admin/vMix improvements (items 84–89)
+
+| # | Item | Status |
+|---|---|---|
+| 84 | Auto mode: fetches tonight's published lineup from swehockey and pre-fills slots | ✅ Done |
+| 85 | Manual mode: always starts with empty slots (deliberate producer input) | ✅ Done |
+| 86 | Season scan button added to Datakälla card header (scans for new competition ID without logout) | ✅ Done |
+| 87 | PendingSeasonsBanner shown above Datakälla card when new season detected | ✅ Done |
+| 88 | Season dropdown placeholder shows actual season label instead of "Standard" | ✅ Done |
+| 89 | Admin/vmix subtitle cleaned up ("GT Designer" removed) | ✅ Done |
+
+---
+
+## Scraper & data fixes (items 90–94)
+
+| # | Item | Status |
+|---|---|---|
+| 90 | fetchTeamCodeMap: replaced broken roster-page HTML parse with shortTeamName() lookup | ✅ Done |
+| 91 | fetchTeamShotsOnGoal: splits page on </table> boundary to isolate Scoring vs Goalkeeping tables | ✅ Done |
+| 92 | fetchSpecialTeamsFromHtml: extended to extract PPGF (cells[4]) and PPGA (cells[4]) alongside PP%/PK% | ✅ Done |
+| 93 | CACHE_VERSION bumped to v16 to invalidate briefings missing shotsAgainstPerGame | ✅ Done |
+| 94 | extractLastFiveRows: strips Markdown links before score filter — fixes missing games where score is [N-N](url) | ✅ Done |
+
+---
+
+## Project infrastructure (items 95–97)
+
+| # | Item | Status |
+|---|---|---|
+| 95 | CLAUDE.md created — Claude Code session reference with stack, git rules, patterns, constants | ✅ Done |
+| 96 | GitHub repo renamed to hockeyettan-stats (from origin-point-play-0cae653e) | ✅ Done |
+| 97 | Info page header renamed to "HockeyEttan Stats" with updated tagline | ✅ Done |
+
+---
+
 ## Notes
 
 - pg_cron via Lovable handles pregame/postgame email scheduling
@@ -139,17 +197,21 @@
 - Player lower-thirds endpoint: /api/public/vmix/player?PlayerName=LASTNAME,%20FIRSTNAME
 - Logo files in vmix-assets/logos/ serve both vMix (small+large) and the briefing dashboard (large)
 - Old Supabase buckets "logos" and "team-logos" were deleted — only "vmix-assets" is used
+- schedule HTML (/ScheduleAndResults/Schedule/18271) is partially JS-rendered; direct fetch only returns some rounds — use Firecrawl-based parsers (scrapeMd) for lastFive data
+- Firecrawl converts <a href="...">text</a> to [text](url) — strip before applying score regex
+- ShotCard season SF/SA sourced from stats.swehockey.se/Teams/Statistics/ScoringAndGoalkeeping/{competitionId}
 
 ---
 
 ## Workflow notes
 
-- All code changes use exact delete/replace blocks — never "insert between"
-- GitHub web editor for most changes; Lovable for multi-file coordinated edits
-- Always include approximate line numbers with every change
-- When modifying an existing line, always show the full original line in the
-  delete block and the full new line in the replace block
-- For any single replace block over ~30 lines in a large file, use Lovable
-- Use downloadable files for any code or text block over ~50 lines
-- Lovable dev server restart often needed after multiple rapid GitHub commits
+- github.dev (press . on any GitHub repo page) is the primary single-file editing environment
+- Ctrl+F in github.dev to search — use this instead of approximate line numbers when unsure
+- Claude Code used for debugging, multi-file refactoring, and understanding codebase
+- All code changes use exact DELETE / REPLACE WITH blocks with search text
+- Commit message goes at the END of each file's changes (not the top)
+- Blocks over ~50 lines provided as downloadable files
+- Lovable in-app preview is often stale — open in new browser tab for reliable preview
 - Always test on production URL (hockeyettan-stats.spdproduktion.se) not preview URL
+- Never force push, rebase, amend, or squash pushed commits — breaks Lovable↔GitHub sync
+- Claude Code: always commit directly to main, never create pull requests
