@@ -2151,7 +2151,10 @@ function EndpointTester({
     }
   };
 
-  const runAll = () => endpoints.forEach((e) => runOne(e.url));
+  const runAll = () => {
+    setExpanded(true);
+    endpoints.forEach((e) => runOne(e.url));
+  };
 
   useEffect(() => {
     if (!autoRefresh) return;
