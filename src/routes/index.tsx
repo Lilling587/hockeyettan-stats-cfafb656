@@ -568,21 +568,156 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
               HockeyEttan Södra · matchstatistik för kommentatorer
             </p>
           </div>
-          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-            
-            <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+          {/* Mobile: single Meny dropdown + icon buttons */}
+          <div className="flex sm:hidden w-full items-center justify-end gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Meny
+                  <ChevronDown className="ml-2 h-4 w-4 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem asChild>
+                  <Link to="/schema" className="flex items-center">
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    Spelschema
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/spelare" className="flex items-center">
+                    <Users className="mr-2 h-4 w-4" />
+                    Spelare
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/compare" className="flex items-center">
+                    <Scale className="mr-2 h-4 w-4" />
+                    HockeyEttan stats
+                  </Link>
+                </DropdownMenuItem>
+                {user && isAdmin ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/notifications" className="flex items-center">
+                        <Star className="mr-2 h-4 w-4" />
+                        Notiser
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/health" className="flex items-center">
+                        <Activity className="mr-2 h-4 w-4" />
+                        Hälsa
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/logs" className="flex items-center">
+                        <ScrollText className="mr-2 h-4 w-4" />
+                        Systemlogg
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/usage" className="flex items-center">
+                        <Gauge className="mr-2 h-4 w-4" />
+                        Användning
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/assets" className="flex items-center">
+                        <FolderUp className="mr-2 h-4 w-4" />
+                        Lagring
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/vmix" className="flex items-center">
+                        <Tv className="mr-2 h-4 w-4" />
+                        vMix
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/users" className="flex items-center">
+                        <Users className="mr-2 h-4 w-4" />
+                        Användare
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/auth-emails" className="flex items-center">
+                        <Mail className="mr-2 h-4 w-4" />
+                        Maillogg
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/connect" className="flex items-center">
+                        <Info className="mr-2 h-4 w-4" />
+                        AI-integration
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logga ut
+                    </DropdownMenuItem>
+                  </>
+                ) : user ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/notifications" className="flex items-center">
+                        <Star className="mr-2 h-4 w-4" />
+                        Notiser
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logga ut
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/auth" className="flex items-center">
+                        Logga in
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant={tabletMode ? "default" : "ghost"}
+              size="icon"
+              className={tabletMode ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}
+              title={tabletMode ? "Stäng av tablet-läge" : "Tablet-läge (större text)"}
+              onClick={() => setTabletMode((v) => !v)}
+            >
+              <Monitor className="h-4 w-4" />
+            </Button>
+            <ThemeToggle />
+          </div>
+
+          {/* Desktop navigation */}
+          <div className="hidden sm:flex sm:flex-wrap sm:items-center sm:justify-end gap-2">
+            <Button asChild variant="outline" size="sm">
               <Link to="/schema">
                 <CalendarDays className="mr-2 h-4 w-4 shrink-0" />
                 Spelschema
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+            <Button asChild variant="outline" size="sm">
               <Link to="/spelare">
                 <Users className="mr-2 h-4 w-4 shrink-0" />
                 Spelare
               </Link>
             </Button>
-           <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+            <Button asChild variant="outline" size="sm">
               <Link to="/compare">
                 <Scale className="mr-2 h-4 w-4 shrink-0" />
                 HockeyEttan stats
@@ -698,17 +833,17 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
               </>
             )}
 
-           <Button
+            <Button
               variant={tabletMode ? "default" : "ghost"}
               size="sm"
-              className={`w-full sm:w-auto ${tabletMode ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}`}
+              className={tabletMode ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}
               title={tabletMode ? "Stäng av tablet-läge" : "Tablet-läge (större text)"}
               onClick={() => setTabletMode((v) => !v)}
             >
               <Monitor className="mr-2 h-4 w-4 shrink-0" />
-              {tabletMode ? "Tablet PÅ" : "Tablet"}
+              Tablet
             </Button>
-            <ThemeToggle className="w-full sm:w-auto" />
+            <ThemeToggle />
           </div>
         </div>
       </header>

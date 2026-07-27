@@ -142,9 +142,21 @@ function InfoPage() {
                 </Button>
               </>
             ) : user ? (
-              <Button size="lg" disabled>
-                {user.status === "rejected" ? "Konto nekat" : "Väntar på godkännande"}
-              </Button>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button size="lg" disabled>
+                  {user.status === "rejected" ? "Konto nekat" : "Väntar på godkännande"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    setUser(null);
+                  }}
+                >
+                  Logga ut
+                </Button>
+              </div>
             ) : null}
           </div>
         </div>
