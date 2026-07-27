@@ -69,7 +69,6 @@ function AdminUsersPage() {
   const [email, setEmail] = useState("");
   const [mailUserId, setMailUserId] = useState("");
   const [mailType, setMailType] = useState<AuthEmailType | "">("");
-  const [mailNewEmail, setMailNewEmail] = useState("");
   const sendMail = useServerFn(sendAuthEmail);
 
   useEffect(() => {
@@ -145,13 +144,19 @@ function AdminUsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const EMAIL_TYPE_LABELS: Record<AuthEmailType, string> = {
+    signup: "Bekräfta e-post (signup)",
+    invite: "Inbjudan (invite)",
+    magiclink: "Magic link (inloggningslänk)",
+    recovery: "Återställ lösenord (recovery)",
+  };
+
   const sendMailMutation = useMutation({
     mutationFn: () =>
       sendMail({
         data: {
           userId: mailUserId,
           emailType: mailType as AuthEmailType,
-          ...(mailType === "email_change" && mailNewEmail ? { newEmail: mailNewEmail } : {}),
         },
       }),
     onSuccess: () => {
@@ -160,14 +165,6 @@ function AdminUsersPage() {
     },
     onError: (e: Error) => toast.error(e.message, { duration: 8000 }),
   });
-
-  const EMAIL_TYPE_LABELS: Record<AuthEmailType, string> = {
-    signup: "Bekräfta e-post (signup)",
-    invite: "Inbjudan (invite)",
-    magiclink: "Magic link (inloggningslänk)",
-    recovery: "Återställ lösenord (recovery)",
-    email_change: "Bekräfta e-postbyte (email_change)",
-  };
 
   const admins: AdminUser[] = listQuery.data?.admins ?? [];
   const users: (Profile & { isAdmin: boolean; lastSignInAt: string | null })[] =
@@ -472,27 +469,9 @@ function AdminUsersPage() {
                 </Select>
               </div>
 
-              {mailType === "email_change" && (
-                <div className="flex-1 min-w-[200px] space-y-1.5">
-                  <Label className="text-xs">Ny e-postadress</Label>
-                  <Input
-                    className="h-9"
-                    type="email"
-                    placeholder="ny@example.com"
-                    value={mailNewEmail}
-                    onChange={(e) => setMailNewEmail(e.target.value)}
-                  />
-                </div>
-              )}
-
               <Button
                 className="shrink-0"
-                disabled={
-                  !mailUserId ||
-                  !mailType ||
-                  (mailType === "email_change" && !mailNewEmail) ||
-                  sendMailMutation.isPending
-                }
+                disabled={!mailUserId || !mailType || sendMailMutation.isPending}
                 onClick={() => sendMailMutation.mutate()}
               >
                 <Mail className="mr-2 h-4 w-4" />
@@ -500,7 +479,7 @@ function AdminUsersPage() {
               </Button>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              Reauthentication-mail utlöses bara av systemet och kan inte skickas manuellt.
+              Email-change och reauthentication utlöses bara av systemet och kan inte skickas manuellt.
             </p>
           </CardContent>
         </Card>
