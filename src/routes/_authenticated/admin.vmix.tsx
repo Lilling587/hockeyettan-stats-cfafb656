@@ -1121,7 +1121,7 @@ const restoreMut = useMutation({
           onValueChange={(v) => setAdminSeason(v || undefined)}
         >
           <SelectTrigger className="h-7 w-28 text-xs">
-            <SelectValue placeholder="Standard" />
+            <SelectValue placeholder={seasonsQuery.data?.default?.label ?? "Standard"} />
           </SelectTrigger>
           <SelectContent>
             {(seasonsQuery.data?.seasons ?? []).map((s: { label: string }) => (
