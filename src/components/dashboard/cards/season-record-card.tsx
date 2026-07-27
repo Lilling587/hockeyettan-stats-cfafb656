@@ -22,24 +22,31 @@ function TeamCol({ team }: { team: TeamData }) {
   const l = Math.max(0, gp - w - otw - gwsw - gwsl - otl);
   const hasRecord = team.wins != null || team.otWins != null || team.otLosses != null;
 
-  const recordCols = [
-    { val: w,    label: "W"    },
-    { val: otw,  label: "OTW"  },
-    { val: gwsw, label: "GWSW" },
-    { val: gwsl, label: "GWSL" },
-    { val: otl,  label: "OTL"  },
-    { val: l,    label: "L"    },
-  ];
+  const winCols  = [{ val: w,    label: "W"    }, { val: otw,  label: "OTW"  }, { val: gwsw, label: "GWSW" }];
+  const lossCols = [{ val: gwsl, label: "GWSL" }, { val: otl,  label: "OTL"  }, { val: l,    label: "L"    }];
 
   return (
     <div className="space-y-3">
       <div className="text-sm font-medium truncate">{team.name}</div>
       {hasRecord && (
-        <div className="flex flex-wrap gap-3">
-          {recordCols.map(({ val, label }) => (
-            <div key={label} className="flex flex-col items-center">
-              <div className="text-xl font-semibold tabular-nums">{val}</div>
-              <div className="text-xs text-muted-foreground">{label}</div>
+        <div className="flex items-stretch gap-1">
+          {winCols.map(({ val, label }) => (
+            <div
+              key={label}
+              className="flex flex-col items-center rounded-md px-2 py-1.5 bg-success/10"
+            >
+              <span className="text-xl font-semibold tabular-nums text-success">{val}</span>
+              <span className="text-[10px] font-medium text-success/70 mt-0.5">{label}</span>
+            </div>
+          ))}
+          <div className="w-px bg-border mx-0.5 self-stretch" />
+          {lossCols.map(({ val, label }) => (
+            <div
+              key={label}
+              className="flex flex-col items-center rounded-md px-2 py-1.5 bg-destructive/10"
+            >
+              <span className="text-xl font-semibold tabular-nums text-destructive">{val}</span>
+              <span className="text-[10px] font-medium text-destructive/70 mt-0.5">{label}</span>
             </div>
           ))}
         </div>
@@ -78,10 +85,10 @@ export function SeasonRecordCard({ home, away }: { home: TeamData; away: TeamDat
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Vunna/Förlorade & målsnitt</CardTitle>
+        <CardTitle className="text-base">Säsongsrekord & mål</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <TeamCol team={home} />
           <TeamCol team={away} />
         </div>
