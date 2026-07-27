@@ -5,20 +5,7 @@ function fmt1(n: number | null) {
   return n != null ? n.toFixed(1) : "—";
 }
 
-function record(t: TeamData): string | null {
-  if (t.wins == null && t.otWins == null && t.otLosses == null) return null;
-  const gp = t.gamesPlayed ?? 0;
-  const w = t.wins ?? 0;
-  const otw = t.otWins ?? 0;
-  const otl = t.otLosses ?? 0;
-  const gwsw = t.gwsw ?? 0;
-  const gwsl = t.gwsl ?? 0;
-  // Group OTW+GWSW (extra-time wins, 2pts) and OTL+GWSL (extra-time losses, 1pt)
-  const etw = otw + gwsw;
-  const etl = otl + gwsl;
-  const l = Math.max(0, gp - w - etw - etl);
-  return `${w}-${etw}-${etl}-${l}`;
-}
+
 
 function TeamCol({ team }: { team: TeamData }) {
   const gp = team.gamesPlayed ?? 0;
@@ -28,15 +15,36 @@ function TeamCol({ team }: { team: TeamData }) {
     team.goalsFor != null && team.goalsAgainst != null
       ? team.goalsFor - team.goalsAgainst
       : null;
-  const rec = record(team);
+  
+
+  const w = team.wins ?? 0;
+  const otw = team.otWins ?? 0;
+  const otl = team.otLosses ?? 0;
+  const gwsw = team.gwsw ?? 0;
+  const gwsl = team.gwsl ?? 0;
+  const etw = otw + gwsw;
+  const etl = otl + gwsl;
+  const l = Math.max(0, gp - w - etw - etl);
+  const hasRecord = team.wins != null || team.otWins != null || team.otLosses != null;
+
+  const recordCols = [
+    { val: w,   label: "W"   },
+    { val: etw, label: "OTW" },
+    { val: etl, label: "OTL" },
+    { val: l,   label: "L"   },
+  ];
 
   return (
     <div className="space-y-3">
       <div className="text-sm font-medium truncate">{team.name}</div>
-      {rec && (
-        <div>
-          <div className="text-xl font-semibold tabular-nums">{rec}</div>
-          <div className="text-xs text-muted-foreground">W–OTW–OTL–L</div>
+      {hasRecord && (
+        <div className="flex gap-3">
+          {recordCols.map(({ val, label }) => (
+            <div key={label} className="flex flex-col items-center">
+              <div className="text-xl font-semibold tabular-nums">{val}</div>
+              <div className="text-xs text-muted-foreground">{label}</div>
+            </div>
+          ))}
         </div>
       )}
       <div className="flex gap-4">
