@@ -100,6 +100,49 @@ export const inviteAdmin = createServerFn({ method: "POST" })
     return { ok: true, userId, invited };
   });
 
+const AUTH_EMAIL_TYPES = ['signup', 'invite', 'magiclink', 'recovery', 'email_change'] as const;
+export type AuthEmailType = (typeof AUTH_EMAIL_TYPES)[number];
+
+export const sendAuthEmail = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .inputValidator((input: unknown) =>
+    z.object({
+      userId: z.string().uuid(),
+      emailType: z.enum(AUTH_EMAIL_TYPES),
+      newEmail: z.string().email().optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.admin.getUserById(data.userId);
+    if (userErr || !userData.user) throw new Error("Kunde inte hitta användaren");
+    const email = userData.user.email;
+    if (!email) throw new Error("Användaren saknar e-postadress");
+
+    const redirectTo = process.env.SITE_URL ?? "https://spdproduktion.se";
+
+    if (data.emailType === "email_change") {
+      if (!data.newEmail) throw new Error("Ny e-postadress krävs för e-postbyte");
+      const { error } = await supabaseAdmin.auth.admin.generateLink({
+        type: "email_change_current",
+        email,
+        newEmail: data.newEmail,
+        options: { redirectTo },
+      });
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabaseAdmin.auth.admin.generateLink({
+        type: data.emailType,
+        email,
+        options: { redirectTo },
+      });
+      if (error) throw new Error(error.message);
+    }
+
+    return { ok: true };
+  });
+
 export const revokeAdmin = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((input: unknown) =>

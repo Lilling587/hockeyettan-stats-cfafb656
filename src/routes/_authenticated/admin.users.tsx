@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Check, Trash2, UserPlus, X } from "lucide-react";
+import { Check, Mail, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
@@ -10,7 +10,9 @@ import {
   inviteAdmin,
   listAdmins,
   revokeAdmin,
+  sendAuthEmail,
   type AdminUser,
+  type AuthEmailType,
 } from "@/lib/admin-users.functions";
 import {
   listUserProfiles,
@@ -33,6 +35,13 @@ import { AdminNav } from "@/components/admin-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({
@@ -58,6 +67,10 @@ function AdminUsersPage() {
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  const [mailUserId, setMailUserId] = useState("");
+  const [mailType, setMailType] = useState<AuthEmailType | "">("");
+  const [mailNewEmail, setMailNewEmail] = useState("");
+  const sendMail = useServerFn(sendAuthEmail);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
@@ -131,6 +144,30 @@ function AdminUsersPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const sendMailMutation = useMutation({
+    mutationFn: () =>
+      sendMail({
+        data: {
+          userId: mailUserId,
+          emailType: mailType as AuthEmailType,
+          ...(mailType === "email_change" && mailNewEmail ? { newEmail: mailNewEmail } : {}),
+        },
+      }),
+    onSuccess: () => {
+      const label = EMAIL_TYPE_LABELS[mailType as AuthEmailType] ?? mailType;
+      toast.success(`"${label}" skickat`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const EMAIL_TYPE_LABELS: Record<AuthEmailType, string> = {
+    signup: "Bekräfta e-post (signup)",
+    invite: "Inbjudan (invite)",
+    magiclink: "Magic link (inloggningslänk)",
+    recovery: "Återställ lösenord (recovery)",
+    email_change: "Bekräfta e-postbyte (email_change)",
+  };
 
   const admins: AdminUser[] = listQuery.data?.admins ?? [];
   const users: (Profile & { isAdmin: boolean; lastSignInAt: string | null })[] =
@@ -391,6 +428,80 @@ function AdminUsersPage() {
                 ))}
               </ul>
             )}
+          </CardContent>
+        </Card>
+
+        <Card id="skicka-mail">
+          <CardHeader>
+            <CardTitle>Skicka autentiseringsmail</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Skicka ett specifikt auth-mail till en användare om de har missat det.
+              Mailet renderas via samma mallar som Lovable och skickas via notify.spdproduktion.se.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+              <div className="flex-1 min-w-[200px] space-y-1.5">
+                <Label className="text-xs">Användare</Label>
+                <Select value={mailUserId} onValueChange={setMailUserId}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Välj användare…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>
+                        {u.email ?? u.id}
+                        {u.isAdmin && <span className="ml-1 text-muted-foreground">(admin)</span>}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex-1 min-w-[220px] space-y-1.5">
+                <Label className="text-xs">Mailtyp</Label>
+                <Select value={mailType} onValueChange={(v) => setMailType(v as AuthEmailType)}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Välj mailtyp…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.entries(EMAIL_TYPE_LABELS) as [AuthEmailType, string][]).map(([type, label]) => (
+                      <SelectItem key={type} value={type}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {mailType === "email_change" && (
+                <div className="flex-1 min-w-[200px] space-y-1.5">
+                  <Label className="text-xs">Ny e-postadress</Label>
+                  <Input
+                    className="h-9"
+                    type="email"
+                    placeholder="ny@example.com"
+                    value={mailNewEmail}
+                    onChange={(e) => setMailNewEmail(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <Button
+                className="shrink-0"
+                disabled={
+                  !mailUserId ||
+                  !mailType ||
+                  (mailType === "email_change" && !mailNewEmail) ||
+                  sendMailMutation.isPending
+                }
+                onClick={() => sendMailMutation.mutate()}
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                {sendMailMutation.isPending ? "Skickar…" : "Skicka mail"}
+              </Button>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Reauthentication-mail utlöses bara av systemet och kan inte skickas manuellt.
+            </p>
           </CardContent>
         </Card>
 
