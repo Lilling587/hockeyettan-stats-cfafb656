@@ -33,10 +33,10 @@ function TeamCol({ team }: { team: TeamData }) {
           {winCols.map(({ val, label }) => (
             <div
               key={label}
-              className="flex flex-col items-center rounded-md px-2 py-1.5 bg-success/10"
+              className="flex flex-col items-center rounded-md px-2 py-1.5 bg-emerald-100 dark:bg-emerald-950"
             >
-              <span className="text-xl font-semibold tabular-nums text-success">{val}</span>
-              <span className="text-[10px] font-medium text-success/70 mt-0.5">{label}</span>
+              <span className="text-xl font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{val}</span>
+              <span className="text-[10px] font-medium text-emerald-600/80 dark:text-emerald-500 mt-0.5">{label}</span>
             </div>
           ))}
           <div className="w-px bg-border mx-0.5 self-stretch" />
