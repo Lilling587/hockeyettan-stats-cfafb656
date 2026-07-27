@@ -1,27 +1,27 @@
-# Origin Point Play – Broadcast Reference Document
+# HockeyEttan Stats – Broadcast Reference Document
 *Last updated: July 2026*
 
 ---
 
 ## 1. What Is This App and Why Does It Exist?
 
-**Origin Point Play** is a broadcast support tool built for HockeyEttan Södra coverage
+**HockeyEttan Stats** is a broadcast support tool built for HockeyEttan Södra coverage
 at Grästorps IK. It serves three purposes:
 
 **Purpose 1: Match Briefing**
 The main dashboard scrapes stats.swehockey.se and produces a comprehensive pre-game
 briefing for producers and commentators: head-to-head history, current form, top
-scorers, goalie stats, special teams percentages, power play data, and more. Features
-include auto-refresh (every 30 minutes when enabled) and a tablet-optimized mode for
-the commentator touchscreen.
+scorers, goalie stats, special teams percentages, shot stats, faceoff data, and more.
+Features include auto-refresh (every 30 minutes when enabled) and a tablet-optimized
+mode for the commentator touchscreen.
 
-**Purpose 2: vMix GT Designer Backup Data Source**
+**Purpose 2: vMix Backup Data Source**
 The primary data source for vMix broadcast graphics is the official Swehockey vMix API
 at https://vmix-new.hockeyettan.se/api/. This API experienced reliability issues during
-peak load during the 2024-25 season. Origin Point Play acts as a manual backup — the
-producer publishes lineup and standings data through the admin UI before the game. If
-the real API fails during broadcast, vMix is switched to the backup endpoint by changing
-only the domain in the data source URL.
+peak load (Swehockey has cut off Hockeyettan during high-traffic periods to protect
+SHL/Allsvenskan). HockeyEttan Stats acts as a manual backup — the producer publishes
+lineup and standings data through the admin UI before the game. If the real API fails
+during broadcast, vMix is switched to the backup endpoint by changing only the domain.
 
 **Purpose 3: League Stats and Comparison**
 The Compare page shows league-wide statistics: standings, Poängliga, Målvaktsliga,
@@ -39,31 +39,38 @@ individual player statistics for the full league.
 | Asset Storage | Supabase Storage (public vmix-assets bucket) |
 | Styling | Tailwind CSS v4 + shadcn/ui |
 | Deployment | Cloudflare Workers (via Lovable) |
-| Repository | github.com/Lilling587/origin-point-play-0cae653e |
+| Repository | github.com/Lilling587/hockeyettan-stats |
 | Lovable project ID | b5d9d92f-3d6c-4d04-99c2-25be99cec0a2 |
 | Production URL | https://hockeyettan-stats.spdproduktion.se |
 | Email scheduling | pg_cron (via Lovable Supabase) with Resend |
+| Scraping | Firecrawl (JS-rendered pages) + direct fetch fallback |
 
 ---
 
 ## 3. Code Change Workflow
 
-All code changes go via the GitHub web editor, committing directly to main.
+Primary editing environment: **github.dev** — press `.` on any GitHub repo page.
+This opens a full VS Code editor in the browser with Ctrl+F search and find/replace.
+Commit directly to main. Lovable picks up changes automatically via GitHub App webhook.
 
-Lovable credits are reserved for multi-file coordinated changes or when a single
-replace block exceeds ~30 lines in a large file. The GitHub-to-Lovable sync is
-automatic via webhook.
+Lovable credits reserved for: multi-file coordinated changes, or architectural work
+that spans more files than is practical to edit manually.
 
-Change format: All code instructions use exact DELETE THIS / REPLACE WITH THIS
-blocks. Approximate line numbers are always included. Blocks over ~50 lines are
-provided as downloadable files to avoid clipboard truncation.
+Claude Code (desktop app) used for: debugging across multiple files, understanding
+data flow, refactoring large files.
 
-Dev server restarts: Lovable dev server sometimes serves stale code after GitHub
-commits. If behaviour does not match the code, restart the dev server. Always
-test on the production URL, not the Lovable preview URL.
+Change format: All code instructions use exact FIND / REPLACE WITH blocks with
+search text. Commit message always goes at the END of each file's changes.
+Blocks over ~50 lines are provided as downloadable files.
 
 Permanently banned: Force-pushing, rebasing, amending pushed commits, squashing
-pushed commits. These break the bidirectional Lovable to GitHub sync.
+pushed commits. These break the bidirectional Lovable↔GitHub sync.
+
+Always test on production URL (hockeyettan-stats.spdproduktion.se), not Lovable
+preview. Lovable in-app preview is often stale — open in new browser tab instead.
+
+CLAUDE.md in repo root: Claude Code reads this at the start of every session.
+Contains stack info, git rules, key constants, scraping patterns, and what not to do.
 
 ---
 
@@ -150,7 +157,7 @@ GameDate.Text (e.g. "15 OKT"), Venue.Text, League.Text ("HOCKEYETTAN SODRA")
 
 ### 5.7 Today's Games JSON Structure
 
-Scrapes /ScheduleAndResults/Live/18271 on swehockey.
+Scrapes /ScheduleAndResults/Live/{competitionId} on swehockey.
 GamesCount.Text, Game01Home.Text, Game01Away.Text, Game01Score.Text,
 Game01Status.Text, Game02Home.Text... (zero-padded)
 Returns empty object on off-season days.
@@ -167,7 +174,8 @@ Returns 404 if player not found. Cached 5 minutes server-side.
 Real:   https://vmix-new.hockeyettan.se/api/lineup/0?ClubId=570
 Backup: https://hockeyettan-stats.spdproduktion.se/api/public/vmix/lineup/0?ClubId=570
 
-Only the domain changes.
+Only the domain changes. Expected use: 1–3 times per season when Swehockey API
+is slow or cut off.
 
 ---
 
@@ -183,34 +191,39 @@ Bucket structure:
 The large logo (*_large.png) serves BOTH vMix graphics AND the stats briefing
 dashboard. Uploading in admin/assets under Logotyper (vMix) -> Large updates both.
 
-ASCII-safe filenames: GRA (for GRA), MOR (for MOR), VAS (for VAS), MJO (for MJO).
+ASCII-safe filenames: GRA (for GRÄ), MOR (for MÖR), VAS (for VÄS), MJO (for MJÖ).
 
 ### 6.1 Briefing Logo Cache
 
 team_logos database table caches logo URLs with 7-day localStorage TTL.
-URLs now point to Supabase Storage instead of hockeyettan.se.
+URLs point to Supabase Storage instead of hockeyettan.se.
 Managed via "Cachelagda logotyper (statistiksida)" card in /admin/assets.
-"Hamta om" button uses supabaseAdmin (service role) to bypass RLS.
+"Hämta om" button uses supabaseAdmin (service role) to bypass RLS.
 
 ---
 
 ## 7. Team Logo Codes System
 
-Maps team names to short codes (e.g. "Grastorps IK" -> "GRA").
+Maps team names to short codes (e.g. "Grästorps IK" -> "GRÄ").
 Stored in team_logo_codes table (team_name, logo_code, source, updated_at).
-Synced from swehockey roster page navigation links.
+Codes sourced from team-short-names.ts (generated by scripts/update-team-short-names.mjs).
+fetchTeamCodeMap() now uses shortTeamName() + KNOWN_TEAM_NAMES directly — no network fetch.
 Manual overrides preserved during sync.
 Auto-fills Logotypkod field in admin page when team is selected.
 Codes enriched into standings rows at publish time.
+
+2026-27 season team changes:
+  IN:  Boro/Vetlanda HC (BOR), IF Troja-Ljungby (TRO)
+  OUT: Visby/Roma HK (VIS, promoted to Allsvenskan)
 
 ---
 
 ## 8. The Admin vMix Page (/admin/vmix)
 
-Collapsible-card based. Always visible: Forberedelsekontroll, Datakalla, season
+Card-based layout. Always visible: Förberedelsekontroll, Datakälla, season
 selector, two lineup editors, sticky publish bar. CardErrorBoundary on each major card.
 
-### 8.1 Forberedelsekontroll (Readiness Card)
+### 8.1 Förberedelsekontroll (Readiness Card)
 
 Shows go/no-go for: away team selected, active publication, hemma-lineup completeness,
 borta-lineup completeness, logo codes synced, official Swehockey API status (60s poll).
@@ -222,18 +235,26 @@ Broadcast countdown timer: enter puck drop time HH:MM for live T-minus display.
 Form state saved to localStorage every 5 seconds (skips if unchanged). Restore banner
 on next visit. Draft cleared on successful publish.
 
-### 8.3 Datakalla Card
+### 8.3 Datakälla Card
 
-Status badges: AUTO green (home game found), AUTO outline (no game), LIVE (publication
-hydrated), MANUELL amber (manual override).
+Status badges: AUTO green (home game found), AUTO outline (no game today), LIVE
+(publication hydrated), MANUELL amber (manual override).
+
+"Skanna efter ny säsong" button in card header — triggers season scan without logout.
+New season detected → PendingSeasonsBanner appears above the card to confirm/dismiss.
+
+Season auto-detection: app scans swehockey for new competition IDs. On admin login,
+scan runs automatically. Confirmed seasons stored in season_overrides table (Supabase).
+seasons.config.ts is the baseline; database overrides take precedence.
 
 ### 8.4 Season Selector
 
-Dropdown above Datakalla. Selects competition ID for roster scraping.
+Dropdown above Datakälla. Shows actual season label (e.g. 2025-26). Selects
+competition ID for roster scraping.
 
 ### 8.5 Logotypkoder Card (collapsible)
 
-Inline editing of team logo codes. "Synka fran Swehockey" button.
+Inline editing of team logo codes. "Synka från Swehockey" button.
 
 ### 8.6 vMix-endpoints Card (collapsible)
 
@@ -244,7 +265,7 @@ Endpoints: standings, lineup, titlecard, todays-games.
 
 ### 8.7 Publication History Card (collapsible)
 
-Last 5 publications. Active = green LIVE badge. Others have "Anvand" button to load
+Last 5 publications. Active = green LIVE badge. Others have "Använd" button to load
 that publication's data into the form for re-publishing.
 
 ### 8.8 Granskningslogg Audit Log (collapsible)
@@ -253,24 +274,36 @@ Last 20 audit events. Written by logAuditEvent (non-blocking).
 
 ### 8.9 Lineup Editor Cards
 
-Team dropdown (auto-fills Logotypkod), Logotypkod field, "Ladda spelarlistan" button
-(10s timeout, 3-retry backoff), roster badge, error banner, slot grid.
+Auto mode: fetches tonight's published lineup from /Game/LineUps/{gameId} on swehockey.
+Pre-fills slots using position data from roster (goalies→GK, defenders→LD/RD, forwards→LW/C/RW).
+If lineup not yet published (~30-60 min before puck drop), slots start empty with toast message.
+
+Manual mode: always starts with empty slots — producer fills deliberately.
+
+Both modes: loads full roster pool into dropdowns for each slot. Producer reviews
+and adjusts positions after auto-fill.
+
 Position "G" excluded from dropdown (misidentified Goals column from stats page).
 
 ### 8.10 Lineup-mallar Card (collapsible)
 
 Save/restore presets. Filtered to show presets matching current teams.
 
-### 8.11 Sticky Bottom Bar
+### 8.11 Försäsong Card
+
+Fetch roster for any team via any competition ID (for pre-season/friendly matches
+where teams may not be in the regular season roster).
+
+### 8.12 Sticky Bottom Bar
 
 Publicera till vMix -> confirmation dialog -> publish + fetch standings
 Avpublicera -> red confirmation dialog
 Uppdatera tabell -> re-scrape standings only
 Exportera JSON -> download current lineup JSON
-Avsluta sandning -> confirmation -> unpublish + clear draft + reset form
-Below: timestamp + diff summary (+ added, - removed, <-> changed)
+Avsluta sändning -> confirmation -> unpublish + clear draft + reset form
+Below: timestamp + diff summary (+ tillagd, - borttagen, ↔ bytt)
 
-### 8.12 Server-Side Publish Validation
+### 8.13 Server-Side Publish Validation
 
 Blocks publish if: home lineup empty, logo code missing, standings scrape <8 teams.
 
@@ -291,6 +324,45 @@ Features:
 
 Hardware: Lenovo ThinkCentre M720Q + 15.6" portable USB-C touchscreen.
 
+### 9.1 Briefing Cards
+
+**FormCard** (Senaste 5)
+Last 5 played games per team. Uses Firecrawl markdown of schedule page (full season).
+Note: direct HTML fetch of schedule is partially JS-rendered and misses some rounds.
+
+**VenueStreakCard** (Senaste 5 hemma/borta)
+Last 5 home games and last 5 away games per team. Single-row layout: streak badge
+(W2/L3 etc.) prominently displayed, followed by individual result badges (W/OT/L).
+
+**ShotCard** (Skott)
+4 stats per team in a table layout:
+- SF/match · senaste 5: shots on goal per game, last 5 games (from game event pages)
+- SA/match · senaste 5: shots against per game, last 5 games (from game event pages)
+- SF/match · säsong: SOG÷GP from ScoringAndGoalkeeping stats page
+- SA/match · säsong: SOA÷GP from Goalkeeping Efficiency stats page
+Green value = better team for that stat (higher SF = better, lower SA = better).
+
+**SpecialTeamsCard**
+PP% and PK% with goal counts below each percentage:
+- Powerplay: PP% + number of PP goals scored this season
+- Boxplay: PK% + number of PP goals conceded this season
+Data from stats.swehockey.se/Teams/Statistics/PowerplayAndPenaltyKilling/{competitionId}
+Columns: Rk, Team, GP, ADV/DVG, PPGF/PPGA (index 4), PP%/PK% (index 5)
+
+**LineupDiffCard** (Laguppställning)
+Compares tonight's lineup vs last played game lineup.
+Source: /Game/LineUps/{gameId} — published by swehockey ~30-60 min before puck drop.
+Shows: In (new players tonight) / Ut (players not in tonight's lineup).
+If tonight's lineup not yet published: "Laguppställning ej publicerad ännu."
+If no game today: "Ingen match idag."
+
+**WinProbabilityCard**
+Hover tooltip explains formula:
+- 70% season PPG ÷ 3 (normalised to 0–1)
+- 30% venue win rate (home team's home record, away team's away record)
+- Home team gets +10% strength boost
+- Final = home strength ÷ (home + away strength)
+
 ---
 
 ## 10. Roster Scraping
@@ -306,9 +378,36 @@ scrapeTeamCodes: Parses navigation links from the same page.
 scrapeLiveGames: Fetches /ScheduleAndResults/Live/{competitionId}. Returns empty
 array on off-season days.
 
+fetchTonightsLineup: Finds today's unplayed game in scheduleGames, fetches
+/Game/LineUps/{gameId}, cross-references with roster for numbers/positions,
+distributes players into vMix slot positions.
+
 ---
 
-## 11. Configuration
+## 11. Scraping Patterns and Gotchas
+
+- Firecrawl converts <a href="url">text</a> to [text](url) in markdown
+  → Strip with .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") before regex filters
+  → This affected lastFive: games with linked scores were filtered out
+
+- ScoringAndGoalkeeping page has TWO tables (Scoring + Goalkeeping Efficiency)
+  → Both have SOG at column index 5
+  → Split on first </table> after "Scoring Efficiency" text to isolate sections
+
+- Special teams page team cells: <span title="Full Name"><strong>ABBR</strong></span>
+  → Use titleRe to extract full team name from title attribute
+
+- Lineup page section regex accepts any (text) not just (Red|White)
+  → Swedish pages may use (Röd)/(Vit) or other variants
+
+- schedule HTML (/ScheduleAndResults/Schedule/{competitionId}) is partially JS-rendered
+  → Direct fetch only returns some rounds
+  → Use Firecrawl (scrapeMd) for lastFive data — it sees all 38 rounds
+  → fetchAllScheduleGames (direct fetch) is fine for venueForm and other uses
+
+---
+
+## 12. Configuration
 
 Hardcoded constants in SETTING_DEFAULTS (vmix.functions.ts):
 asset_base_url: "" -> Supabase Storage
@@ -316,6 +415,7 @@ club_id: "570"
 lineup_version: "0"
 
 Competition ID 2025-26: 18271 (stored in seasons.config.ts)
+Competition ID 2026-27: TBD (will be auto-detected via season scan)
 
 Rate limiting: 120 req/min per IP, in-memory per Worker instance, internal
 requests exempt (IP = "unknown"), 5000 entry prune threshold.
@@ -327,7 +427,7 @@ Both require: Authorization: Bearer <CRON_SECRET>
 
 ---
 
-## 12. Supabase Tables
+## 13. Supabase Tables
 
 | Table | Purpose |
 |---|---|
@@ -337,12 +437,12 @@ Both require: Authorization: Bearer <CRON_SECRET>
 | vmix_lineup_presets | Saved lineup templates |
 | vmix_audit_log | Audit trail of all publish actions |
 | season_detections | Pending/confirmed/dismissed season detections |
-| season_overrides | Confirmed seasons |
+| season_overrides | Confirmed seasons (takes precedence over seasons.config.ts) |
 | season_check_meta | Throttle state for season scan |
 
 ---
 
-## 13. Error Handling and Resilience
+## 14. Error Handling and Resilience
 
 throwIfSupabaseError: standardizes all Supabase error handling.
 Scraper resilience: fetchWithTimeout (10s) + withRetry (3 attempts).
@@ -350,21 +450,23 @@ Server-side publish validation: blocks empty lineup, missing codes, <8 teams in 
 Per-card error boundaries: CardErrorBoundary on every major admin card.
 Non-blocking audit log: failures silently ignored.
 Rate limiter exemption: internal health check requests bypass rate limiting.
-Health check localhost fix: https://localhost downgraded to http: in dev.
 
 ---
 
-## 14. File Structure
+## 15. File Structure
 
 src/lib:
-  seasons.config.ts       - competitionId per season
-  vmix.functions.ts       - All vMix server functions + types
+  seasons.config.ts       - competitionId per season (baseline; DB overrides take precedence)
+  vmix.functions.ts       - All vMix server functions + types + fetchTonightsLineup
   vmix.server.ts          - Scrapers + fetchWithTimeout + withRetry
   vmix-assets.ts          - Asset URL resolution + ASCII-safe codes
   vmix-health.functions.ts- Server-side vMix health check
   rate-limiter.ts         - In-memory per-IP rate limiting
   stats.server.ts         - Standings + briefing scrapers + league players
-  stats.functions.ts      - Server function wrappers
+  stats.functions.ts      - Server function wrappers + TeamBriefing schema + CACHE_VERSION
+  game-flow.server.ts     - Per-game event scraping, lineup parsing, shot data
+  game-flow.functions.ts  - Server function wrappers for game flow
+  team-short-names.ts     - Full team name → short code map (e.g. "Grästorps IK" → "GRÄ")
   briefing-export.ts      - Kopiera som text/markdown logic
   team-logos.functions.ts - Team logo cache admin functions
   team-logos.server.ts    - Logo URL building from Supabase Storage
@@ -372,16 +474,17 @@ src/lib:
 src/routes:
   index.tsx               - Dashboard (briefing, recap, auto-refresh, tablet mode,
                             compact match banner, admin dropdown, SeasonPicker inline)
+  info.tsx                - Public info/landing page (HockeyEttan Stats)
   auth.tsx                - Login + sign-up (two flows: regular vs admin)
   schema.tsx              - Schedule page
   spelare.tsx             - Player stats (filters position G)
-  compare.tsx             - Jamfor lag (standings + league overview)
+  compare.tsx             - Jämför lag (standings + league overview)
   _authenticated/
     admin.vmix.tsx        - vMix admin (all lineup + publish functionality)
     admin.health.tsx      - Scraper health + vMix endpoint health check
     admin.users.tsx       - Admin user management
     admin.assets.tsx      - Lagring: vMix assets + briefing logo cache
-                            (merged from old admin.logos.tsx)
+    admin.auth-emails.tsx - Email system admin
     admin.logs.tsx        - Application logs
   api/public/vmix/
     lineup.$version.ts    - Rate-limited
@@ -393,45 +496,61 @@ src/routes:
 
 public/
   briefing-anchors.json   - Stream Deck anchor definitions
-  icon-192.png            - PWA icon
-  icon-512.png            - PWA icon (high-res)
+  CLAUDE.md               - Claude Code session reference (repo root)
 
 ---
 
-## 15. Pre-Broadcast Workflow
+## 16. Season Switchover Procedure
+
+When a new season competition ID appears on swehockey:
+
+1. Log in as admin — season scan runs automatically on login
+   OR click "Skanna efter ny säsong" in Datakälla card header
+2. PendingSeasonsBanner appears — click Confirm
+   (stored in season_overrides table, seasons.config.ts not required to change)
+3. Update team-short-names.ts if new teams have joined Södra
+   (2026-27: add BOR/Boro/Vetlanda HC, TRO/IF Troja-Ljungby; remove VIS/Visby/Roma HK)
+4. Upload logos for new teams to vmix-assets/logos/ (ASCII-safe filenames)
+5. /admin/assets → Cachelagda logotyper → Hämta om for new team logos
+6. Optionally update seasons.config.ts to bake in the new ID permanently
+
+---
+
+## 17. Pre-Broadcast Workflow
 
 Before season starts:
-1. Verify competitionId in seasons config
-2. /admin/vmix -> expand Logotypkoder -> Synka fran Swehockey
+1. Confirm new competition ID (via season scan or swehockey URL)
+2. /admin/vmix -> expand Logotypkoder -> Synka från Swehockey
 3. Upload logo PNGs to vmix-assets/logos/ (ASCII-safe names)
 4. Upload resources to vmix-assets/resources/
-5. /admin/assets -> Cachelagda logotyper -> Hamta om for missing logos
+5. /admin/assets -> Cachelagda logotyper -> Hämta om for missing logos
 6. Set up Companion buttons using public/briefing-anchors.json
 
 Game day:
 1. Open /admin/vmix
-2. Check Forberedelsekontroll - all green before broadcast
+2. Check Förberedelsekontroll — all green before broadcast
 3. Enter puck drop time in countdown field
 4. Restore or ignore any saved draft
-5. Verify Datakalla shows correct matchup
+5. Verify Datakälla shows correct matchup (auto mode if home game)
 6. Verify Logotypkod filled for both teams
-7. Ladda spelarlistan on both cards - verify green badges
-8. Fill slots from actual game lineup sheet
-9. Check amber warnings in sticky bar
-10. Publicera till vMix -> review -> confirm
-11. Verify diff summary
-12. In vMix-endpoints card: Testa alla - all green
-13. Enable Auto 60s to monitor throughout broadcast
-14. If primary API fails: change domain in vMix
-15. If standings change: Uppdatera tabell
-16. After broadcast: Avsluta sandning
+7. If auto mode: check if lineup was pre-filled from swehockey — review positions
+8. If manual mode or lineup not yet published: fill slots from actual game lineup sheet
+9. Ladda spelarlistan to load roster dropdowns for both teams
+10. Check amber warnings in sticky bar
+11. Publicera till vMix -> review -> confirm
+12. Verify diff summary
+13. In vMix-endpoints card: Testa alla — all green
+14. Enable Auto 60s to monitor throughout broadcast
+15. If primary API fails: change domain in vMix
+16. If standings change: Uppdatera tabell
+17. After broadcast: Avsluta sändning
 
 ---
 
-## 16. Quick Reference
+## 18. Quick Reference
 
 Competition ID 2025-26: 18271
-Club ID Grastorps IK: 570
+Club ID Grästorps IK: 570
 Official lineup: https://vmix-new.hockeyettan.se/api/lineup/0?ClubId=570
 Official standings: https://vmix-new.hockeyettan.se/api/tabel/
 Backup base: https://hockeyettan-stats.spdproduktion.se
@@ -441,17 +560,20 @@ Backup titlecard: /api/public/vmix/titlecard
 Backup today's games: /api/public/vmix/todays-games
 Backup player: /api/public/vmix/player?PlayerName=...
 Storage bucket: vmix-assets (only bucket in use)
-Default team: Grastorps IK
+Default team: Grästorps IK
 Briefing anchors: public/briefing-anchors.json
 Rate limit: 120 req/min per IP (internal exempt)
+Cache version: v16 (bump in stats.functions.ts when changing TeamBriefing schema)
 Auto-refresh interval: 60 seconds
 
 ---
 
-## 17. Future Plans
+## 19. Future Plans
 
-- Broadcast countdown timer on homepage (currently admin only)
 - Bitfocus Companion integration for Stream Deck vMix source switching
+- Further briefing card improvements as the season approaches
+- Test full workflow in pre-season matches (from 24 August 2026)
+- Season 2026-27 kicks off ~20 September 2026
 
 ---
 
