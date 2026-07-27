@@ -106,7 +106,7 @@ function RouteError({ error, reset }: { error: Error; reset: () => void }) {
 function NotFound() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-8 text-sm text-muted-foreground">
-      Page not found.
+      Sidan hittades inte.
     </div>
   );
 }
