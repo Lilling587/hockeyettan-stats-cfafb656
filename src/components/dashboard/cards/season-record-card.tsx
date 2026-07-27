@@ -51,17 +51,17 @@ function TeamCol({ team }: { team: TeamData }) {
           ))}
         </div>
       )}
-      <div className="flex gap-4 justify-center">
-        <div>
+      <div className="flex gap-4">
+        <div className="text-center">
           <div className="text-base font-semibold tabular-nums">{fmt1(gfpg)}</div>
           <div className="text-xs text-muted-foreground">GF/GP</div>
         </div>
-        <div>
+        <div className="text-center">
           <div className="text-base font-semibold tabular-nums">{fmt1(gapg)}</div>
           <div className="text-xs text-muted-foreground">GA/GP</div>
         </div>
         {diff != null && (
-          <div>
+          <div className="text-center">
             <div
               className={`text-base font-semibold tabular-nums ${
                 diff > 0 ? "text-emerald-600" : diff < 0 ? "text-destructive" : ""
