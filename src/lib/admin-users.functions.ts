@@ -181,7 +181,9 @@ export const sendAuthEmail = createServerFn({ method: "POST" })
 
 export const deleteUser = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
-  .inputValidator((input: unknown) => userIdSchema.parse(input))
+  .inputValidator((input: unknown) =>
+    z.object({ userId: z.string().uuid() }).parse(input),
+  )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     if (data.userId === context.userId) {
       throw new Error("Du kan inte ta bort ditt eget konto");
