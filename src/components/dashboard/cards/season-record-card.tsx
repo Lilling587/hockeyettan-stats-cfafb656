@@ -85,7 +85,7 @@ export function SeasonRecordCard({ home, away }: { home: TeamData; away: TeamDat
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Säsongsrekord & mål</CardTitle>
+        <CardTitle className="text-base">Vunna/Förlorade & mål</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
