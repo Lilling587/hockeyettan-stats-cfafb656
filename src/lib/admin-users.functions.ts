@@ -166,6 +166,16 @@ export const sendAuthEmail = createServerFn({ method: "POST" })
       }
     }
 
+    // Log directly to email_send_log so the send always appears in admin/auth-emails,
+    // regardless of whether the Supabase Send Email hook fires for this type.
+    // The hook may add its own entry with delivery status — that is fine and expected.
+    await supabaseAdmin.from("email_send_log").insert({
+      message_id: crypto.randomUUID(),
+      template_name: data.emailType,
+      recipient_email: email,
+      status: "sent",
+    });
+
     return { ok: true };
   });
 
