@@ -233,6 +233,12 @@ function Dashboard() {
 const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
   const [tabletMode, setTabletMode] = useState(false);
   const [user, setUser] = useState<{ email?: string } | null>(null);
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = tabletMode ? "125%" : "";
+    return () => { document.documentElement.style.fontSize = ""; };
+  }, [tabletMode]);
+
   useEffect(() => {
     setFavorite(getFavoriteTeam());
     const onChange = () => setFavorite(getFavoriteTeam());
@@ -862,7 +868,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
         </div>
       </div>
 
-   <main className={`mx-auto max-w-6xl touch-pan-y px-6 py-8 ${tabletMode ? "space-y-10 text-xl leading-relaxed" : "space-y-6"}`}>
+   <main className={`mx-auto max-w-6xl touch-pan-y px-6 py-8 ${tabletMode ? "space-y-10" : "space-y-6"}`}>
         <PendingSeasonsBanner
           pending={pendingQuery.data?.pending ?? []}
           onChanged={() => {
