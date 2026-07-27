@@ -536,16 +536,27 @@ function extractTdCells(rowHtml: string): string[] {
   return cells;
 }
 
+type StandingsBriefingRow = {
+  position: number | null;
+  gamesPlayed: number | null;
+  points: number | null;
+  goalsFor: number | null;
+  goalsAgainst: number | null;
+  wins: number | null;
+  otWins: number | null;
+  otLosses: number | null;
+};
+
 async function fetchStandingsFromHtml(
   urls: Urls,
-): Promise<Record<string, { position: number | null; gamesPlayed: number | null; points: number | null }>> {
+): Promise<Record<string, StandingsBriefingRow>> {
   try {
     const res = await withRetry(() => fetchWithTimeout(urls.standings, {
       headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
     }));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
-    const result: Record<string, { position: number | null; gamesPlayed: number | null; points: number | null }> = {};
+    const result: Record<string, StandingsBriefingRow> = {};
     const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
     let rowMatch: RegExpExecArray | null;
     while ((rowMatch = rowRe.exec(html)) !== null) {
@@ -557,7 +568,26 @@ async function fetchStandingsFromHtml(
       const points = checkRange(Number(cells[8]), 0, 300, "standings.points");
       if (position == null || !name || gamesPlayed == null || points == null) continue;
       if (name in result) continue;
-      result[name] = { position, gamesPlayed, points };
+      // cells[3]=W  cells[5]=L  cells[6]="GF:GA"  cells[9]=OTW  cells[10]=OTL
+      // Only parse if enough columns exist (full standings row has 11+)
+      const full = cells.length >= 11;
+      const w = full ? Number(cells[3]) : NaN;
+      const goalsCell = full ? cells[6].replace(/\(.*\)/, "").trim() : "";
+      const [gfStr, gaStr] = goalsCell.split(":").map((s) => s.trim());
+      const gf = Number(gfStr);
+      const ga = Number(gaStr);
+      const otw = full ? Number(cells[9]) : NaN;
+      const otl = full ? Number(cells[10]) : NaN;
+      result[name] = {
+        position,
+        gamesPlayed,
+        points,
+        wins: full && Number.isFinite(w) ? w : null,
+        goalsFor: full && Number.isFinite(gf) ? gf : null,
+        goalsAgainst: full && Number.isFinite(ga) ? ga : null,
+        otWins: full && Number.isFinite(otw) ? otw : null,
+        otLosses: full && Number.isFinite(otl) ? otl : null,
+      };
     }
     return result;
   } catch (err) {
@@ -1233,6 +1263,11 @@ export async function buildBriefing(
     faceoffs: null,
     shotsForPerGame: null,
     shotsAgainstPerGame: null,
+    goalsFor: null,
+    goalsAgainst: null,
+    wins: null,
+    otWins: null,
+    otLosses: null,
   });
 
   const object: Briefing = {
@@ -1397,6 +1432,26 @@ export async function buildBriefing(
       if (team.gamesPlayed == null && st.gamesPlayed != null) {
         team.gamesPlayed = st.gamesPlayed;
         filled.push({ field: "gamesPlayed", source: "standings" });
+      }
+      if (team.goalsFor == null && st.goalsFor != null) {
+        team.goalsFor = st.goalsFor;
+        filled.push({ field: "goalsFor", source: "standings" });
+      }
+      if (team.goalsAgainst == null && st.goalsAgainst != null) {
+        team.goalsAgainst = st.goalsAgainst;
+        filled.push({ field: "goalsAgainst", source: "standings" });
+      }
+      if (team.wins == null && st.wins != null) {
+        team.wins = st.wins;
+        filled.push({ field: "wins", source: "standings" });
+      }
+      if (team.otWins == null && st.otWins != null) {
+        team.otWins = st.otWins;
+        filled.push({ field: "otWins", source: "standings" });
+      }
+      if (team.otLosses == null && st.otLosses != null) {
+        team.otLosses = st.otLosses;
+        filled.push({ field: "otLosses", source: "standings" });
       }
     }
     // Top scorers fallback: read from already-fetched scoringData — free.

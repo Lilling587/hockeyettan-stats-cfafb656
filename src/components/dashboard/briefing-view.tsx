@@ -44,6 +44,7 @@ import { DisciplineCard } from "./cards/discipline-card";
 import { FaceoffsCard } from "./briefing/FaceoffsCard";
 
 import { HomeAwaySplitCard } from "./cards/home-away-split-card";
+import { SeasonRecordCard } from "./cards/season-record-card";
 
 
 export function BriefingView({
@@ -226,6 +227,8 @@ export function BriefingView({
         <TeamHeader team={data.home} side="Hemmalag" />
         <TeamHeader team={data.away} side="Bortalag" />
       </div>
+
+      <SeasonRecordCard home={data.home} away={data.away} />
 
       <div id="form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FormCard team={data.home} />

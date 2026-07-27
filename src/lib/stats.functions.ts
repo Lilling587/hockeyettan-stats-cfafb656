@@ -21,7 +21,7 @@ async function resolveSeason(label?: string | null): Promise<Season> {
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 const TEAMS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
-const CACHE_VERSION = "v17";
+const CACHE_VERSION = "v18";
 const HISTORY_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const LEAGUE_SLUG = "hockeyettan-sodra";
 
@@ -161,6 +161,11 @@ const TeamBriefing = z.object({
   }).nullable().default(null).describe("Season faceoff statistics"),
  shotsForPerGame: z.number().nullable().default(null).describe("Season shots on goal per game (SOG/GP from scoring efficiency page)"),
   shotsAgainstPerGame: z.number().nullable().default(null).describe("Season shots against per game (SOA/GP from goalkeeping efficiency page)"),
+  goalsFor: z.number().int().nullable().default(null).describe("Season goals for total"),
+  goalsAgainst: z.number().int().nullable().default(null).describe("Season goals against total"),
+  wins: z.number().int().nullable().default(null).describe("Regulation wins"),
+  otWins: z.number().int().nullable().default(null).describe("Overtime/shootout wins"),
+  otLosses: z.number().int().nullable().default(null).describe("Overtime/shootout losses"),
 });
 
 const BriefingSchema = z.object({
