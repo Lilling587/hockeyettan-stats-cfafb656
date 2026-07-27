@@ -125,10 +125,24 @@ export const Route = createFileRoute("/")({
   }),
   beforeLoad: async () => {
     const { data: sessionData } = await supabase.auth.getSession();
-    if (sessionData.session?.user) return;
-    const { data, error } = await supabase.auth.getUser();
-    if (!error && data.user) return;
-    throw redirect({ to: "/info" });
+    let resolvedUser = sessionData.session?.user ?? null;
+    if (!resolvedUser) {
+      const { data, error } = await supabase.auth.getUser();
+      if (!error && data.user) resolvedUser = data.user;
+    }
+    if (!resolvedUser) throw redirect({ to: "/info" });
+
+    // Block unapproved users — email verification lands here directly,
+    // bypassing the sign-in flow where approval is normally enforced.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("approval_status")
+      .eq("id", resolvedUser.id)
+      .maybeSingle();
+    const status = (profile as { approval_status?: string } | null)?.approval_status;
+    if (status !== "approved") {
+      throw redirect({ to: "/auth", search: { pending: status ?? "missing" } });
+    }
   },
   validateSearch: zodValidator(searchSchema),
   loader: async ({ context }) => {
