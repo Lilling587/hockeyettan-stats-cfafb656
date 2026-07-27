@@ -17,7 +17,8 @@ import {
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
-import { getTodaysMatchup, listSeasons, listTeams } from "@/lib/stats.functions";
+import { getTodaysMatchup, listSeasons, listPendingSeasons, scanForNewSeasons, listTeams } from "@/lib/stats.functions";
+import { PendingSeasonsBanner } from "@/components/dashboard/pending-seasons-banner";
 import {
   emptySlots,
   fetchTeamRoster,
@@ -208,6 +209,8 @@ function VmixAdminPage() {
   const savePreset = useServerFn(saveLineupPreset);
   const delPreset = useServerFn(deleteLineupPreset);
   const fetchAuditLog = useServerFn(getAuditLog);
+  const runScan = useServerFn(scanForNewSeasons);
+  const fetchPending = useServerFn(listPendingSeasons);
   const adminQuery = useQuery({
     queryKey: ["is-admin"],
     queryFn: () => fetchIsAdmin(),
@@ -276,6 +279,19 @@ const seasonsQuery = useQuery({
     queryKey: ["seasons"],
     queryFn: () => fetchSeasons(),
     staleTime: 24 * 60 * 60 * 1000,
+  });
+
+  const pendingQuery = useQuery({
+    queryKey: ["season-detections"],
+    queryFn: () => fetchPending(),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!adminQuery.data?.isAdmin,
+  });
+
+  const scanMut = useMutation({
+    mutationFn: () => runScan({ data: { force: true } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["season-detections"] }),
+    onError: (e) => toast.error(`Skanning misslyckades: ${(e as Error).message}`),
   });
 
   const [adminSeason, setAdminSeason] = useState<string | undefined>(undefined);
@@ -1118,6 +1134,14 @@ const restoreMut = useMutation({
         </Select>
       </div>
 
+      <PendingSeasonsBanner
+        pending={pendingQuery.data?.pending ?? []}
+        onChanged={() => {
+          queryClient.invalidateQueries({ queryKey: ["season-detections"] });
+          queryClient.invalidateQueries({ queryKey: ["seasons"] });
+        }}
+      />
+
       <div id="kalla">
       <DataSourceCard
         sourceMode={sourceMode}
@@ -1129,6 +1153,8 @@ const restoreMut = useMutation({
         onResetManual={handleResetManual}
         onRerunAuto={rerunAuto}
         hasLive={!!activeQuery.data}
+        onScanSeasons={() => scanMut.mutate()}
+        scanningSeasons={scanMut.isPending}
       />
       </div>
 
@@ -2585,6 +2611,8 @@ function DataSourceCard({
   onResetManual,
   onRerunAuto,
   hasLive,
+  onScanSeasons,
+  scanningSeasons,
 }: {
   sourceMode: "idle" | "auto" | "manual" | "live-hydrated";
   loading: boolean;
@@ -2595,6 +2623,8 @@ function DataSourceCard({
   onResetManual: () => void;
   onRerunAuto: () => void;
   hasLive: boolean;
+  onScanSeasons?: () => void;
+  scanningSeasons?: boolean;
 }) {
   const isHomeGame = !!match && match.home === DEFAULT_TEAM;
 
@@ -2668,6 +2698,21 @@ function DataSourceCard({
           {(sourceMode === "manual" || sourceMode === "live-hydrated") && (
             <Button size="sm" variant="outline" onClick={onRerunAuto}>
               <RefreshCw className="h-3 w-3 mr-1" /> Använd dagens hittade match
+            </Button>
+          )}
+          {onScanSeasons && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onScanSeasons}
+              disabled={scanningSeasons}
+            >
+              {scanningSeasons ? (
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3 w-3 mr-1" />
+              )}
+              Skanna efter ny säsong
             </Button>
           )}
         </div>
