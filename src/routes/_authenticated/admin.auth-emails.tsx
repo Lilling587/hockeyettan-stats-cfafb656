@@ -313,7 +313,7 @@ function EmailLogPage() {
                 size="sm"
                 onClick={() => setOnlyProblems((v) => !v)}
               >
-                {onlyProblems ? "Visar problem" : "Bara problem"}
+                {onlyProblems ? "Visar problem" : "Visa problem"}
               </Button>
             </div>
           </CardHeader>
