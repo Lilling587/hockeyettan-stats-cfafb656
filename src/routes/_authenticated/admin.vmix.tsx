@@ -956,8 +956,7 @@ const restoreMut = useMutation({
             <div>
               <h1 className="text-2xl font-semibold">vMix broadcast data</h1>
               <p className="text-sm text-muted-foreground">
-                Publicera dagens Grästorps IK-match som JSON-feeds för vMix GT
-                Designer.
+                Publicera dagens Grästorps IK-match som JSON-feeds för vMix.
               </p>
             </div>
             <div className="text-right text-xs text-muted-foreground">
