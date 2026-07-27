@@ -1338,7 +1338,14 @@ export async function buildBriefing(
     object.away.powerPlayPct == null ||
     object.away.penaltyKillPct == null;
   const standingsMissing = (team: Briefing["home"]) =>
-    team.position == null || team.points == null || team.gamesPlayed == null;
+    team.position == null ||
+    team.points == null ||
+    team.gamesPlayed == null ||
+    team.goalsFor == null ||
+    team.goalsAgainst == null ||
+    team.wins == null ||
+    team.otWins == null ||
+    team.otLosses == null;
   const standingsNeeded = standingsMissing(object.home) || standingsMissing(object.away);
   const topScorersNeeded =
     object.home.topScorers.length === 0 || object.away.topScorers.length === 0;
@@ -1349,6 +1356,11 @@ export async function buildBriefing(
     | "position"
     | "points"
     | "gamesPlayed"
+    | "goalsFor"
+    | "goalsAgainst"
+    | "wins"
+    | "otWins"
+    | "otLosses"
     | "powerPlayPct"
     | "penaltyKillPct"
     | "topScorers"
@@ -1358,6 +1370,11 @@ export async function buildBriefing(
     if (team.position == null) set.add("position");
     if (team.points == null) set.add("points");
     if (team.gamesPlayed == null) set.add("gamesPlayed");
+    if (team.goalsFor == null) set.add("goalsFor");
+    if (team.goalsAgainst == null) set.add("goalsAgainst");
+    if (team.wins == null) set.add("wins");
+    if (team.otWins == null) set.add("otWins");
+    if (team.otLosses == null) set.add("otLosses");
     if (team.powerPlayPct == null) set.add("powerPlayPct");
     if (team.penaltyKillPct == null) set.add("penaltyKillPct");
     if (team.topScorers.length === 0) set.add("topScorers");
@@ -1383,7 +1400,7 @@ export async function buildBriefing(
 
     standingsNeeded
       ? fetchStandingsFromHtml(urls)
-      : Promise.resolve({} as Record<string, { position: number | null; gamesPlayed: number | null; points: number | null }>),
+      : Promise.resolve({} as Record<string, StandingsBriefingRow>),
     lastFiveNeeded
       ? Promise.resolve(computeLastFive(scheduleGames, [home, away]))
       : Promise.resolve({} as Record<string, Briefing["home"]["lastFive"]>),
