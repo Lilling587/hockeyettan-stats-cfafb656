@@ -158,7 +158,7 @@ function AdminUsersPage() {
       const label = EMAIL_TYPE_LABELS[mailType as AuthEmailType] ?? mailType;
       toast.success(`"${label}" skickat`);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message, { duration: 8000 }),
   });
 
   const EMAIL_TYPE_LABELS: Record<AuthEmailType, string> = {
