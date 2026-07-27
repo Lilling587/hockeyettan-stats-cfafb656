@@ -64,7 +64,7 @@ export const inviteAdmin = createServerFn({ method: "POST" })
       const { data: inviteData, error: inviteErr } =
         await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
           redirectTo:
-            (process.env.SITE_URL ?? "https://origin-playful-spark.lovable.app") +
+            (process.env.SITE_URL ?? "https://spdproduktion.se") +
             "/reset-password",
         });
       if (inviteErr) throw new Error(inviteErr.message);

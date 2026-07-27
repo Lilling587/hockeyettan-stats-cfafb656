@@ -88,7 +88,7 @@ function AuthPage() {
 
   useEffect(() => {
     if (search.message === "password-reset") {
-      toast.success("Password reset successfully. Sign in with your new password.");
+      toast.success("Lösenordet är återställt. Logga in med ditt nya lösenord.");
       navigate({ to: "/auth", search: { next: search.next }, replace: true });
     }
   }, [search.message, search.next, navigate]);
@@ -124,7 +124,7 @@ function AuthPage() {
           redirectTo: window.location.origin + "/reset-password",
         });
         if (error) throw error;
-        toast.success("Check your inbox for a reset link");
+        toast.success("Kolla din inkorg för en återställningslänk");
         setMode("signin");
       } else if (mode === "signup") {
         const { data: signUpData, error } = await supabase.auth.signUp({
@@ -234,7 +234,7 @@ function AuthPage() {
           )}
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">E-post</Label>
               <Input
                 id="email"
                 type="email"
@@ -247,14 +247,14 @@ function AuthPage() {
             {mode !== "forgot" && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Lösenord</Label>
                   {mode === "signin" && (
                     <button
                       type="button"
                       className="text-xs text-muted-foreground hover:underline"
                       onClick={() => setMode("forgot")}
                     >
-                      Forgot?
+                      Glömt?
                     </button>
                   )}
                 </div>

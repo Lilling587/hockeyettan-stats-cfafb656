@@ -115,7 +115,7 @@ export const sendTestPregameEmail = createServerFn({ method: "POST" })
       // ignore — use sample
     }
 
-    const origin = "https://hockeyettan.lovable.app";
+    const origin = process.env.SITE_URL ?? "https://spdproduktion.se";
     const briefingUrl = `${origin}/?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}`;
     const token = signUnsubscribeToken(context.userId);
     const { subject, html, text } = renderPregameEmail({
