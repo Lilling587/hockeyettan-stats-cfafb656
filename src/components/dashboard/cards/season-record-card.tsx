@@ -51,7 +51,7 @@ function TeamCol({ team }: { team: TeamData }) {
           ))}
         </div>
       )}
-      <div className="flex gap-4">
+      <div className="flex gap-4 justify-center">
         <div>
           <div className="text-base font-semibold tabular-nums">{fmt1(gfpg)}</div>
           <div className="text-xs text-muted-foreground">GF/GP</div>
