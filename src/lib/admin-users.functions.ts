@@ -179,6 +179,27 @@ export const sendAuthEmail = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteUser = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .inputValidator((input: unknown) => userIdSchema.parse(input))
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    if (data.userId === context.userId) {
+      throw new Error("Du kan inte ta bort ditt eget konto");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Delete from auth — Supabase cascades to public.profiles and public.user_roles
+    // if foreign keys are set up with ON DELETE CASCADE. Delete them explicitly first
+    // as a safety net in case the constraints differ.
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+    await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
+
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+
+    return { ok: true };
+  });
+
 export const revokeAdmin = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((input: unknown) =>

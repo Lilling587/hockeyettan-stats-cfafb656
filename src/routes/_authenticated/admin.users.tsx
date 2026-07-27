@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
 import {
+  deleteUser,
   inviteAdmin,
   listAdmins,
   revokeAdmin,
@@ -64,6 +65,7 @@ function AdminUsersPage() {
   const revoke = useServerFn(revokeAdmin);
   const approve = useServerFn(approveUser);
   const reject = useServerFn(rejectUser);
+  const del = useServerFn(deleteUser);
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -140,6 +142,16 @@ function AdminUsersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
       toast.success("Användaren nekad");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (userId: string) => del({ data: { userId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success("Användaren borttagen");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -318,11 +330,15 @@ function AdminUsersPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          disabled={isSelf || rejectMutation.isPending}
-                          onClick={() => rejectMutation.mutate(u.id)}
+                          disabled={isSelf || deleteMutation.isPending}
+                          onClick={() => {
+                            if (confirm(`Ta bort ${u.email ?? u.id} permanent? Detta går inte att ångra.`)) {
+                              deleteMutation.mutate(u.id);
+                            }
+                          }}
                         >
-                          <X className="mr-2 h-4 w-4" />
-                          Återkalla åtkomst
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Ta bort användare
                         </Button>
                       )}
                     </li>
