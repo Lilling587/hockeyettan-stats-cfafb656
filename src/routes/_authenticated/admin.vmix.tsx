@@ -2678,6 +2678,22 @@ function DataSourceCard({
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <CalendarDays className="h-4 w-4" /> Datakälla
+          {onScanSeasons && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="ml-auto h-7 text-xs"
+              onClick={onScanSeasons}
+              disabled={scanningSeasons}
+            >
+              {scanningSeasons ? (
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3 w-3 mr-1" />
+              )}
+              Skanna efter ny säsong
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -2700,21 +2716,7 @@ function DataSourceCard({
               <RefreshCw className="h-3 w-3 mr-1" /> Använd dagens hittade match
             </Button>
           )}
-          {onScanSeasons && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onScanSeasons}
-              disabled={scanningSeasons}
-            >
-              {scanningSeasons ? (
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-              ) : (
-                <RefreshCw className="h-3 w-3 mr-1" />
-              )}
-              Skanna efter ny säsong
-            </Button>
-          )}
+          
         </div>
       </CardContent>
     </Card>
