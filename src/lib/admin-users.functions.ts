@@ -120,6 +120,16 @@ export const sendAuthEmail = createServerFn({ method: "POST" })
     const email = userData.user.email;
     if (!email) throw new Error("Användaren saknar e-postadress");
 
+    // signup and invite require an unconfirmed user — Supabase rejects them for
+    // already-confirmed accounts with "User already registered".
+    const isConfirmed = !!userData.user.email_confirmed_at;
+    if ((data.emailType === "signup" || data.emailType === "invite") && isConfirmed) {
+      throw new Error(
+        "Användaren är redan bekräftad och kan inte få ett signup/invite-mail igen. " +
+        "Skicka 'Återställ lösenord' eller 'Magic link' för att hjälpa dem att logga in.",
+      );
+    }
+
     const redirectTo = process.env.SITE_URL ?? "https://spdproduktion.se";
 
     if (data.emailType === "email_change") {
