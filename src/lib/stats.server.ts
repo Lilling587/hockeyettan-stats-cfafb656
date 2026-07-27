@@ -545,6 +545,8 @@ type StandingsBriefingRow = {
   wins: number | null;
   otWins: number | null;
   otLosses: number | null;
+  gwsw: number | null;
+  gwsl: number | null;
 };
 
 async function fetchStandingsFromHtml(
@@ -568,8 +570,7 @@ async function fetchStandingsFromHtml(
       const points = checkRange(Number(cells[8]), 0, 300, "standings.points");
       if (position == null || !name || gamesPlayed == null || points == null) continue;
       if (name in result) continue;
-      // cells[3]=W  cells[5]=L  cells[6]="GF:GA"  cells[9]=OTW  cells[10]=OTL
-      // Only parse if enough columns exist (full standings row has 11+)
+      // Cols: 0=RK 1=Team 2=GP 3=W 4=T(OT total) 5=L 6=GF:GA(GD) 7=GD 8=TP 9=OTW 10=OTL 11=GWSW 12=GWSL
       const full = cells.length >= 11;
       const w = full ? Number(cells[3]) : NaN;
       const goalsCell = full ? cells[6].replace(/\(.*\)/, "").trim() : "";
@@ -578,6 +579,9 @@ async function fetchStandingsFromHtml(
       const ga = Number(gaStr);
       const otw = full ? Number(cells[9]) : NaN;
       const otl = full ? Number(cells[10]) : NaN;
+      const hasSO = cells.length >= 13;
+      const gwsw = hasSO ? Number(cells[11]) : NaN;
+      const gwsl = hasSO ? Number(cells[12]) : NaN;
       result[name] = {
         position,
         gamesPlayed,
@@ -587,6 +591,8 @@ async function fetchStandingsFromHtml(
         goalsAgainst: full && Number.isFinite(ga) ? ga : null,
         otWins: full && Number.isFinite(otw) ? otw : null,
         otLosses: full && Number.isFinite(otl) ? otl : null,
+        gwsw: hasSO && Number.isFinite(gwsw) ? gwsw : null,
+        gwsl: hasSO && Number.isFinite(gwsl) ? gwsl : null,
       };
     }
     return result;
@@ -1268,6 +1274,8 @@ export async function buildBriefing(
     wins: null,
     otWins: null,
     otLosses: null,
+    gwsw: null,
+    gwsl: null,
   });
 
   const object: Briefing = {
@@ -1469,6 +1477,14 @@ export async function buildBriefing(
       if (team.otLosses == null && st.otLosses != null) {
         team.otLosses = st.otLosses;
         filled.push({ field: "otLosses", source: "standings" });
+      }
+      if (team.gwsw == null && st.gwsw != null) {
+        team.gwsw = st.gwsw;
+        filled.push({ field: "gwsw", source: "standings" });
+      }
+      if (team.gwsl == null && st.gwsl != null) {
+        team.gwsl = st.gwsl;
+        filled.push({ field: "gwsl", source: "standings" });
       }
     }
     // Top scorers fallback: read from already-fetched scoringData — free.

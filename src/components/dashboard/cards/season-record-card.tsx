@@ -11,8 +11,13 @@ function record(t: TeamData): string | null {
   const w = t.wins ?? 0;
   const otw = t.otWins ?? 0;
   const otl = t.otLosses ?? 0;
-  const l = Math.max(0, gp - w - otw - otl);
-  return `${w}-${otw}-${otl}-${l}`;
+  const gwsw = t.gwsw ?? 0;
+  const gwsl = t.gwsl ?? 0;
+  // Group OTW+GWSW (extra-time wins, 2pts) and OTL+GWSL (extra-time losses, 1pt)
+  const etw = otw + gwsw;
+  const etl = otl + gwsl;
+  const l = Math.max(0, gp - w - etw - etl);
+  return `${w}-${etw}-${etl}-${l}`;
 }
 
 function TeamCol({ team }: { team: TeamData }) {
@@ -31,7 +36,7 @@ function TeamCol({ team }: { team: TeamData }) {
       {rec && (
         <div>
           <div className="text-xl font-semibold tabular-nums">{rec}</div>
-          <div className="text-xs text-muted-foreground">W–OTW–OTL–L</div>
+          <div className="text-xs text-muted-foreground">V–OT+–OT-–F</div>
         </div>
       )}
       <div className="flex gap-4">
