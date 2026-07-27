@@ -23,12 +23,12 @@ function TeamCol({ team }: { team: TeamData }) {
   const hasRecord = team.wins != null || team.otWins != null || team.otLosses != null;
 
   const recordCols = [
-    { val: w,    label: "V"    },
+    { val: w,    label: "W"    },
     { val: otw,  label: "OTW"  },
     { val: gwsw, label: "GWSW" },
     { val: gwsl, label: "GWSL" },
     { val: otl,  label: "OTL"  },
-    { val: l,    label: "F"    },
+    { val: l,    label: "L"    },
   ];
 
   return (
