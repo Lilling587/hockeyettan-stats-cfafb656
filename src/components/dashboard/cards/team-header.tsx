@@ -21,19 +21,19 @@ export function TeamHeader({ team, side }: { team: TeamData; side: string }) {
             <div className="text-2xl font-semibold">
               {team.position != null ? `#${team.position}` : "—"}
             </div>
-            <div className="text-xs text-muted-foreground">Placering</div>
+            <div className="text-center text-xs text-muted-foreground">Placering</div>
           </div>
           <div>
             <div className="text-2xl font-semibold">
               {team.points != null ? team.points : "—"}
             </div>
-            <div className="text-xs text-muted-foreground">Poäng</div>
+            <div className="text-center text-xs text-muted-foreground">Poäng</div>
           </div>
           <div>
             <div className="text-2xl font-semibold">
               {team.gamesPlayed != null ? team.gamesPlayed : "—"}
             </div>
-            <div className="text-xs text-muted-foreground">GP</div>
+            <div className="text-center text-xs text-muted-foreground">GP</div>
           </div>
         </div>
       </CardContent>
