@@ -18,6 +18,15 @@
       }
     },
     {
+      "id": "teams",
+      "label": "Lagöversikt",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#teams",
+        "published": "https://hockeyettan-stats.lovable.app/#teams",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#teams"
+      }
+    },
+    {
       "id": "season-record",
       "label": "Säsongsrekord & mål",
       "urls": {
@@ -42,6 +51,15 @@
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#venue",
         "published": "https://hockeyettan-stats.lovable.app/#venue",
         "custom": "https://hockeyettan-stats.spdproduktion.se/#venue"
+      }
+    },
+    {
+      "id": "home-away-split",
+      "label": "Tagna poäng på hemma/borta plan",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#home-away-split",
+        "published": "https://hockeyettan-stats.lovable.app/#home-away-split",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#home-away-split"
       }
     },
     {
@@ -100,11 +118,20 @@
     },
     {
       "id": "faceoffs",
-      "label": "Tekningar"
+      "label": "Tekningar (FO%)",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#faceoffs",
         "published": "https://hockeyettan-stats.lovable.app/#faceoffs",
         "custom": "https://hockeyettan-stats.spdproduktion.se/#faceoffs"
+      }
+    },
+    {
+      "id": "lineup",
+      "label": "Laguppställning",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#lineup",
+        "published": "https://hockeyettan-stats.lovable.app/#lineup",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#lineup"
       }
     },
     {
@@ -132,6 +159,15 @@
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#streaks",
         "published": "https://hockeyettan-stats.lovable.app/#streaks",
         "custom": "https://hockeyettan-stats.spdproduktion.se/#streaks"
+      }
+    },
+    {
+      "id": "rest",
+      "label": "Vila sedan senaste match",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#rest",
+        "published": "https://hockeyettan-stats.lovable.app/#rest",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#rest"
       }
     },
     {
