@@ -324,6 +324,10 @@ export function BriefingView({
         <SpecialTeamsCard team={data.away} opponent={data.home} />
       </div>
 
+      <div id="discipline">
+        <DisciplineCard home={data.home} away={data.away} />
+      </div>
+
       <div id="faceoffs">
         <FaceoffsCard briefing={data} />
       </div>
@@ -348,10 +352,6 @@ export function BriefingView({
 
       <div id="rest">
         <RestDaysCard home={data.home} away={data.away} />
-      </div>
-
-      <div id="discipline">
-        <DisciplineCard home={data.home} away={data.away} />
       </div>
 
       {data.notes ? (

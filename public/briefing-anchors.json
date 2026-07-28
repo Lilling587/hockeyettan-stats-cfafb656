@@ -117,6 +117,15 @@
       }
     },
     {
+      "id": "discipline",
+      "label": "Utvisningsminuter",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#discipline",
+        "published": "https://hockeyettan-stats.lovable.app/#discipline",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#discipline"
+      }
+    },
+    {
       "id": "faceoffs",
       "label": "Tekningar (FO%)",
       "urls": {
@@ -168,15 +177,6 @@
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#rest",
         "published": "https://hockeyettan-stats.lovable.app/#rest",
         "custom": "https://hockeyettan-stats.spdproduktion.se/#rest"
-      }
-    },
-    {
-      "id": "discipline",
-      "label": "Utvisningsminuter",
-      "urls": {
-        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#discipline",
-        "published": "https://hockeyettan-stats.lovable.app/#discipline",
-        "custom": "https://hockeyettan-stats.spdproduktion.se/#discipline"
       }
     }
   ]

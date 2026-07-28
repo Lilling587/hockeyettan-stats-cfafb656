@@ -31,13 +31,13 @@
         { "id": "goalies",          "label": "Målvakter",                          "path": "/#goalies",           "url": "https://hockeyettan-stats.spdproduktion.se/#goalies" },
         { "id": "shots",            "label": "Skott",                              "path": "/#shots",             "url": "https://hockeyettan-stats.spdproduktion.se/#shots" },
         { "id": "special",          "label": "Special teams",                      "path": "/#special",           "url": "https://hockeyettan-stats.spdproduktion.se/#special" },
+        { "id": "discipline",       "label": "Utvisningsminuter",                  "path": "/#discipline",        "url": "https://hockeyettan-stats.spdproduktion.se/#discipline" },
         { "id": "faceoffs",         "label": "Tekningar (FO%)",                    "path": "/#faceoffs",          "url": "https://hockeyettan-stats.spdproduktion.se/#faceoffs" },
         { "id": "lineup",           "label": "Laguppställning",                    "path": "/#lineup",            "url": "https://hockeyettan-stats.spdproduktion.se/#lineup" },
         { "id": "probability",      "label": "Vinstchans",                         "path": "/#probability",       "url": "https://hockeyettan-stats.spdproduktion.se/#probability" },
         { "id": "hot",              "label": "Hetaste spelare",                    "path": "/#hot",               "url": "https://hockeyettan-stats.spdproduktion.se/#hot" },
         { "id": "streaks",          "label": "Sviter",                             "path": "/#streaks",           "url": "https://hockeyettan-stats.spdproduktion.se/#streaks" },
-        { "id": "rest",             "label": "Vila sedan senaste match",           "path": "/#rest",              "url": "https://hockeyettan-stats.spdproduktion.se/#rest" },
-        { "id": "discipline",       "label": "Utvisningsminuter",                  "path": "/#discipline",        "url": "https://hockeyettan-stats.spdproduktion.se/#discipline" }
+        { "id": "rest",             "label": "Vila sedan senaste match",           "path": "/#rest",              "url": "https://hockeyettan-stats.spdproduktion.se/#rest" }
       ]
     },
     {
