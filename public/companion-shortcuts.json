@@ -20,19 +20,19 @@
       "description": "Scrollar direkt till ett avsnitt i matchbriefingen. Kräver att en match är vald.",
       "shortcuts": [
         { "id": "briefing-capture", "label": "Toppen (hela briefingen)",  "path": "/#briefing-capture", "url": "https://hockeyettan-stats.spdproduktion.se/#briefing-capture" },
-        { "id": "season-record",    "label": "Säsongsrekord & mål",       "path": "/#season-record",    "url": "https://hockeyettan-stats.spdproduktion.se/#season-record" },
-        { "id": "form",             "label": "Form",                      "path": "/#form",             "url": "https://hockeyettan-stats.spdproduktion.se/#form" },
-        { "id": "venue",            "label": "Hemma/borta-svit",          "path": "/#venue",            "url": "https://hockeyettan-stats.spdproduktion.se/#venue" },
-        { "id": "periods",          "label": "Periodmål",                 "path": "/#periods",          "url": "https://hockeyettan-stats.spdproduktion.se/#periods" },
+        { "id": "season-record",    "label": "Vunna/Förlorade & mål",     "path": "/#season-record",    "url": "https://hockeyettan-stats.spdproduktion.se/#season-record" },
+        { "id": "form",             "label": "Senaste 5",                 "path": "/#form",             "url": "https://hockeyettan-stats.spdproduktion.se/#form" },
+        { "id": "venue",            "label": "Form hemma/borta",          "path": "/#venue",            "url": "https://hockeyettan-stats.spdproduktion.se/#venue" },
+        { "id": "periods",          "label": "Mål per period",            "path": "/#periods",          "url": "https://hockeyettan-stats.spdproduktion.se/#periods" },
         { "id": "h2h",              "label": "Inbördes möten",            "path": "/#h2h",              "url": "https://hockeyettan-stats.spdproduktion.se/#h2h" },
-        { "id": "scorers",          "label": "Toppscorers",               "path": "/#scorers",          "url": "https://hockeyettan-stats.spdproduktion.se/#scorers" },
+        { "id": "scorers",          "label": "Poängliga",                 "path": "/#scorers",          "url": "https://hockeyettan-stats.spdproduktion.se/#scorers" },
         { "id": "goalies",          "label": "Målvakter",                 "path": "/#goalies",          "url": "https://hockeyettan-stats.spdproduktion.se/#goalies" },
-        { "id": "shots",            "label": "Skottvolym",                "path": "/#shots",            "url": "https://hockeyettan-stats.spdproduktion.se/#shots" },
+        { "id": "shots",            "label": "Skott",                     "path": "/#shots",            "url": "https://hockeyettan-stats.spdproduktion.se/#shots" },
         { "id": "special",          "label": "Special teams",             "path": "/#special",          "url": "https://hockeyettan-stats.spdproduktion.se/#special" },
-        { "id": "probability",      "label": "Vinstsannolikhet",          "path": "/#probability",      "url": "https://hockeyettan-stats.spdproduktion.se/#probability" },
-        { "id": "hot",              "label": "Hetaste spelaren",          "path": "/#hot",              "url": "https://hockeyettan-stats.spdproduktion.se/#hot" },
-        { "id": "streaks",          "label": "Streak alerts",             "path": "/#streaks",          "url": "https://hockeyettan-stats.spdproduktion.se/#streaks" },
-        { "id": "discipline",       "label": "Disciplin",                 "path": "/#discipline",       "url": "https://hockeyettan-stats.spdproduktion.se/#discipline" }
+        { "id": "probability",      "label": "Vinstchans",                "path": "/#probability",      "url": "https://hockeyettan-stats.spdproduktion.se/#probability" },
+        { "id": "hot",              "label": "Hetaste spelare",           "path": "/#hot",              "url": "https://hockeyettan-stats.spdproduktion.se/#hot" },
+        { "id": "streaks",          "label": "Sviter",                    "path": "/#streaks",          "url": "https://hockeyettan-stats.spdproduktion.se/#streaks" },
+        { "id": "discipline",       "label": "Utvisningsminuter",         "path": "/#discipline",       "url": "https://hockeyettan-stats.spdproduktion.se/#discipline" }
       ]
     },
     {
@@ -70,7 +70,7 @@
       "description": "Användarhantering. Kräver admin-behörighet.",
       "shortcuts": [
         { "id": "users",            "label": "Användare (toppen)",         "path": "/admin/users",                      "url": "https://hockeyettan-stats.spdproduktion.se/admin/users" },
-        { "id": "bjud-in",          "label": "Bjud in admin",              "path": "/admin/users#bjud-in",              "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#bjud-in" },
+        { "id": "bjud-in",          "label": "Bjud in användare",              "path": "/admin/users#bjud-in",              "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#bjud-in" },
         { "id": "vantar",           "label": "Väntar på godkännande",      "path": "/admin/users#vantar",               "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#vantar" },
         { "id": "godkanda",         "label": "Godkända användare",         "path": "/admin/users#godkanda",             "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#godkanda" },
         { "id": "nekade",           "label": "Nekade användare",           "path": "/admin/users#nekade",               "url": "https://hockeyettan-stats.spdproduktion.se/admin/users#nekade" },
