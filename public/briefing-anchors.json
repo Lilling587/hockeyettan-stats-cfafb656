@@ -28,7 +28,7 @@
     },
     {
       "id": "season-record",
-      "label": "Säsongsrekord & mål",
+      "label": "Vunna/Förlorade & mål",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#season-record",
         "published": "https://hockeyettan-stats.lovable.app/#season-record",
@@ -37,7 +37,7 @@
     },
     {
       "id": "form",
-      "label": "Form",
+      "label": "Senaste 5",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#form",
         "published": "https://hockeyettan-stats.lovable.app/#form",
@@ -46,7 +46,7 @@
     },
     {
       "id": "venue",
-      "label": "Hemma/borta-svit",
+      "label": "Form hemma/borta",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#venue",
         "published": "https://hockeyettan-stats.lovable.app/#venue",
@@ -64,7 +64,7 @@
     },
     {
       "id": "periods",
-      "label": "Periodmål",
+      "label": "Mål per period",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#periods",
         "published": "https://hockeyettan-stats.lovable.app/#periods",
@@ -82,7 +82,7 @@
     },
     {
       "id": "scorers",
-      "label": "Toppscorers",
+      "label": "Poängliga",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#scorers",
         "published": "https://hockeyettan-stats.lovable.app/#scorers",
@@ -100,7 +100,7 @@
     },
     {
       "id": "shots",
-      "label": "Skottvolym",
+      "label": "Skott",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#shots",
         "published": "https://hockeyettan-stats.lovable.app/#shots",
@@ -136,7 +136,7 @@
     },
     {
       "id": "probability",
-      "label": "Vinstsannolikhet",
+      "label": "Vinstchans",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#probability",
         "published": "https://hockeyettan-stats.lovable.app/#probability",
@@ -145,7 +145,7 @@
     },
     {
       "id": "hot",
-      "label": "Hetaste spelaren",
+      "label": "Hetaste spelare",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#hot",
         "published": "https://hockeyettan-stats.lovable.app/#hot",
@@ -154,7 +154,7 @@
     },
     {
       "id": "streaks",
-      "label": "Streak alerts",
+      "label": "Sviter",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#streaks",
         "published": "https://hockeyettan-stats.lovable.app/#streaks",
@@ -172,7 +172,7 @@
     },
     {
       "id": "discipline",
-      "label": "Disciplin",
+      "label": "Utvisningsminuter",
       "urls": {
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#discipline",
         "published": "https://hockeyettan-stats.lovable.app/#discipline",
