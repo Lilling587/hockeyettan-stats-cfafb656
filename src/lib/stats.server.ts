@@ -536,18 +536,48 @@ function extractTdCells(rowHtml: string): string[] {
   return cells;
 }
 
+/**
+ * Data contract for a single standings row parsed from the league
+ * standings HTML fallback (`fetchStandingsFromHtml`).
+ *
+ * These fields mirror the standings-derived subset of `TeamBriefing`
+ * in `stats.functions.ts` and are merged into the briefing object by
+ * the fallback pass in `buildBriefing`. Any field added here MUST also
+ * be:
+ *   1. Populated in `fetchStandingsFromHtml`.
+ *   2. Merged in the `apply()` block of the fallback pass.
+ *   3. Added to the `FieldKey` union, `missingBefore()`, and — if it
+ *      should trigger a standings fetch when absent — `standingsMissing()`.
+ *   4. Represented on `TeamBriefing` in `stats.functions.ts` and seeded
+ *      as `null` in `emptyTeam()` in this file.
+ *   5. Reflected in a bumped `CACHE_VERSION` so cached briefings refresh.
+ *
+ * All values are nullable — parsing failures (missing cells, non-numeric
+ * content) collapse to `null` rather than throwing.
+ */
 type StandingsBriefingRow = {
+  /** League position (1-based). */
   position: number | null;
+  /** Games played this season. */
   gamesPlayed: number | null;
+  /** League points. */
   points: number | null;
+  /** Goals for (season total). */
   goalsFor: number | null;
+  /** Goals against (season total). */
   goalsAgainst: number | null;
+  /** Regulation wins. */
   wins: number | null;
+  /** Overtime wins (excludes shootout). */
   otWins: number | null;
+  /** Overtime losses (excludes shootout). */
   otLosses: number | null;
+  /** Shootout wins. */
   gwsw: number | null;
+  /** Shootout losses. */
   gwsl: number | null;
 };
+
 
 async function fetchStandingsFromHtml(
   urls: Urls,
@@ -1353,13 +1383,17 @@ export async function buildBriefing(
     team.goalsAgainst == null ||
     team.wins == null ||
     team.otWins == null ||
-    team.otLosses == null;
+    team.otLosses == null ||
+    team.gwsw == null ||
+    team.gwsl == null;
   const standingsNeeded = standingsMissing(object.home) || standingsMissing(object.away);
   const topScorersNeeded =
     object.home.topScorers.length === 0 || object.away.topScorers.length === 0;
   const lastFiveNeeded =
     object.home.lastFive.length === 0 || object.away.lastFive.length === 0;
 
+  // Keep this union in sync with StandingsBriefingRow and the merge block in
+  // apply(). See the JSDoc on StandingsBriefingRow for the full checklist.
   type FieldKey =
     | "position"
     | "points"
@@ -1369,6 +1403,8 @@ export async function buildBriefing(
     | "wins"
     | "otWins"
     | "otLosses"
+    | "gwsw"
+    | "gwsl"
     | "powerPlayPct"
     | "penaltyKillPct"
     | "topScorers"
@@ -1383,12 +1419,15 @@ export async function buildBriefing(
     if (team.wins == null) set.add("wins");
     if (team.otWins == null) set.add("otWins");
     if (team.otLosses == null) set.add("otLosses");
+    if (team.gwsw == null) set.add("gwsw");
+    if (team.gwsl == null) set.add("gwsl");
     if (team.powerPlayPct == null) set.add("powerPlayPct");
     if (team.penaltyKillPct == null) set.add("penaltyKillPct");
     if (team.topScorers.length === 0) set.add("topScorers");
     if (team.lastFive.length === 0) set.add("lastFive");
     return set;
   };
+
   const homeMissing = missingBefore(object.home);
   const awayMissing = missingBefore(object.away);
   console.log(
