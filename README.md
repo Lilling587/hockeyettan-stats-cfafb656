@@ -125,6 +125,8 @@ Apply these through your Lovable Cloud backend before running the app.
 - Public webhook endpoints live under `src/routes/api/public/`.
 - `src/start.ts` registers `attachSupabaseAuth`; removing it will break authenticated server functions.
 - The production target is a serverless Worker (Cloudflare). Avoid Node-only packages that rely on `child_process`, native binaries, or filesystem watchers.
+- Datakontrakt för standings-fallbacken (`StandingsBriefingRow`) dokumenteras i [`docs/standings-briefing-row.md`](docs/standings-briefing-row.md) — läs den innan du lägger till nya standings-fält.
+
 
 ## Troubleshooting
 
