@@ -1383,13 +1383,17 @@ export async function buildBriefing(
     team.goalsAgainst == null ||
     team.wins == null ||
     team.otWins == null ||
-    team.otLosses == null;
+    team.otLosses == null ||
+    team.gwsw == null ||
+    team.gwsl == null;
   const standingsNeeded = standingsMissing(object.home) || standingsMissing(object.away);
   const topScorersNeeded =
     object.home.topScorers.length === 0 || object.away.topScorers.length === 0;
   const lastFiveNeeded =
     object.home.lastFive.length === 0 || object.away.lastFive.length === 0;
 
+  // Keep this union in sync with StandingsBriefingRow and the merge block in
+  // apply(). See the JSDoc on StandingsBriefingRow for the full checklist.
   type FieldKey =
     | "position"
     | "points"
@@ -1399,6 +1403,8 @@ export async function buildBriefing(
     | "wins"
     | "otWins"
     | "otLosses"
+    | "gwsw"
+    | "gwsl"
     | "powerPlayPct"
     | "penaltyKillPct"
     | "topScorers"
@@ -1413,12 +1419,15 @@ export async function buildBriefing(
     if (team.wins == null) set.add("wins");
     if (team.otWins == null) set.add("otWins");
     if (team.otLosses == null) set.add("otLosses");
+    if (team.gwsw == null) set.add("gwsw");
+    if (team.gwsl == null) set.add("gwsl");
     if (team.powerPlayPct == null) set.add("powerPlayPct");
     if (team.penaltyKillPct == null) set.add("penaltyKillPct");
     if (team.topScorers.length === 0) set.add("topScorers");
     if (team.lastFive.length === 0) set.add("lastFive");
     return set;
   };
+
   const homeMissing = missingBefore(object.home);
   const awayMissing = missingBefore(object.away);
   console.log(
