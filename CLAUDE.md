@@ -2,7 +2,7 @@
 
 ## Metadata & Links
 - **Purpose:** Broadcast support for HockeyEttan Södra (Grästorps IK). Stats briefing dashboard + vMix GT Designer backup API (domain swap compatible).
-- **Production URL:** https://spdproduktion.se
+- **Production URL:** https://hockeyettan-stats.spdproduktion.se
 - **GitHub repo:** Lilling587/hockeyettan-stats-cfafb656
 - **Lovable ID:** b5d9d92f-3d6c-4d04-99c2-25be99cec0a2
 
