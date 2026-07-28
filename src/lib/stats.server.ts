@@ -432,7 +432,7 @@ function pickSpecialTeams(
   for (const [k, v] of Object.entries(byName)) {
     if (normalizeTeamKey(k) === key) return v;
   }
-  return { powerPlayPct: null, penaltyKillPct: null, powerPlayGoals: null, penaltyKillGoalsAgainst: null, powerPlayOpportunities: null };
+  return { powerPlayPct: null, penaltyKillPct: null, powerPlayGoals: null, penaltyKillGoalsAgainst: null, powerPlayOpportunities: null, penaltyKillOpportunities: null };
 }
 
 type SpecialTeamsEntry = {
@@ -441,6 +441,7 @@ type SpecialTeamsEntry = {
   powerPlayGoals: number | null;
   penaltyKillGoalsAgainst: number | null;
   powerPlayOpportunities: number | null;
+  penaltyKillOpportunities: number | null;
 };
 
 async function fetchSpecialTeamsFromHtml(
@@ -498,6 +499,7 @@ async function fetchSpecialTeamsFromHtml(
           powerPlayGoals: null,
           penaltyKillGoalsAgainst: null,
           powerPlayOpportunities: null,
+          penaltyKillOpportunities: null,
         };
         if (section.key === "pp") {
           entry.powerPlayPct = pct;
@@ -507,6 +509,7 @@ async function fetchSpecialTeamsFromHtml(
         if (section.key === "pk") {
           entry.penaltyKillPct = pct;
           if (Number.isFinite(goals)) entry.penaltyKillGoalsAgainst = goals;
+          if (Number.isFinite(opportunities) && opportunities > 0) entry.penaltyKillOpportunities = opportunities;
         }
         result[teamName] = entry;
       }
@@ -1296,6 +1299,7 @@ export async function buildBriefing(
     powerPlayGoals: null,
     penaltyKillGoalsAgainst: null,
     powerPlayOpportunities: null,
+    penaltyKillOpportunities: null,
     venueForm: null,
     periodGoals: null,
     goalies: [],
@@ -1329,11 +1333,13 @@ export async function buildBriefing(
   object.home.powerPlayGoals = homeSpecialTeams.powerPlayGoals;
   object.home.penaltyKillGoalsAgainst = homeSpecialTeams.penaltyKillGoalsAgainst;
   object.home.powerPlayOpportunities = homeSpecialTeams.powerPlayOpportunities;
+  object.home.penaltyKillOpportunities = homeSpecialTeams.penaltyKillOpportunities;
   object.away.powerPlayPct = awaySpecialTeams.powerPlayPct;
   object.away.penaltyKillPct = awaySpecialTeams.penaltyKillPct;
   object.away.powerPlayGoals = awaySpecialTeams.powerPlayGoals;
   object.away.penaltyKillGoalsAgainst = awaySpecialTeams.penaltyKillGoalsAgainst;
   object.away.powerPlayOpportunities = awaySpecialTeams.powerPlayOpportunities;
+  object.away.penaltyKillOpportunities = awaySpecialTeams.penaltyKillOpportunities;
 
   // Venue form and period goals from the shared schedule games — no network call.
   const emptyVenueForm = (): VenueForm => ({

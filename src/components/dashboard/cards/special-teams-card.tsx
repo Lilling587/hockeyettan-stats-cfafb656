@@ -23,6 +23,13 @@ export function SpecialTeamsCard({
     return null;
   };
 
+  const fmtGoalOpp = (goals: number | null, opp: number | null, goalLabel: string) => {
+    if (goals == null && opp == null) return "—";
+    const g = goals != null ? `${goals} ${goalLabel}` : "—";
+    const o = opp != null ? `${opp} tillfällen` : null;
+    return o ? `${g} / ${o}` : g;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -38,10 +45,7 @@ export function SpecialTeamsCard({
               {edgeBadge(team.powerPlayPct, opponent.powerPlayPct)}
             </div>
             <div className="text-sm text-muted-foreground">
-              {team.powerPlayGoals != null ? `${team.powerPlayGoals} mål` : "—"}
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {team.powerPlayOpportunities != null ? `${team.powerPlayOpportunities} tillfällen` : "—"}
+              {fmtGoalOpp(team.powerPlayGoals, team.powerPlayOpportunities, "mål")}
             </div>
           </div>
 
@@ -53,7 +57,7 @@ export function SpecialTeamsCard({
               {edgeBadge(team.penaltyKillPct, opponent.penaltyKillPct)}
             </div>
             <div className="text-sm text-muted-foreground">
-              {team.penaltyKillGoalsAgainst != null ? `${team.penaltyKillGoalsAgainst} insläppta` : "—"}
+              {fmtGoalOpp(team.penaltyKillGoalsAgainst, team.penaltyKillOpportunities, "insläppta")}
             </div>
           </div>
         </div>
