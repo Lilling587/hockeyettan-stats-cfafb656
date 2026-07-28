@@ -228,7 +228,9 @@ export function BriefingView({
         <TeamHeader team={data.away} side="Bortalag" />
       </div>
 
-      <SeasonRecordCard home={data.home} away={data.away} />
+      <div id="season-record">
+        <SeasonRecordCard home={data.home} away={data.away} />
+      </div>
 
       <div id="form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FormCard team={data.home} />

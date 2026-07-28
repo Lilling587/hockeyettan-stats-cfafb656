@@ -18,6 +18,15 @@
       }
     },
     {
+      "id": "season-record",
+      "label": "Säsongsrekord & mål",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#season-record",
+        "published": "https://hockeyettan-stats.lovable.app/#season-record",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#season-record"
+      }
+    },
+    {
       "id": "form",
       "label": "Form",
       "urls": {
