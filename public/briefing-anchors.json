@@ -27,6 +27,15 @@
       }
     },
     {
+      "id": "h2h",
+      "label": "Inbördes möten",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#h2h",
+        "published": "https://hockeyettan-stats.lovable.app/#h2h",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#h2h"
+      }
+    },
+    {
       "id": "season-record",
       "label": "Vunna/Förlorade & mål",
       "urls": {
@@ -87,15 +96,6 @@
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#periods",
         "published": "https://hockeyettan-stats.lovable.app/#periods",
         "custom": "https://hockeyettan-stats.spdproduktion.se/#periods"
-      }
-    },
-    {
-      "id": "h2h",
-      "label": "Inbördes möten",
-      "urls": {
-        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#h2h",
-        "published": "https://hockeyettan-stats.lovable.app/#h2h",
-        "custom": "https://hockeyettan-stats.spdproduktion.se/#h2h"
       }
     },
     {

@@ -21,6 +21,7 @@
       "shortcuts": [
         { "id": "briefing-capture",  "label": "Toppen (hela briefingen)",           "path": "/#briefing-capture",  "url": "https://hockeyettan-stats.spdproduktion.se/#briefing-capture" },
         { "id": "teams",            "label": "Lagöversikt",                        "path": "/#teams",             "url": "https://hockeyettan-stats.spdproduktion.se/#teams" },
+        { "id": "h2h",              "label": "Inbördes möten",                     "path": "/#h2h",               "url": "https://hockeyettan-stats.spdproduktion.se/#h2h" },
         { "id": "season-record",    "label": "Vunna/Förlorade & mål",              "path": "/#season-record",     "url": "https://hockeyettan-stats.spdproduktion.se/#season-record" },
         { "id": "form",             "label": "Senaste 5",                          "path": "/#form",              "url": "https://hockeyettan-stats.spdproduktion.se/#form" },
         { "id": "venue",            "label": "Form hemma/borta",                   "path": "/#venue",             "url": "https://hockeyettan-stats.spdproduktion.se/#venue" },
@@ -28,7 +29,6 @@
         { "id": "home-away-split",  "label": "Tagna poäng på hemma/borta plan",   "path": "/#home-away-split",   "url": "https://hockeyettan-stats.spdproduktion.se/#home-away-split" },
         { "id": "shots",            "label": "Skott",                              "path": "/#shots",             "url": "https://hockeyettan-stats.spdproduktion.se/#shots" },
         { "id": "periods",          "label": "Mål per period",                     "path": "/#periods",           "url": "https://hockeyettan-stats.spdproduktion.se/#periods" },
-        { "id": "h2h",              "label": "Inbördes möten",                     "path": "/#h2h",               "url": "https://hockeyettan-stats.spdproduktion.se/#h2h" },
         { "id": "scorers",          "label": "Poängliga",                          "path": "/#scorers",           "url": "https://hockeyettan-stats.spdproduktion.se/#scorers" },
         { "id": "goalies",          "label": "Målvakter",                          "path": "/#goalies",           "url": "https://hockeyettan-stats.spdproduktion.se/#goalies" },
         { "id": "special",          "label": "Special teams",                      "path": "/#special",           "url": "https://hockeyettan-stats.spdproduktion.se/#special" },

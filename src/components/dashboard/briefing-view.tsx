@@ -228,43 +228,6 @@ export function BriefingView({
         <TeamHeader team={data.away} side="Bortalag" />
       </div>
 
-      <div id="season-record">
-        <SeasonRecordCard home={data.home} away={data.away} />
-      </div>
-
-      <div id="form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <FormCard team={data.home} />
-        <FormCard team={data.away} />
-      </div>
-
-      <div id="venue" className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <VenueStreakCard team={data.home} />
-        <VenueStreakCard team={data.away} />
-      </div>
-
-      <div id="hot" className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <HottestPlayerCard team={data.home} label="Hemmalag" />
-        <HottestPlayerCard team={data.away} label="Bortalag" />
-      </div>
-
-      <div id="home-away-split">
-        <HomeAwaySplitCard home={data.home} away={data.away} />
-      </div>
-
-      <div id="shots">
-        <ShotCard
-          home={data.home}
-          away={data.away}
-          homeFlow={homeFlow}
-          awayFlow={awayFlow}
-        />
-      </div>
-
-      <div id="periods" className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <PeriodGoalsCard team={data.home} refreshing={refreshing} error={refreshError} />
-        <PeriodGoalsCard team={data.away} refreshing={refreshing} error={refreshError} />
-      </div>
-
       <Card id="h2h">
         <CardHeader>
           <CardTitle className="text-base">Inbördes möten</CardTitle>
@@ -313,6 +276,43 @@ export function BriefingView({
           )}
         </CardContent>
       </Card>
+
+      <div id="season-record">
+        <SeasonRecordCard home={data.home} away={data.away} />
+      </div>
+
+      <div id="form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <FormCard team={data.home} />
+        <FormCard team={data.away} />
+      </div>
+
+      <div id="venue" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <VenueStreakCard team={data.home} />
+        <VenueStreakCard team={data.away} />
+      </div>
+
+      <div id="hot" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <HottestPlayerCard team={data.home} label="Hemmalag" />
+        <HottestPlayerCard team={data.away} label="Bortalag" />
+      </div>
+
+      <div id="home-away-split">
+        <HomeAwaySplitCard home={data.home} away={data.away} />
+      </div>
+
+      <div id="shots">
+        <ShotCard
+          home={data.home}
+          away={data.away}
+          homeFlow={homeFlow}
+          awayFlow={awayFlow}
+        />
+      </div>
+
+      <div id="periods" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <PeriodGoalsCard team={data.home} refreshing={refreshing} error={refreshError} />
+        <PeriodGoalsCard team={data.away} refreshing={refreshing} error={refreshError} />
+      </div>
 
       <div id="scorers" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <ScorersCard team={data.home} />
