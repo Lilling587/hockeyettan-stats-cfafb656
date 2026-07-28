@@ -10,6 +10,10 @@ export function SpecialTeamsCard({
   opponent: TeamData;
 }) {
   const fmtPct = (v: number | null) => (v != null ? `${v.toFixed(1)}%` : "—");
+  const ppOppPerGame =
+    team.powerPlayOpportunities != null && team.gamesPlayed != null && team.gamesPlayed > 0
+      ? (team.powerPlayOpportunities / team.gamesPlayed).toFixed(1)
+      : null;
 
   const edgeBadge = (mine: number | null, theirs: number | null) => {
     if (mine == null || theirs == null) return null;
@@ -39,6 +43,9 @@ export function SpecialTeamsCard({
             </div>
             <div className="text-sm text-muted-foreground">
               {team.powerPlayGoals != null ? `${team.powerPlayGoals} mål` : "—"}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              {ppOppPerGame != null ? `${ppOppPerGame} PP/match` : "—"}
             </div>
           </div>
 
