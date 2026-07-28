@@ -9,9 +9,6 @@ export function TeamHeader({ team, side }: { team: TeamData; side: string }) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <Badge variant="secondary">{side}</Badge>
-          <span className="text-xs text-muted-foreground">
-            {team.gamesPlayed != null ? `${team.gamesPlayed} GP` : "—"}
-          </span>
         </div>
         <CardTitle className="mt-2 flex items-center gap-3 text-xl">
           <TeamLogo team={team.name} size="lg" />
@@ -31,6 +28,12 @@ export function TeamHeader({ team, side }: { team: TeamData; side: string }) {
               {team.points != null ? team.points : "—"}
             </div>
             <div className="text-xs text-muted-foreground">Poäng</div>
+          </div>
+          <div>
+            <div className="text-2xl font-semibold">
+              {team.gamesPlayed != null ? team.gamesPlayed : "—"}
+            </div>
+            <div className="text-xs text-muted-foreground">GP</div>
           </div>
         </div>
       </CardContent>
