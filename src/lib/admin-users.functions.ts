@@ -100,6 +100,48 @@ export const inviteAdmin = createServerFn({ method: "POST" })
     return { ok: true, userId, invited };
   });
 
+export const inviteUser = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .inputValidator((input: unknown) =>
+    z.object({ email: z.string().email() }).parse(input),
+  )
+  .handler(async ({ data }): Promise<{ ok: true; userId: string; invited: boolean }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const email = data.email.trim().toLowerCase();
+
+    let userId: string | null = null;
+    let invited = false;
+
+    const { data: existing, error: listErr } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 200,
+    });
+    if (listErr) throw new Error(listErr.message);
+    const match = existing.users.find((u) => (u.email ?? "").toLowerCase() === email);
+    if (match) {
+      userId = match.id;
+    } else {
+      const { data: inviteData, error: inviteErr } =
+        await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+          redirectTo:
+            (process.env.SITE_URL ?? "https://hockeyettan-stats.spdproduktion.se") +
+            "/reset-password",
+        });
+      if (inviteErr) throw new Error(inviteErr.message);
+      userId = inviteData.user?.id ?? null;
+      invited = true;
+    }
+
+    if (!userId) throw new Error("Kunde inte skapa användare");
+
+    // Auto-approve so the invited user can sign in immediately.
+    await supabaseAdmin
+      .from("profiles")
+      .upsert({ id: userId, email, approval_status: "approved" }, { onConflict: "id" });
+
+    return { ok: true, userId, invited };
+  });
+
 // email_change can only be triggered by the user themselves via updateUser —
 // there is no admin API that fires the Send Email hook for that type.
 const AUTH_EMAIL_TYPES = ['signup', 'invite', 'magiclink', 'recovery'] as const;

@@ -9,6 +9,7 @@ import { checkIsAdmin } from "@/lib/roles.functions";
 import {
   deleteUser,
   inviteAdmin,
+  inviteUser,
   listAdmins,
   revokeAdmin,
   sendAuthEmail,
@@ -62,6 +63,7 @@ function AdminUsersPage() {
   const fetchSubscribers = useServerFn(listNotificationSubscribers);
   const fetchProfiles = useServerFn(listUserProfiles);
   const invite = useServerFn(inviteAdmin);
+  const inviteRegular = useServerFn(inviteUser);
   const revoke = useServerFn(revokeAdmin);
   const approve = useServerFn(approveUser);
   const reject = useServerFn(rejectUser);
@@ -69,6 +71,7 @@ function AdminUsersPage() {
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"user" | "admin">("user");
   const [mailUserId, setMailUserId] = useState("");
   const [mailType, setMailType] = useState<AuthEmailType | "">("");
   const sendMail = useServerFn(sendAuthEmail);
@@ -109,12 +112,19 @@ function AdminUsersPage() {
   });
 
   const inviteMutation = useMutation({
-    mutationFn: (e: string) => invite({ data: { email: e } }),
-    onSuccess: (res) => {
+    mutationFn: ({ email, role }: { email: string; role: "user" | "admin" }) =>
+      role === "admin"
+        ? invite({ data: { email } })
+        : inviteRegular({ data: { email } }),
+    onSuccess: (res, { role }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
       setEmail("");
-      toast.success(res.invited ? "Inbjudan skickad" : "Admin-behörighet tillagd");
+      if (role === "admin") {
+        toast.success(res.invited ? "Inbjudan skickad (admin)" : "Admin-behörighet tillagd");
+      } else {
+        toast.success(res.invited ? "Inbjudan skickad" : "Användaren godkändes direkt");
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -206,7 +216,7 @@ function AdminUsersPage() {
       <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
         <Card id="bjud-in">
           <CardHeader>
-            <CardTitle>Bjud in admin</CardTitle>
+            <CardTitle>Bjud in användare</CardTitle>
           </CardHeader>
           <CardContent>
             <form
@@ -214,7 +224,7 @@ function AdminUsersPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!email.trim()) return;
-                inviteMutation.mutate(email.trim());
+                inviteMutation.mutate({ email: email.trim(), role: inviteRole });
               }}
             >
               <div className="flex-1 space-y-2">
@@ -228,14 +238,26 @@ function AdminUsersPage() {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Roll</Label>
+                <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as "user" | "admin")}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">Användare</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button type="submit" disabled={inviteMutation.isPending}>
                 <UserPlus className="mr-2 h-4 w-4" />
                 {inviteMutation.isPending ? "Skickar…" : "Bjud in"}
               </Button>
             </form>
             <p className="mt-3 text-xs text-muted-foreground">
-              Personen får ett mejl för att sätta sitt lösenord. Om kontot redan
-              finns läggs admin-rollen till direkt.
+              Personen får ett mejl för att sätta sitt lösenord och godkänns automatiskt.
+              Om kontot redan finns uppdateras rollen direkt.
             </p>
           </CardContent>
         </Card>
