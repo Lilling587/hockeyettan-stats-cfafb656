@@ -251,6 +251,15 @@ export function BriefingView({
         <HomeAwaySplitCard home={data.home} away={data.away} />
       </div>
 
+      <div id="shots">
+        <ShotCard
+          home={data.home}
+          away={data.away}
+          homeFlow={homeFlow}
+          awayFlow={awayFlow}
+        />
+      </div>
+
       <div id="periods" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <PeriodGoalsCard team={data.home} refreshing={refreshing} error={refreshError} />
         <PeriodGoalsCard team={data.away} refreshing={refreshing} error={refreshError} />
@@ -313,15 +322,6 @@ export function BriefingView({
       <div id="goalies" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <GoaliesCard team={data.home} />
         <GoaliesCard team={data.away} />
-      </div>
-
-      <div id="shots">
-        <ShotCard
-          home={data.home}
-          away={data.away}
-          homeFlow={homeFlow}
-          awayFlow={awayFlow}
-        />
       </div>
 
      <div id="special" className="grid grid-cols-1 gap-4 md:grid-cols-2">

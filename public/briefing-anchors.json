@@ -72,6 +72,15 @@
       }
     },
     {
+      "id": "shots",
+      "label": "Skott",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#shots",
+        "published": "https://hockeyettan-stats.lovable.app/#shots",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#shots"
+      }
+    },
+    {
       "id": "periods",
       "label": "Mål per period",
       "urls": {
@@ -105,15 +114,6 @@
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#goalies",
         "published": "https://hockeyettan-stats.lovable.app/#goalies",
         "custom": "https://hockeyettan-stats.spdproduktion.se/#goalies"
-      }
-    },
-    {
-      "id": "shots",
-      "label": "Skott",
-      "urls": {
-        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#shots",
-        "published": "https://hockeyettan-stats.lovable.app/#shots",
-        "custom": "https://hockeyettan-stats.spdproduktion.se/#shots"
       }
     },
     {
