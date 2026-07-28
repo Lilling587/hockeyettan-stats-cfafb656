@@ -237,6 +237,11 @@ export function BriefingView({
         <FormCard team={data.away} />
       </div>
 
+      <div id="hot" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <HottestPlayerCard team={data.home} label="Hemmalag" />
+        <HottestPlayerCard team={data.away} label="Bortalag" />
+      </div>
+
       <div id="venue" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <VenueStreakCard team={data.home} />
         <VenueStreakCard team={data.away} />
@@ -339,11 +344,6 @@ export function BriefingView({
 
       <div id="probability">
         <WinProbabilityCard home={data.home} away={data.away} />
-      </div>
-
-      <div id="hot" className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <HottestPlayerCard team={data.home} label="Hemmalag" />
-        <HottestPlayerCard team={data.away} label="Bortalag" />
       </div>
 
       <div id="streaks">

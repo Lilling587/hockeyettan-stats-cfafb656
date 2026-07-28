@@ -45,6 +45,15 @@
       }
     },
     {
+      "id": "hot",
+      "label": "Hetaste spelare",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#hot",
+        "published": "https://hockeyettan-stats.lovable.app/#hot",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#hot"
+      }
+    },
+    {
       "id": "venue",
       "label": "Form hemma/borta",
       "urls": {
@@ -150,15 +159,6 @@
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#probability",
         "published": "https://hockeyettan-stats.lovable.app/#probability",
         "custom": "https://hockeyettan-stats.spdproduktion.se/#probability"
-      }
-    },
-    {
-      "id": "hot",
-      "label": "Hetaste spelare",
-      "urls": {
-        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#hot",
-        "published": "https://hockeyettan-stats.lovable.app/#hot",
-        "custom": "https://hockeyettan-stats.spdproduktion.se/#hot"
       }
     },
     {
