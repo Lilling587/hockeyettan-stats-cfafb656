@@ -536,18 +536,48 @@ function extractTdCells(rowHtml: string): string[] {
   return cells;
 }
 
+/**
+ * Data contract for a single standings row parsed from the league
+ * standings HTML fallback (`fetchStandingsFromHtml`).
+ *
+ * These fields mirror the standings-derived subset of `TeamBriefing`
+ * in `stats.functions.ts` and are merged into the briefing object by
+ * the fallback pass in `buildBriefing`. Any field added here MUST also
+ * be:
+ *   1. Populated in `fetchStandingsFromHtml`.
+ *   2. Merged in the `apply()` block of the fallback pass.
+ *   3. Added to the `FieldKey` union, `missingBefore()`, and — if it
+ *      should trigger a standings fetch when absent — `standingsMissing()`.
+ *   4. Represented on `TeamBriefing` in `stats.functions.ts` and seeded
+ *      as `null` in `emptyTeam()` in this file.
+ *   5. Reflected in a bumped `CACHE_VERSION` so cached briefings refresh.
+ *
+ * All values are nullable — parsing failures (missing cells, non-numeric
+ * content) collapse to `null` rather than throwing.
+ */
 type StandingsBriefingRow = {
+  /** League position (1-based). */
   position: number | null;
+  /** Games played this season. */
   gamesPlayed: number | null;
+  /** League points. */
   points: number | null;
+  /** Goals for (season total). */
   goalsFor: number | null;
+  /** Goals against (season total). */
   goalsAgainst: number | null;
+  /** Regulation wins. */
   wins: number | null;
+  /** Overtime wins (excludes shootout). */
   otWins: number | null;
+  /** Overtime losses (excludes shootout). */
   otLosses: number | null;
+  /** Shootout wins. */
   gwsw: number | null;
+  /** Shootout losses. */
   gwsl: number | null;
 };
+
 
 async function fetchStandingsFromHtml(
   urls: Urls,
