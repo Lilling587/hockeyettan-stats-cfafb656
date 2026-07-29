@@ -220,14 +220,14 @@ function AdminUsersPage() {
           </CardHeader>
           <CardContent>
             <form
-              className="flex flex-wrap items-end gap-3"
+              className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[1fr_9rem_auto]"
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!email.trim()) return;
                 inviteMutation.mutate({ email: email.trim(), role: inviteRole });
               }}
             >
-              <div className="min-w-48 flex-1 space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="invite-email">E-postadress</Label>
                 <Input
                   id="invite-email"
@@ -241,7 +241,7 @@ function AdminUsersPage() {
               <div className="space-y-2">
                 <Label>Roll</Label>
                 <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as "user" | "admin")}>
-                  <SelectTrigger className="w-36">
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
