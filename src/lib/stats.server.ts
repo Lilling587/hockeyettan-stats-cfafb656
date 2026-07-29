@@ -786,7 +786,12 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
         .filter((e) => e.foTotal >= 10)
         .sort((a, b) => b.foPct - a.foPct)
         .slice(0, 5);
-      faceoffs[teamName] = { teamFoPct, players: foPlayers };
+      faceoffs[teamName] = {
+        teamFoPct,
+        teamFoWins: totalFoWins > 0 ? totalFoWins : null,
+        teamFoTotal: totalFoTotal > 0 ? totalFoTotal : null,
+        players: foPlayers,
+      };
 
       // --- Goalies ---
       // Columns: Rk, No, Name, GPT, GKD, GPI, MIP, GA, SVS, SOG, SVS%, GAA, SO, W, L (15 cells)

@@ -35,6 +35,11 @@ function TeamColumn({ team }: { team: Briefing["home"] }) {
       <div className="text-2xl font-bold tabular-nums">
         {teamPct == null ? "–" : `${teamPct.toFixed(1)}%`}
       </div>
+      <div className="text-sm text-muted-foreground">
+        {fo.teamFoWins != null && fo.teamFoTotal != null
+          ? `${fo.teamFoWins} vunna / ${fo.teamFoTotal} tekningar`
+          : "—"}
+      </div>
       
      {players.length > 0 ? (
         <>
