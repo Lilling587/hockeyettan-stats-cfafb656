@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import type { TeamData } from "@/lib/dashboard-utils";
 
 function reverseNameOrder(name: string): string {
-  const parts = name.trim().split(/\s+/);
+  const parts = name.trim().split(/\s+/).map((p) => p.replace(/,/g, ""));
   if (parts.length < 2) return name;
   return [...parts.slice(1), parts[0]].join(" ");
 }
