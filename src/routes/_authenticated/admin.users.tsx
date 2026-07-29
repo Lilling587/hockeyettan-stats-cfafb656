@@ -220,14 +220,14 @@ function AdminUsersPage() {
           </CardHeader>
           <CardContent>
             <form
-              className="flex flex-col gap-3 sm:flex-row sm:items-end"
+              className="flex flex-wrap items-end gap-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!email.trim()) return;
                 inviteMutation.mutate({ email: email.trim(), role: inviteRole });
               }}
             >
-              <div className="flex-1 space-y-2">
+              <div className="min-w-48 flex-1 space-y-2">
                 <Label htmlFor="invite-email">E-postadress</Label>
                 <Input
                   id="invite-email"
