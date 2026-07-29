@@ -1,12 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
+import { asJson, detailsToJson } from "./json";
 import { DEFAULT_SEASON, getSeason, type Season } from "./seasons.config";
 
-type Json = Database["public"]["Tables"]["cached_briefings"]["Row"]["payload"];
-type StandingsJson = Json;
+type BriefingPayload = Database["public"]["Tables"]["cached_briefings"]["Row"]["payload"];
+type StandingsJson = BriefingPayload;
 export type RosterPlayer = {
   name: string;
   number: number | string;
@@ -108,67 +110,59 @@ function normalizeSlots(raw: unknown, team: string, teamCode: string): VmixLineu
   return base;
 }
 
-function mapRow(row: Record<string, unknown>): VmixPublicationRow {
-  const homeTeam = String(row.home_team);
-  const awayTeam = String(row.away_team);
-  const homeCode = String(row.home_team_code ?? "");
-  const awayCode = String(row.away_team_code ?? "");
+function mapRow(row: Database["public"]["Tables"]["vmix_publications"]["Row"]): VmixPublicationRow {
+  const homeTeam = row.home_team;
+  const awayTeam = row.away_team;
+  const homeCode = row.home_team_code ?? "";
+  const awayCode = row.away_team_code ?? "";
   return {
-    id: String(row.id),
-    gameDate: row.game_date == null ? null : String(row.game_date),
+    id: row.id,
+    gameDate: row.game_date,
     homeTeam,
     awayTeam,
     homeTeamCode: homeCode,
     awayTeamCode: awayCode,
-    venue: (row.venue as string | null) ?? null,
+    venue: row.venue,
     standings: (row.standings_json as StandingsJson) ?? [],
     homeSlots: normalizeSlots(row.home_slots, homeTeam, homeCode),
     awaySlots: normalizeSlots(row.away_slots, awayTeam, awayCode),
-    notes: (row.notes as string | null) ?? null,
-    isActive: Boolean(row.is_active),
-    publishedAt: String(row.published_at),
-    updatedAt: String(row.updated_at),
-};
+    notes: row.notes,
+    isActive: row.is_active,
+    publishedAt: row.published_at,
+    updatedAt: row.updated_at,
+  };
 }
 
 type JsonPrimitive = string | number | boolean | null;
 
+
 /** Write a non-blocking audit log entry. Never throws — failures are silently ignored. */
 async function logAuditEvent(
-  supabase: import("@supabase/supabase-js").SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   action: string,
   details?: Record<string, unknown>,
 ): Promise<void> {
+  const auditInsert: Database["public"]["Tables"]["vmix_audit_log"]["Insert"] = {
+    action,
+    publication_id: typeof details?.publicationId === "string" ? details.publicationId : null,
+    home_team: typeof details?.homeTeam === "string" ? details.homeTeam : null,
+    away_team: typeof details?.awayTeam === "string" ? details.awayTeam : null,
+    performed_by: userId,
+    details: detailsToJson(details),
+  };
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from("vmix_audit_log").insert({
-      action,
-      publication_id: (details?.publicationId as string | null) ?? null,
-      home_team: (details?.homeTeam as string | null) ?? null,
-      away_team: (details?.awayTeam as string | null) ?? null,
-      performed_by: userId,
-      details: details ?? null,
-    });
+    await supabase.from("vmix_audit_log").insert(auditInsert);
   } catch {
     // Non-blocking — audit failures never break the main operation.
   }
 
   // Mirror to the global activity log so admin/audit shows all app usage.
   try {
-    const metadata: Record<string, JsonPrimitive> = {};
-    for (const [key, value] of Object.entries(details ?? {})) {
-      if (value === null || ["string", "number", "boolean"].includes(typeof value)) {
-        metadata[key] = value as JsonPrimitive;
-      } else {
-        metadata[key] = String(value);
-      }
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from("audit_events").insert({
+    await supabase.from("audit_events").insert({
       user_id: userId,
       action: `vmix_${action}`,
-      metadata,
+      metadata: detailsToJson(details),
     });
   } catch {
     // Non-blocking.
@@ -184,23 +178,21 @@ const PUB_CACHE_TTL_MS = 30_000;
 
 async function fetchActivePublicationFresh(): Promise<VmixPublicationRow | null> {
   const { createClient } = await import("@supabase/supabase-js");
-  const client = createClient(
+  const client = createClient<Database>(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_PUBLISHABLE_KEY!,
     { auth: { persistSession: false, autoRefreshToken: false } },
   );
   const { data, error } = await client
     .from("vmix_publications")
-    .select(
-      "id, game_date, home_team, away_team, home_team_code, away_team_code, venue, standings_json, home_slots, away_slots, is_active, published_at, updated_at",
-    )
+    .select("*")
     .eq("is_active", true)
     .order("published_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   throwIfSupabaseError(error);
-  const result = data ? mapRow(data as Record<string, unknown>) : null;
- _pubCache = { data: result, ts: Date.now() };
+  const result = data ? mapRow(data) : null;
+  _pubCache = { data: result, ts: Date.now() };
   return result;
 }
 
@@ -387,9 +379,9 @@ export const publishVmix = createServerFn({ method: "POST" })
       away_team_code: data.awayTeamCode,
       venue: data.venue ?? null,
       notes: data.notes ?? null,
-     standings_json: enrichedStandings as unknown as Json,
-      home_slots: data.homeSlots as unknown as Json,
-      away_slots: data.awaySlots as unknown as Json,
+      standings_json: asJson(enrichedStandings),
+      home_slots: asJson(data.homeSlots),
+      away_slots: asJson(data.awaySlots),
       published_by: context.userId,
       is_active: true,
       published_at: new Date().toISOString(),
@@ -402,7 +394,8 @@ export const publishVmix = createServerFn({ method: "POST" })
       .single();
     throwIfSupabaseError(error);
     _pubCache = null; // Invalidate cache so endpoints serve fresh data.
-    const pub = mapRow(inserted as unknown as Record<string, unknown>);
+    const pub = inserted ? mapRow(inserted) : null;
+    if (!pub) throw new Error("Publiceringen kunde inte läsas tillbaka.");
     await logAuditEvent(context.supabase, context.userId, "publish", {
       publicationId: pub.id,
       homeTeam: pub.homeTeam,
@@ -466,7 +459,7 @@ export const refreshStandings = createServerFn({ method: "POST" })
     const { error } = await context.supabase
       .from("vmix_publications")
       .update({
-        standings_json: enrichedStandings as unknown as Json,
+        standings_json: asJson(enrichedStandings),
         updated_at: new Date().toISOString(),
       })
       .eq("id", active.id);
@@ -507,8 +500,8 @@ export const getPublicationHistory = createServerFn({ method: "GET" })
       .select("*")
       .order("published_at", { ascending: false })
       .limit(5);
-  throwIfSupabaseError(error);
-    return (data ?? []).map((r: Record<string, unknown>) => mapRow(r));
+    throwIfSupabaseError(error);
+    return (data ?? []).map((r) => mapRow(r));
   });
 
 export const restorePublication = createServerFn({ method: "POST" })
@@ -562,22 +555,21 @@ export const getAuditLog = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AuditLogRow[]> => {
     await assertAdmin(context);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (context.supabase as any)
+    const { data, error } = await context.supabase
       .from("vmix_audit_log")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(20);
     throwIfSupabaseError(error);
-    return (data ?? []).map((r: Record<string, unknown>): AuditLogRow => ({
-      id: String(r.id),
-      action: String(r.action),
-      publicationId: r.publication_id ? String(r.publication_id) : null,
-      homeTeam: r.home_team ? String(r.home_team) : null,
-      awayTeam: r.away_team ? String(r.away_team) : null,
-      performedBy: r.performed_by ? String(r.performed_by) : null,
-      details: (r.details as JsonValue | null) ?? null,
-      createdAt: String(r.created_at),
+    return (data ?? []).map((r): AuditLogRow => ({
+      id: r.id,
+      action: r.action,
+      publicationId: r.publication_id,
+      homeTeam: r.home_team,
+      awayTeam: r.away_team,
+      performedBy: r.performed_by,
+      details: r.details as JsonValue | null,
+      createdAt: r.created_at,
     }));
   });
 
@@ -604,14 +596,14 @@ export const listLineupPresets = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(20);
     throwIfSupabaseError(error);
-    return (data ?? []).map((r: Record<string, unknown>): LineupPreset => ({
-      id: Number(r.id),
-      label: String(r.label),
-      homeTeam: String(r.home_team),
-      awayTeam: String(r.away_team),
-      homeSlots: r.home_slots as VmixLineupSlots,
-      awaySlots: r.away_slots as VmixLineupSlots,
-      createdAt: String(r.created_at),
+    return (data ?? []).map((r): LineupPreset => ({
+      id: r.id,
+      label: r.label,
+      homeTeam: r.home_team,
+      awayTeam: r.away_team,
+      homeSlots: normalizeSlots(r.home_slots, r.home_team, ""),
+      awaySlots: normalizeSlots(r.away_slots, r.away_team, ""),
+      createdAt: r.created_at,
     }));
   });
 
@@ -636,8 +628,8 @@ export const saveLineupPreset = createServerFn({ method: "POST" })
         label: data.label,
         home_team: data.homeTeam,
         away_team: data.awayTeam,
-        home_slots: data.homeSlots as unknown as Json,
-        away_slots: data.awaySlots as unknown as Json,
+        home_slots: asJson(data.homeSlots),
+        away_slots: asJson(data.awaySlots),
       });
   throwIfSupabaseError(error);
     return { ok: true };
@@ -665,8 +657,8 @@ export const updateLineupPreset = createServerFn({ method: "POST" })
         label: data.label,
         home_team: data.homeTeam,
         away_team: data.awayTeam,
-        home_slots: data.homeSlots as unknown as Json,
-        away_slots: data.awaySlots as unknown as Json,
+        home_slots: asJson(data.homeSlots),
+        away_slots: asJson(data.awaySlots),
       })
       .eq("id", data.id);
    throwIfSupabaseError(error);

@@ -656,6 +656,8 @@ type ScoringPageData = {
   discipline: Record<string, NonNullable<Briefing["home"]["discipline"]>>;
   faceoffs: Record<string, {
     teamFoPct: number | null;
+    teamFoWins: number | null;
+    teamFoTotal: number | null;
     players: Array<{ name: string; foWins: number; foLosses: number; foTotal: number; foPct: number; }>;
   }>;
 };
@@ -666,6 +668,8 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
   const discipline: Record<string, NonNullable<Briefing["home"]["discipline"]>> = {};
   const faceoffs: Record<string, {
     teamFoPct: number | null;
+    teamFoWins: number | null;
+    teamFoTotal: number | null;
     players: Array<{ name: string; foWins: number; foLosses: number; foTotal: number; foPct: number; }>;
   }> = {};
 

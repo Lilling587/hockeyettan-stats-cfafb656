@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestUrl } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireAdmin } from "@/integrations/supabase/admin-middleware";
+import { asJson } from "./json";
 
 export const logVmixHeartbeatTransition = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
@@ -23,14 +24,14 @@ export const logVmixHeartbeatTransition = createServerFn({ method: "POST" })
       source: "vmix-heartbeat",
       level,
       message,
-      context: {
+      context: asJson({
         from: data.from,
         to: data.to,
         okCount: data.okCount,
         total: data.total,
         reason: data.reason ?? null,
         actorUserId: context.userId,
-      } as never,
+      }),
       route: "/admin/health",
     });
     return { ok: true };
