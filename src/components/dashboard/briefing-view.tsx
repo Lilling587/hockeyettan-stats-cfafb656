@@ -342,16 +342,16 @@ export function BriefingView({
         <LineupDiffCard teamName={data.away.name} data={awayFlow} />
       </div>
 
-      <div id="probability">
-        <WinProbabilityCard home={data.home} away={data.away} />
-      </div>
-
       <div id="streaks">
         <StreakAlertsCard home={data.home} away={data.away} />
       </div>
 
       <div id="rest">
         <RestDaysCard home={data.home} away={data.away} />
+      </div>
+
+      <div id="probability">
+        <WinProbabilityCard home={data.home} away={data.away} />
       </div>
 
       {data.notes ? (

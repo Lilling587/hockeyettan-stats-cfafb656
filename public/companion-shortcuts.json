@@ -35,9 +35,9 @@
         { "id": "discipline",       "label": "Utvisningsminuter",                  "path": "/#discipline",        "url": "https://hockeyettan-stats.spdproduktion.se/#discipline" },
         { "id": "faceoffs",         "label": "Tekningar (FO%)",                    "path": "/#faceoffs",          "url": "https://hockeyettan-stats.spdproduktion.se/#faceoffs" },
         { "id": "lineup",           "label": "Laguppställning",                    "path": "/#lineup",            "url": "https://hockeyettan-stats.spdproduktion.se/#lineup" },
-        { "id": "probability",      "label": "Vinstchans",                         "path": "/#probability",       "url": "https://hockeyettan-stats.spdproduktion.se/#probability" },
         { "id": "streaks",          "label": "Sviter",                             "path": "/#streaks",           "url": "https://hockeyettan-stats.spdproduktion.se/#streaks" },
-        { "id": "rest",             "label": "Vila sedan senaste match",           "path": "/#rest",              "url": "https://hockeyettan-stats.spdproduktion.se/#rest" }
+        { "id": "rest",             "label": "Vila sedan senaste match",           "path": "/#rest",              "url": "https://hockeyettan-stats.spdproduktion.se/#rest" },
+        { "id": "probability",      "label": "Vinstchans",                         "path": "/#probability",       "url": "https://hockeyettan-stats.spdproduktion.se/#probability" }
       ]
     },
     {

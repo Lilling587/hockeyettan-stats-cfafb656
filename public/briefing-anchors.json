@@ -153,15 +153,6 @@
       }
     },
     {
-      "id": "probability",
-      "label": "Vinstchans",
-      "urls": {
-        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#probability",
-        "published": "https://hockeyettan-stats.lovable.app/#probability",
-        "custom": "https://hockeyettan-stats.spdproduktion.se/#probability"
-      }
-    },
-    {
       "id": "streaks",
       "label": "Sviter",
       "urls": {
@@ -177,6 +168,15 @@
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#rest",
         "published": "https://hockeyettan-stats.lovable.app/#rest",
         "custom": "https://hockeyettan-stats.spdproduktion.se/#rest"
+      }
+    },
+    {
+      "id": "probability",
+      "label": "Vinstchans",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#probability",
+        "published": "https://hockeyettan-stats.lovable.app/#probability",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#probability"
       }
     }
   ]
