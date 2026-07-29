@@ -230,12 +230,8 @@ function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todaysMatchupQuery.data?.match?.date]);
 
+  const scrollRestored = useRef(false);
   useEffect(() => {
-    const saved = sessionStorage.getItem("briefing-scroll-y");
-    if (saved) {
-      const y = parseInt(saved, 10);
-      requestAnimationFrame(() => window.scrollTo(0, y));
-    }
     return () => {
       sessionStorage.setItem("briefing-scroll-y", String(window.scrollY));
     };
@@ -327,6 +323,15 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
     }
   };
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (scrollRestored.current || !briefing) return;
+    scrollRestored.current = true;
+    const saved = sessionStorage.getItem("briefing-scroll-y");
+    if (!saved) return;
+    const y = parseInt(saved, 10);
+    requestAnimationFrame(() => window.scrollTo(0, y));
+  }, [briefing]);
 
   useEffect(() => {
     const cached =
