@@ -564,7 +564,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
       onValueChange={(value) => setActiveTab(value as "briefing" | "recap")}
       className="min-h-screen bg-background"
     >
-      <header className="border-b border-border">
+      <header className="sticky top-0 z-50 border-b border-border bg-background">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
