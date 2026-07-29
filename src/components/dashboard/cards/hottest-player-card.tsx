@@ -2,6 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { TeamData } from "@/lib/dashboard-utils";
 
+function reverseNameOrder(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length < 2) return name;
+  return [...parts.slice(1), parts[0]].join(" ");
+}
+
 export function HottestPlayerCard({ team, label }: { team: TeamData; label: string }) {
   const player = team.hotPlayer;
   return (
@@ -20,7 +26,7 @@ export function HottestPlayerCard({ team, label }: { team: TeamData; label: stri
         ) : (
           <div className="space-y-1">
             <div className="flex items-baseline justify-between gap-2">
-              <div className="text-xl font-semibold">{player.name}</div>
+              <div className="text-xl font-semibold">{reverseNameOrder(player.name)}</div>
               <Badge variant="default" className="tabular-nums">
                 {player.points} p
               </Badge>
