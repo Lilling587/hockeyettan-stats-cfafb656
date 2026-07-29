@@ -231,10 +231,11 @@ function Dashboard() {
   }, [todaysMatchupQuery.data?.match?.date]);
 
   const scrollRestored = useRef(false);
+  // Save position on every scroll so it's captured before TanStack Router resets it on navigation.
   useEffect(() => {
-    return () => {
-      sessionStorage.setItem("briefing-scroll-y", String(window.scrollY));
-    };
+    const save = () => sessionStorage.setItem("briefing-scroll-y", String(window.scrollY));
+    window.addEventListener("scroll", save, { passive: true });
+    return () => window.removeEventListener("scroll", save);
   }, []);
 
 const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
@@ -324,13 +325,15 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
   };
   const [error, setError] = useState<string | null>(null);
 
+  // Restore after briefing renders. setTimeout beats TanStack Router's scroll-to-top reset.
   useEffect(() => {
     if (scrollRestored.current || !briefing) return;
     scrollRestored.current = true;
     const saved = sessionStorage.getItem("briefing-scroll-y");
     if (!saved) return;
     const y = parseInt(saved, 10);
-    requestAnimationFrame(() => window.scrollTo(0, y));
+    if (y <= 0) return;
+    setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 80);
   }, [briefing]);
 
   useEffect(() => {
