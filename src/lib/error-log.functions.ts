@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/integrations/supabase/admin-middleware";
+import { asJson } from "./json";
 
 // Public endpoint — clients (signed-in or not) push structured errors here.
 // Writes use supabaseAdmin (service role) so we never expose INSERT via RLS.
@@ -31,7 +32,7 @@ export const logError = createServerFn({ method: "POST" })
           level: data.level ?? "error",
           message: data.message.slice(0, 4000),
           stack: data.stack ?? null,
-          context: (data.context ?? null) as never,
+          context: data.context ? asJson(data.context) : null,
           route: data.route ?? null,
           user_agent: data.userAgent ?? null,
           user_id: data.userId ?? null,

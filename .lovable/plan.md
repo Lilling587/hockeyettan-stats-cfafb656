@@ -1,83 +1,55 @@
-# Åtkomstkontroll och användningsinsyn
+# Avsluta TypeScript strict mode-audit
 
 ## Nuvarande läge
-- Hela startsidan (`/`) och all matchstatistik är **helt publik** – ingen inloggning krävs.
-- Endast admin-sidor (`/admin/*`, `/notifications`, `/connect`) ligger bakom inloggning.
-- Det finns en `admin`-roll, men ingen generell "godkänd användare"-status.
-- Det finns ingen logg över vilka som besöker eller använder appen.
+- `strict: true` är redan på i `tsconfig.json`.
+- `bun run typecheck` misslyckas just nu med **3 fel** i `src/lib/stats.server.ts` kring faceoff-typer (`teamFoWins`/`teamFoTotal` saknas vid uppbyggnad av `FaceoffsData`).
+- Många `as`-castar finns kvar, särskilt i `src/lib/vmix.functions.ts` där publiseringsflödet castar Supabase-rader och JSONB-kolumner.
+- `IMPROVEMENTS.md` noterar att "publishVmix Supabase cast remains".
 
 ## Mål
-1. Behåll en **publik landningssida** med grundläggande info.
-2. Kräv **inloggning för att se matchstatistik/briefing**.
-3. Nya konton måste **godkännas av en admin** innan de får åtkomst.
-4. Admins ska kunna **se vem som använder appen** via en aktivitetslogg.
+Få `bun run typecheck` helt grön, ta bort onödiga/riskabla `as`-castar, och införa en mekanism så att nya castar inte smyger in igen.
 
 ## Plan
 
-### 1. Databasändringar
-Skapa två nya tabeller:
+### 1. Rätta befintliga typecheck-fel
+**Fil:** `src/lib/stats.server.ts`
+- Lägg till `teamFoWins` och `teamFoTotal` i returobjektet där `FaceoffsData` byggs upp (raderna som typecheckern pekar på).
+- Säkerställ att `emptyTeam()` och `buildBriefing()` hanterar de nya fälten konsekvent.
+- Verifiera med `bun run typecheck`.
 
-- **`public.profiles`**
-  - `id uuid primary key` (kopplas till `auth.users(id)`)
-  - `email text`
-  - `approval_status text` (`pending` / `approved` / `rejected`)
-  - `created_at`, `updated_at`
-  - RLS-policyer så att användare ser sin egen profil och admins ser alla.
+### 2. Åtgärda publishVmix- och audit-log-castarna
+**Fil:** `src/lib/vmix.functions.ts`
+- Ersätt `(supabase as any).from("vmix_audit_log")...` och `(context.supabase as any).from("vmix_audit_log")...` med korrekt typad klientanvändning.
+- Definiera ett typsäkert `AuditLogInsert`-objekt istället för att casta `details` fält för fält.
+- Ersätt `inserted as unknown as Record<string, unknown>` och liknande efter `insert().select()` med korrekt returtyp från Supabase-klienten.
 
-- **`public.audit_events`**
-  - `id uuid primary key`
-  - `user_id uuid nullable` (NULL för ej inloggade publika besök om vi loggar dem)
-  - `action text` (t.ex. `login`, `view_briefing`, `publish_vmix`, `signup`, `approved`)
-  - `metadata jsonb nullable`
-  - `ip_address text nullable`
-  - `created_at`
-  - RLS-policyer så att endast admins kan läsa.
+### 3. Rensa JSONB/Json-castar i publiseringsflödet
+**Fil:** `src/lib/vmix.functions.ts`
+- Inför små hjälptyper för `VmixPublicationInsert` / `VmixPublicationUpdate` så att `home_slots`, `away_slots`, `standings_json` kan skickas utan `as unknown as Json`.
+- Gör samma sak för `updateActivePublication` och `restorePublication`.
 
-### 2. Godkännandeflöde för nya användare
-- Vid registrering skapas användaren i auth och en profil med `approval_status = 'pending'`.
-- `_authenticated`-layouten uppdateras så att den kontrollerar både inloggning **och** att profilen är `approved`.
-- Om inloggad men inte godkänd: visa ett "väntar på godkännande"-tillstånd.
+### 4. Auditera övriga castar
+**Filer:** `src/lib/stats.server.ts`, `src/lib/stats.functions.ts`, `src/lib/game-flow.server.ts`
+- Behåll nödvändiga casts för externa API-svar (Firecrawl, Swehockey HTML) och felobjekt — dessa är ofrånkomliga.
+- Ersätt `[] as ScheduleGame[]` och `{} as Record<string, SpecialTeamsEntry>` med explicita typdeklarationer (`const games: ScheduleGame[] = []`) där det är möjligt.
+- Se över `(err as Error).message` — överväg att använda en liten `getErrorMessage`-hjälpare.
 
-### 3. Admin-gränssnitt
-- Utöka `/admin/users` så att den visar:
-  - Lista över användare och deras godkännandestatus.
-  - Knappar för **Godkänn** / **Neka** / **Återkalla**.
-  - Senaste inloggning och registreringsdatum.
-- Lägg till en ny `/admin/audit`-sida som visar:
-  - Filtrerbar lista över `audit_events`.
-  - Vem som gjorde vad och när.
+### 5. Lägg till typecheck i CI
+**Fil:** `.github/workflows/ci.yml`
+- Lägg till ett steg som kör `bun run typecheck` före `bun run build` så att typecheck-fel blockerar merge.
 
-### 4. Aktivitetsloggning
-- Skapa serverfunktioner för att skriva till `audit_events`.
-- Logga automatiskt vid:
-  - Inloggning / utloggning
-  - Ny registrering
-  - Admin godkänner/nekar användare
-  - Ladda briefing
-  - Publicera till vMix
-  - Ändra notifikationsinställningar
+### 6. Dokumentera riktlinjer
+**Fil:** `CLAUDE.md` (eller ny fil under `docs/`)
+- Lägg till en kort punkt om att undvika `as`-castar för interna datastrukturer; motivera varje cast med kommentar.
 
-### 5. Publik landningssida
-- Behåll `/` som en enkel publik sida med kort beskrivning och en "Logga in"-knapp.
-- Flytta själva dashboard/statistikvyn till ett autentiserat läge (t.ex. `/_authenticated/dashboard` eller behåll `/` men kräv inloggning där).
-- Se till att `/auth` fortfarande hanterar inloggning/registrering.
+## Verifiering
+- `bun run typecheck` ska returnera 0 fel.
+- `bun run build` ska gå igenom.
+- `bun run test` ska fortsätta passera.
+- Inga funktionella ändringar — endast typer och eventuellt små refaktoreringar av hur data byggs upp.
 
-### 6. Säkerhet och RLS
-- Alla nya tabeller får `GRANT` och RLS aktiverat.
-- Ingen icke-admin kan läsa andra användares profiler eller audit-events.
-- Service-role-användning begränsas till admin-funktioner.
-
-## Vad du får
-- Kontroll över vilka som kan se matchstatistiken.
-- En tydlig kö av nya användare som väntar på godkännande.
-- En fullständig logg över vem som loggar in, vilka briefings som laddas och vilka vMix-publiceringar som görs.
-- En fortsatt publik landningssida så att obehöriga kan se att appen finns.
-
-## Teknisk omfattning
-- 1 migration (`profiles` + `audit_events` + uppdaterade policies).
-- Uppdatering av `_authenticated/route.tsx` för godkännandekoll.
-- Uppdatering av `/auth` för att skapa pending-profil vid registrering.
-- Uppdatering av `/admin/users` med godkännande-UI.
-- Ny `/admin/audit`-sida.
-- Nya serverfunktioner för loggning och användarhantering.
-- Eventuellt en ny publik landningssida om vi flyttar dashboard.
+## Leverabler
+- Uppdaterad `src/lib/stats.server.ts` (faceoff-typfixar)
+- Uppdaterad `src/lib/vmix.functions.ts` (typsäker publish/audit/restore)
+- Uppdaterad `.github/workflows/ci.yml` (typecheck-steg)
+- Uppdaterad `CLAUDE.md` (riktlinje för casts)

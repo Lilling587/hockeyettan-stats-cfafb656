@@ -1,8 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAdmin } from "@/integrations/supabase/admin-middleware";
+import type { Database } from "@/integrations/supabase/types";
+import { detailsToJson } from "./json";
 
 export type JsonPrimitive = string | number | boolean | null;
 export type AuditMetadata = Record<string, JsonPrimitive>;
@@ -26,13 +29,21 @@ export type AuditEvent = {
   createdAt: string;
 };
 
-function mapProfile(row: Record<string, unknown>): Profile {
+const APPROVAL_STATUSES = ["pending", "approved", "rejected"] as const;
+type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
+
+function assertApprovalStatus(value: string): ApprovalStatus {
+  if (APPROVAL_STATUSES.includes(value as ApprovalStatus)) return value as ApprovalStatus;
+  return "pending";
+}
+
+function mapProfile(row: Database["public"]["Tables"]["profiles"]["Row"]): Profile {
   return {
-    id: String(row.id),
-    email: (row.email as string | null) ?? null,
-    approvalStatus: (row.approval_status as string) as Profile["approvalStatus"],
-    createdAt: String(row.created_at),
-    updatedAt: String(row.updated_at),
+    id: row.id,
+    email: row.email,
+    approvalStatus: assertApprovalStatus(row.approval_status),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -74,9 +85,9 @@ export const getMyProfile = createServerFn({ method: "GET" })
         .select("id, email, approval_status, created_at, updated_at")
         .single();
       if (insertErr) throw new Error(insertErr.message);
-      return mapProfile(inserted as Record<string, unknown>);
+      return mapProfile(inserted);
     }
-    return mapProfile(data as Record<string, unknown>);
+    return mapProfile(data);
   });
 
 /**
@@ -118,7 +129,7 @@ export const listUserProfiles = createServerFn({ method: "GET" })
       }
 
       const users = (profileRows ?? []).map((row) => ({
-        ...mapProfile(row as Record<string, unknown>),
+        ...mapProfile(row),
         isAdmin: adminIds.has(String(row.id)),
         lastSignInAt: lastSignInById.get(String(row.id)) ?? null,
       }));
@@ -193,17 +204,16 @@ export const logAuditEvent = createServerFn({ method: "POST" })
   });
 
 async function logAuditEventInternal(
-  supabase: import("@supabase/supabase-js").SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   action: string,
   metadata?: AuditMetadata,
 ): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from("audit_events").insert({
+    await supabase.from("audit_events").insert({
       user_id: userId,
       action,
-      metadata: metadata ?? null,
+      metadata: detailsToJson(metadata),
     });
   } catch {
     // Non-blocking.

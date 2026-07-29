@@ -2,6 +2,10 @@
 // success-rate, latency p95 and recent errors. Failures here must NEVER break
 // the caller — we only log.
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+import { asJson, detailsToJson } from "./json";
+
 type RecordOpts = {
   endpoint: string;
   season?: string | null;
@@ -32,27 +36,19 @@ export async function recordScrape<T>(
       latency_ms: latency,
       cache_hit: Boolean(opts.cacheHit),
       error: errorMsg,
-      context: opts.context ?? null,
+      context: detailsToJson(opts.context),
     });
   }
 }
 
-async function logRow(row: {
-  endpoint: string;
-  season: string | null;
-  status: "ok" | "error";
-  latency_ms: number;
-  cache_hit: boolean;
-  error: string | null;
-  context: Record<string, unknown> | null;
-}) {
+async function logRow(row: Database["public"]["Tables"]["scrape_metrics"]["Insert"]) {
   // Service role key is not exposed at runtime on Lovable Cloud, so we
   // can't write scrape metrics from anonymous/unauthenticated scrape paths.
   // Skip silently instead of throwing on every scrape.
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return;
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("scrape_metrics").insert(row as never);
+    await supabaseAdmin.from("scrape_metrics").insert(row);
   } catch (e) {
     console.warn("[scrape-metrics] insert failed:", (e as Error).message);
   }
@@ -86,9 +82,6 @@ export type ScrapeMetricsSummary = {
     fetched_at: string;
   }>;
 };
-
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
 export async function getScrapeMetricsSummary(
   windowHours = 24,

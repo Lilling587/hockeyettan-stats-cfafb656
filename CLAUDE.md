@@ -48,6 +48,14 @@
 - **Approval gate:** `_authenticated/route.tsx` enforces `approval_status === 'approved'` for all `/admin/*` routes. `index.tsx` (`/`) is outside that layout and has its own identical check in `beforeLoad` — both must be kept in sync. Email verification links land on `/` directly, bypassing the sign-in flow.
 - **Manual email log:** `sendAuthEmail` (in `admin-users.functions.ts`) writes directly to `email_send_log` after each send so all manually triggered emails appear in admin/auth-emails regardless of hook behaviour.
 
+## TypeScript Type Safety
+- Avoid `as any`, `as never`, and double casts like `as X as Y`. They hide real type errors and break inference.
+- Prefer typed Supabase clients: `SupabaseClient<Database>` instead of bare `SupabaseClient`.
+- For JSON columns, use helpers in `src/lib/json.ts` (`asJson`, `detailsToJson`) to convert runtime objects before inserting.
+- Validate string unions from the database (e.g. `approval_status`) with a small assertion helper instead of casting.
+- Run `bun run typecheck` before committing.
+
+
 ## Strict Banned Practices
 - Do not use `www.` in production URL.
 - Do not modify `public/briefing-anchors.json` structure (Stream Deck dependency).

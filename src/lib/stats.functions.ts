@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireAdmin } from "@/integrations/supabase/admin-middleware";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
+import { detailsToJson } from "./json";
 import { DEFAULT_SEASON, getSeason, type Season } from "./seasons.config";
 
 async function resolveSeason(label?: string | null): Promise<Season> {
@@ -25,20 +28,17 @@ const CACHE_VERSION = "v22";
 const HISTORY_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const LEAGUE_SLUG = "hockeyettan-sodra";
 
-type JsonPrimitive = string | number | boolean | null;
-
 async function logAuditEvent(
-  supabase: import("@supabase/supabase-js").SupabaseClient,
+  supabase: SupabaseClient<Database>,
   userId: string,
   action: string,
-  metadata?: Record<string, JsonPrimitive>,
+  metadata?: Record<string, string | number | boolean | null>,
 ): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from("audit_events").insert({
+    await supabase.from("audit_events").insert({
       user_id: userId,
       action,
-      metadata: metadata ?? null,
+      metadata: detailsToJson(metadata),
     });
   } catch {
     // Non-blocking — audit failures never break the main operation.
