@@ -230,6 +230,17 @@ function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todaysMatchupQuery.data?.match?.date]);
 
+  useEffect(() => {
+    const saved = sessionStorage.getItem("briefing-scroll-y");
+    if (saved) {
+      const y = parseInt(saved, 10);
+      requestAnimationFrame(() => window.scrollTo(0, y));
+    }
+    return () => {
+      sessionStorage.setItem("briefing-scroll-y", String(window.scrollY));
+    };
+  }, []);
+
 const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
   const [tabletMode, setTabletMode] = useState(false);
   const [user, setUser] = useState<{ email?: string } | null>(null);
