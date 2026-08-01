@@ -130,15 +130,15 @@ function LogsPage() {
 
         {logsQuery.isLoading ? (
           <p className="text-sm text-muted-foreground">Laddar…</p>
-        ) : rows.length === 0 ? (
+        ) : filteredRows.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-sm text-muted-foreground">
-              Inga loggar i fönstret.
+              Inga loggar matchar filtret.
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-2">
-            {rows.map((r) => (
+            {filteredRows.map((r) => (
               <Card key={r.id}>
                 <CardHeader className="pb-2">
                   <div className="flex flex-wrap items-center gap-2">
