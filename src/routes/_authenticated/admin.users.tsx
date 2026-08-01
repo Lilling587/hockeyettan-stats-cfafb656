@@ -354,12 +354,23 @@ function AdminUsersPage() {
                     key={u.id}
                     className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium">
-                        {u.email ?? u.id}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Registrerad {new Date(u.createdAt).toLocaleDateString("sv-SE")}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Checkbox
+                        checked={selectedPending.has(u.id)}
+                        onCheckedChange={(checked) => {
+                          const next = new Set(selectedPending);
+                          if (checked) next.add(u.id);
+                          else next.delete(u.id);
+                          setSelectedPending(next);
+                        }}
+                      />
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium">
+                          {u.email ?? u.id}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Registrerad {new Date(u.createdAt).toLocaleDateString("sv-SE")}
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
