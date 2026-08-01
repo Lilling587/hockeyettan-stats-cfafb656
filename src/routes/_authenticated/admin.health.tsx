@@ -114,6 +114,15 @@ function HealthPage() {
     staleTime: 30_000,
   });
 
+  const swehockeyHealthQuery = useQuery({
+    queryKey: ["swehockey-health"],
+    queryFn: () => fetchSwehockeyHealth(),
+    enabled: adminQuery.data?.isAdmin === true,
+    refetchInterval: refreshInterval,
+    refetchIntervalInBackground: false,
+    staleTime: 30_000,
+  });
+
 
   useEffect(() => {
     const report = vmixHealthQuery.data;
