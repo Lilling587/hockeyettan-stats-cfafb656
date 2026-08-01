@@ -178,6 +178,7 @@ function HealthPage() {
     healthQuery.refetch();
     supabaseHealthQuery.refetch();
     vmixHealthQuery.refetch();
+    swehockeyHealthQuery.refetch();
   };
 
   useEffect(() => {
