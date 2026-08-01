@@ -444,7 +444,7 @@ type SpecialTeamsEntry = {
   penaltyKillOpportunities: number | null;
 };
 
-const SpecialTeamsEntrySchema = z.object({
+export const SpecialTeamsEntrySchema = z.object({
   powerPlayPct: z.number().min(0).max(100).nullable(),
   penaltyKillPct: z.number().min(0).max(100).nullable(),
   powerPlayGoals: z.number().nullable(),
