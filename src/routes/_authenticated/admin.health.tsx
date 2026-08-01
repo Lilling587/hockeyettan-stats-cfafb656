@@ -237,6 +237,13 @@ function HealthPage() {
       </header>
 
       <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+        <BroadcastReadinessCard
+          vmix={vmixHealthQuery}
+          supabase={supabaseHealthQuery}
+          swehockey={swehockeyHealthQuery}
+          scrape={data}
+        />
+
         <div id="vmix-status">
           <VmixOverallBanner
             data={vmixHealthQuery.data}
