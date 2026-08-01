@@ -216,12 +216,22 @@ function AdminUsersPage() {
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
           <AdminNav />
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Admin-användare</h1>
               <p className="text-sm text-muted-foreground">
                 Hantera godkännanden, administratörer och notisprenumeranter.
               </p>
+            </div>
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Sök efter e-post eller ID…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
             </div>
           </div>
         </div>
