@@ -28,6 +28,7 @@ function LogsPage() {
   const fetchLogs = useServerFn(listErrorLogs);
   const navigate = useNavigate();
   const [level, setLevel] = useState<"all" | "error" | "warn" | "info">("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const adminQuery = useQuery({
     queryKey: ["is-admin"],
