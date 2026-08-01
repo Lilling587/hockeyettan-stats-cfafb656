@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAdmin } from "@/integrations/supabase/admin-middleware";
 
-const SWEHOCKEY_BASE = "https://stats.swehockey.se";
+const SWEHOCKEY_BASE = "https://stats.swehockey.se"; // stats base
 
 export type SwehockeyEndpoint = {
   name: string;
