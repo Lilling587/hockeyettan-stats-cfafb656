@@ -459,8 +459,43 @@ function AdminUsersPage() {
         </Card>
 
         <Card id="nekade">
-          <CardHeader>
-            <CardTitle>Nekade användare ({rejectedUsers.length})</CardTitle>
+          <CardHeader className="pb-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>Nekade användare ({rejectedUsers.length})</CardTitle>
+              {rejectedUsers.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                    <Checkbox
+                      checked={
+                        selectedRejected.size > 0 &&
+                        selectedRejected.size === rejectedUsers.length
+                      }
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedRejected(new Set(rejectedUsers.map((u) => u.id)));
+                        } else {
+                          setSelectedRejected(new Set());
+                        }
+                      }}
+                    />
+                    Välj alla
+                  </label>
+                  {selectedRejected.size > 0 && (
+                    <Button
+                      size="sm"
+                      disabled={approveMutation.isPending}
+                      onClick={() => {
+                        selectedRejected.forEach((id) => approveMutation.mutate(id));
+                        setSelectedRejected(new Set());
+                      }}
+                    >
+                      <Check className="mr-2 h-4 w-4" />
+                      Godkänn {selectedRejected.size}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {profilesQuery.isLoading ? (
