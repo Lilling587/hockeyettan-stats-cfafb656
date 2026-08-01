@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { RefreshCw, Activity, Mail, AlertTriangle, Tv, Coins } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { RefreshCw, Activity, Mail, AlertTriangle, Tv, Coins, Search } from "lucide-react";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
 import { getUsageSnapshot } from "@/lib/usage-metrics.functions";
