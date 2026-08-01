@@ -833,5 +833,108 @@ function SwehockeyHealthCard({
   );
 }
 
+function BroadcastReadinessCard({
+  vmix,
+  supabase,
+  swehockey,
+  scrape,
+}: {
+  vmix: { data?: import("@/lib/vmix-health.functions").VmixHealthReport; isLoading: boolean; error: unknown };
+  supabase: { data?: import("@/lib/supabase-health.functions").SupabaseHealthReport; isLoading: boolean; error: unknown };
+  swehockey: { data?: import("@/lib/swehockey-health.functions").SwehockeyHealth; isLoading: boolean; error: unknown };
+  scrape: import("@/lib/scrape-metrics.functions").ScrapeHealthSummary | undefined;
+}) {
+  const checks = [
+    { name: "vMix", ok: vmix.data?.overall === "ok", loading: vmix.isLoading },
+    { name: "Supabase", ok: supabase.data?.overall === "ok", loading: supabase.isLoading },
+    { name: "Swehockey", ok: swehockey.data?.overall === "ok", loading: swehockey.isLoading },
+    { name: "Scraper", ok: (scrape?.successRate ?? 1) >= 0.95, loading: !scrape },
+  ];
+
+  const loadingCount = checks.filter((c) => c.loading).length;
+  const failedCount = checks.filter((c) => !c.loading && !c.ok).length;
+  const allOk = failedCount === 0 && loadingCount === 0;
+
+  let status: "ready" | "checking" | "degraded" = "checking";
+  if (loadingCount > 0) status = "checking";
+  else if (allOk) status = "ready";
+  else status = "degraded";
+
+  const config =
+    status === "ready"
+      ? {
+          icon: CheckCircle2,
+          border: "border-emerald-500/50",
+          bg: "bg-emerald-500/10",
+          text: "text-emerald-700 dark:text-emerald-400",
+          iconColor: "text-emerald-600 dark:text-emerald-400",
+          badgeClass: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400",
+          title: "Sändningsklar",
+          subtitle: "Alla kritiska system är tillgängliga.",
+        }
+      : status === "checking"
+        ? {
+            icon: Radio,
+            border: "border-amber-500/50",
+            bg: "bg-amber-500/10",
+            text: "text-amber-700 dark:text-amber-400",
+            iconColor: "text-amber-600 dark:text-amber-400",
+            badgeClass: "border-amber-500 text-amber-600 hover:bg-amber-100",
+            title: "Kontrollerar sändningsberedskap…",
+            subtitle: "Vänta tills alla system har svarat.",
+          }
+        : {
+            icon: XCircle,
+            border: "border-rose-500/50",
+            bg: "bg-rose-500/10",
+            text: "text-rose-700 dark:text-rose-400",
+            iconColor: "text-rose-600 dark:text-rose-400",
+            badgeClass: "bg-destructive text-destructive-foreground hover:bg-destructive",
+            title: "Sändningsberedskap påverkad",
+            subtitle: `${failedCount} system rapporterar problem. Granska korten nedan innan sändning.`,
+          };
+
+  const Icon = config.icon;
+
+  return (
+    <Card className={`${config.border} ${config.bg}`}>
+      <CardHeader className="flex flex-row items-start gap-4">
+        <Icon className={`h-6 w-6 shrink-0 ${config.iconColor}`} />
+        <div className="flex-1 space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <CardTitle className="text-base">{config.title}</CardTitle>
+            <Badge variant="outline" className={`text-[10px] uppercase ${config.badgeClass}`}>
+              {status}
+            </Badge>
+          </div>
+          <p className={`text-sm ${config.text}`}>{config.subtitle}</p>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          {checks.map((c) => (
+            <div
+              key={c.name}
+              className="rounded-md border bg-background/60 px-3 py-2 text-center"
+            >
+              <div className="text-xs font-medium text-muted-foreground">{c.name}</div>
+              <div className="mt-1 text-sm font-semibold">
+                {c.loading ? (
+                  <span className="text-amber-600">Kontrollerar…</span>
+                ) : c.ok ? (
+                  <span className="text-emerald-600">OK</span>
+                ) : (
+                  <span className="text-rose-600">Fel</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+
 
 
