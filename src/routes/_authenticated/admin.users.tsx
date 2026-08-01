@@ -657,16 +657,16 @@ function AdminUsersPage() {
 
         <Card id="administratorer">
           <CardHeader>
-            <CardTitle>Nuvarande administratörer ({admins.length})</CardTitle>
+            <CardTitle>Nuvarande administratörer ({filteredAdmins.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {listQuery.isLoading ? (
               <p className="text-sm text-muted-foreground">Laddar…</p>
-            ) : admins.length === 0 ? (
+            ) : filteredAdmins.length === 0 ? (
               <p className="text-sm text-muted-foreground">Inga administratörer.</p>
             ) : (
               <ul className="divide-y divide-border">
-                {admins.map((a) => {
+                {filteredAdmins.map((a) => {
                   const isSelf = a.userId === currentUserId;
                   return (
                     <li
