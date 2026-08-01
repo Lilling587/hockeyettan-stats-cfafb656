@@ -444,6 +444,15 @@ type SpecialTeamsEntry = {
   penaltyKillOpportunities: number | null;
 };
 
+const SpecialTeamsEntrySchema = z.object({
+  powerPlayPct: z.number().min(0).max(100).nullable(),
+  penaltyKillPct: z.number().min(0).max(100).nullable(),
+  powerPlayGoals: z.number().nullable(),
+  penaltyKillGoalsAgainst: z.number().nullable(),
+  powerPlayOpportunities: z.number().nullable(),
+  penaltyKillOpportunities: z.number().nullable(),
+});
+
 async function fetchSpecialTeamsFromHtml(
   urls: Urls,
 ): Promise<Record<string, SpecialTeamsEntry>> {
