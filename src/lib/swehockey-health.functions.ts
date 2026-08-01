@@ -56,8 +56,8 @@ export const checkSwehockeyHealth = createServerFn({ method: "GET" })
   .handler(async (): Promise<SwehockeyHealth> => {
     const competitionId = 18271; // 2025-26 HockeyEttan Södra
     const endpoints = await Promise.all([
-      probe(`${SWEHOCKEY_BASE}/Schedule?seasonId=${competitionId}`),
-      probe(`${SWEHOCKEY_BASE}/Standings?seasonId=${competitionId}`),
+      probe(`${SWEHOCKEY_BASE}/ScheduleAndResults/Schedule/${competitionId}`),
+      probe(`${SWEHOCKEY_BASE}/ScheduleAndResults/Standings/${competitionId}`),
       probe(`${SWEHOCKEY_BASE}/Teams/Statistics/ScoringAndGoalkeeping/${competitionId}`),
       probe(`${SWEHOCKEY_BASE}/Teams/Statistics/PowerplayAndPenaltyKilling/${competitionId}`),
     ]);
