@@ -27,6 +27,7 @@ import {
   type NotificationSubscriber,
 } from "@/lib/notifications.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
