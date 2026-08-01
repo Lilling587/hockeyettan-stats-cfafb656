@@ -288,8 +288,57 @@ function AdminUsersPage() {
         </Card>
 
         <Card id="vantar">
-          <CardHeader>
-            <CardTitle>Väntar på godkännande ({pendingUsers.length})</CardTitle>
+          <CardHeader className="pb-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>Väntar på godkännande ({pendingUsers.length})</CardTitle>
+              {pendingUsers.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                    <Checkbox
+                      checked={
+                        selectedPending.size > 0 &&
+                        selectedPending.size === pendingUsers.length
+                      }
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedPending(new Set(pendingUsers.map((u) => u.id)));
+                        } else {
+                          setSelectedPending(new Set());
+                        }
+                      }}
+                    />
+                    Välj alla
+                  </label>
+                  {selectedPending.size > 0 && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        disabled={approveMutation.isPending}
+                        onClick={() => {
+                          selectedPending.forEach((id) => approveMutation.mutate(id));
+                          setSelectedPending(new Set());
+                        }}
+                      >
+                        <Check className="mr-2 h-4 w-4" />
+                        Godkänn {selectedPending.size}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={rejectMutation.isPending}
+                        onClick={() => {
+                          selectedPending.forEach((id) => rejectMutation.mutate(id));
+                          setSelectedPending(new Set());
+                        }}
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Neka {selectedPending.size}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {profilesQuery.isLoading ? (
