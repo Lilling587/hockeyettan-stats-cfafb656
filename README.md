@@ -4,11 +4,15 @@ A TanStack Start app that builds pre-game and post-game statistics briefings for
 
 ## Features
 
-- **Matchup briefing** — current form, league position, games played, top scorers, goalies, powerplay/penalty-kill, head-to-head history, venue splits, and period goal distribution.
+- **Matchup briefing** — form, league position, GP, top scorers, goalies, PP/PK with opportunities, faceoffs, shots, H2H, venue splits, lineup diff, win probability, and more.
+- **Sticky navigation** and **scroll memory** — briefing page remembers scroll position when navigating away and back.
+- **Stream Deck / Bitfocus Companion integration** — URL anchors for every briefing card (`public/briefing-anchors.json`, `public/companion-shortcuts.json`).
+- **vMix backup API** — publish lineup and standings to `/api/public/vmix/*`; switch domain in vMix if the official Swehockey API fails.
 - **Auto-fill today’s opponent** when the home team has a scheduled game.
 - **Favorite team** support persisted in `localStorage`.
 - **Compare teams** side-by-side on `/compare`.
 - **Auth & notifications** — users can sign in and manage email notification preferences on `/notifications`.
+- **Admin panel** — user management, vMix lineup editor, asset storage, email log, system health, audit log.
 - **Season detection** — background scan for new seasons/competition IDs with admin confirmation.
 - **Email webhooks** — `/api/public/hooks/pregame-emails` and `/api/public/hooks/postgame-emails` for external scheduling.
 
@@ -108,12 +112,17 @@ RESEND_API_KEY=your-resend-api-key
 
 Migrations in `supabase/migrations/` create the following tables:
 
-- `cached_briefings` — AI-generated matchup briefings and TTL cache
-- `fallback_events` — raw fallback data captured during scraping
+- `vmix_publications` — published lineup + standings JSONB (Realtime enabled)
+- `vmix_lineup_presets` — saved lineup templates
+- `vmix_audit_log` — audit trail of all publish actions
+- `team_logo_codes` — team name → logo code mapping
+- `team_logos` — briefing logo URL cache (from Supabase Storage)
 - `season_detections` — pending/confirmed new season IDs
-- `season_overrides` — manual competition ID overrides
+- `season_overrides` — confirmed competition ID overrides (takes precedence over seasons.config.ts)
 - `season_check_meta` — last scan status and timing
 - `notification_prefs` — per-user email notification settings (RLS-protected)
+- `profiles` — user approval status (approved/pending/denied)
+- `email_send_log` — manually triggered auth emails log
 
 Apply these through your Lovable Cloud backend before running the app.
 

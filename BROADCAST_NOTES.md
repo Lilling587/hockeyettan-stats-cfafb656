@@ -312,10 +312,13 @@ Blocks publish if: home lineup empty, logo code missing, standings scrape <8 tea
 ## 9. Commentator Dashboard
 
 URL anchors for Stream Deck navigation (see public/briefing-anchors.json):
-#form, #venue, #periods, #h2h, #scorers, #goalies, #shots, #special,
-#probability, #hot, #streaks, #discipline
+#teams, #h2h, #season-record, #form, #venue, #hot, #home-away-split, #shots,
+#periods, #scorers, #goalies, #special, #discipline, #faceoffs, #lineup,
+#streaks, #rest, #probability
 
 Features:
+- Sticky top navigation header (stays visible while scrolling)
+- Scroll memory: returns to same position when navigating away and back
 - Auto-refresh every 30 minutes (toggle button)
 - Tablet mode: larger text (text-xl), more spacing (space-y-10), green toggle button
 - Compact match banner after loading (collapses team selector)
@@ -324,17 +327,33 @@ Features:
 
 Hardware: Lenovo ThinkCentre M720Q + 15.6" portable USB-C touchscreen.
 
-### 9.1 Briefing Cards
+### 9.1 Briefing Cards (in visual order)
 
-**FormCard** (Senaste 5)
+**TeamHeader** (Lagöversikt) — anchor: #teams
+League position, points, and GP for each team in the same stats row.
+All three labels (Placering, Poäng, GP) centered under their numbers.
+
+**H2HCard** (Inbördes möten) — anchor: #h2h
+Head-to-head history between the two teams this season. Shows "Inga möten ännu" early season.
+
+**SeasonRecordCard** (Vunna/Förlorade & mål) — anchor: #season-record
+Win/loss record and goals for/against for the season.
+
+**FormCard** (Senaste 5) — anchor: #form
 Last 5 played games per team. Uses Firecrawl markdown of schedule page (full season).
 Note: direct HTML fetch of schedule is partially JS-rendered and misses some rounds.
 
-**VenueStreakCard** (Senaste 5 hemma/borta)
+**VenueStreakCard** (Form hemma/borta) — anchor: #venue
 Last 5 home games and last 5 away games per team. Single-row layout: streak badge
 (W2/L3 etc.) prominently displayed, followed by individual result badges (W/OT/L).
 
-**ShotCard** (Skott)
+**HottestPlayerCard** (Hetaste spelare) — anchor: #hot
+Player with most points in last 5 games per team. Name displayed as Firstname Lastname.
+
+**HomeAwaySplitCard** (Tagna poäng på hemma/borta plan) — anchor: #home-away-split
+Points earned at home vs away this season.
+
+**ShotCard** (Skott) — anchor: #shots
 4 stats per team in a table layout:
 - SF/match · senaste 5: shots on goal per game, last 5 games (from game event pages)
 - SA/match · senaste 5: shots against per game, last 5 games (from game event pages)
@@ -342,21 +361,43 @@ Last 5 home games and last 5 away games per team. Single-row layout: streak badg
 - SA/match · säsong: SOA÷GP from Goalkeeping Efficiency stats page
 Green value = better team for that stat (higher SF = better, lower SA = better).
 
-**SpecialTeamsCard**
-PP% and PK% with goal counts below each percentage:
-- Powerplay: PP% + number of PP goals scored this season
-- Boxplay: PK% + number of PP goals conceded this season
-Data from stats.swehockey.se/Teams/Statistics/PowerplayAndPenaltyKilling/{competitionId}
-Columns: Rk, Team, GP, ADV/DVG, PPGF/PPGA (index 4), PP%/PK% (index 5)
+**PeriodsCard** (Mål per period) — anchor: #periods
+Goals scored and conceded per period for the season.
 
-**LineupDiffCard** (Laguppställning)
+**ScorersCard** (Poängliga) — anchor: #scorers
+Top point scorers per team.
+
+**GoaliesCard** (Målvakter) — anchor: #goalies
+Goalie stats per team (save%, GAA, GP).
+
+**SpecialTeamsCard** (Special teams) — anchor: #special
+PP% and PK% with goal counts and opportunity totals:
+- Powerplay: PP% + "X mål / Y tillfällen"
+- Boxplay: PK% + "X insläppta / Y tillfällen"
+Data from stats.swehockey.se/Teams/Statistics/PowerplayAndPenaltyKilling/{competitionId}
+Columns: Rk, Team, GP, ADV/DVG (index 3), PPGF/PPGA (index 4), PP%/PK% (index 5)
+
+**DisciplineCard** (Utvisningsminuter) — anchor: #discipline
+Penalty minutes per team for the season.
+
+**FaceoffsCard** (Tekningar FO%) — anchor: #faceoffs
+Team FO% + total "X vunna / Y tekningar". Top 3 individual faceoff players (min 10 draws).
+
+**LineupDiffCard** (Laguppställning) — anchor: #lineup
 Compares tonight's lineup vs last played game lineup.
 Source: /Game/LineUps/{gameId} — published by swehockey ~30-60 min before puck drop.
 Shows: In (new players tonight) / Ut (players not in tonight's lineup).
 If tonight's lineup not yet published: "Laguppställning ej publicerad ännu."
 If no game today: "Ingen match idag."
 
-**WinProbabilityCard**
+**StreakAlertsCard** (Sviter) — anchor: #streaks
+Notable streaks for either team.
+
+**RestDaysCard** (Vila sedan senaste match) — anchor: #rest
+Days since each team's last game.
+
+**WinProbabilityCard** (Vinstchans) — anchor: #probability
+Shown at the bottom of the briefing.
 Hover tooltip explains formula:
 - 70% season PPG ÷ 3 (normalised to 0–1)
 - 30% venue win rate (home team's home record, away team's away record)
@@ -563,7 +604,7 @@ Storage bucket: vmix-assets (only bucket in use)
 Default team: Grästorps IK
 Briefing anchors: public/briefing-anchors.json
 Rate limit: 120 req/min per IP (internal exempt)
-Cache version: v16 (bump in stats.functions.ts when changing TeamBriefing schema)
+Cache version: bump CACHE_VERSION in stats.functions.ts when changing TeamBriefing schema (currently v22)
 Auto-refresh interval: 60 seconds
 
 ---

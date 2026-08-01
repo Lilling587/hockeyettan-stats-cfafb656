@@ -185,6 +185,28 @@
 
 ---
 
+## Commentator dashboard – UX, layout & data (items 98–111)
+
+| # | Item | Status |
+|---|---|---|
+| 98 | All briefing cards given `id` anchors; briefing-anchors.json + companion-shortcuts.json updated | ✅ Done |
+| 99 | Card reorder: H2H moved directly under Teams card | ✅ Done |
+| 100 | Card reorder: Hetaste spelare moved under Form hemma/borta | ✅ Done |
+| 101 | Card reorder: Skott moved under Home-away-split | ✅ Done |
+| 102 | Card reorder: Utvisningsminuter moved directly under Special teams | ✅ Done |
+| 103 | Card reorder: Vinstchans moved to bottom (after Sviter and Vila) | ✅ Done |
+| 104 | TeamHeader: GP moved into stats row at same size as Placering/Poäng | ✅ Done |
+| 105 | TeamHeader: Placering, Poäng, GP labels centered under stat numbers | ✅ Done |
+| 106 | SpecialTeamsCard: PP opportunities shown as "X mål / Y tillfällen" | ✅ Done |
+| 107 | SpecialTeamsCard: PK opportunities shown as "X insläppta / Y tillfällen" | ✅ Done |
+| 108 | FaceoffsCard: season faceoff wins/total shown ("X vunna / Y tekningar") | ✅ Done |
+| 109 | HottestPlayerCard: player name reversed to Firstname Lastname (comma stripped) | ✅ Done |
+| 110 | Sticky top navigation header (stays visible while scrolling briefing) | ✅ Done |
+| 111 | Briefing scroll memory: position saved on scroll events, restored on return | ✅ Done |
+| 112 | Admin/users invite form: Roll dropdown alignment fixed (CSS grid layout) | ✅ Done |
+
+---
+
 ## Notes
 
 - pg_cron via Lovable handles pregame/postgame email scheduling
