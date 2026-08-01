@@ -74,6 +74,19 @@ function UsagePage() {
 
   const snap = usageQuery.data;
 
+  const q = searchQuery.trim().toLowerCase();
+  const filteredEndpoints = useMemo(() => {
+    if (!snap || !q) return snap?.endpoints ?? [];
+    return snap.endpoints.filter((r) => r.endpoint.toLowerCase().includes(q));
+  }, [snap, q]);
+
+  const filteredRecent = useMemo(() => {
+    if (!snap || !q) return snap?.recent ?? [];
+    return snap.recent.filter((r) =>
+      [r.kind, r.label, r.status, r.detail].some((v) => v?.toLowerCase().includes(q)),
+    );
+  }, [snap, q]);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
