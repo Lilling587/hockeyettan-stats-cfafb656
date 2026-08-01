@@ -101,20 +101,31 @@ function LogsPage() {
       </header>
 
       <main className="mx-auto max-w-5xl space-y-4 px-6 py-8">
-        <div className="flex flex-wrap gap-2">
-          {(["all", "error", "warn", "info"] as const).map((l) => (
-            <Button
-              key={l}
-              variant={level === l ? "default" : "outline"}
-              size="sm"
-              onClick={() => setLevel(l)}
-            >
-              {l === "all" ? "Alla" : l}
-            </Button>
-          ))}
-          <span className="ml-auto self-center text-xs text-muted-foreground">
-            {rows.length} rader
-          </span>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {(["all", "error", "warn", "info"] as const).map((l) => (
+              <Button
+                key={l}
+                variant={level === l ? "default" : "outline"}
+                size="sm"
+                onClick={() => setLevel(l)}
+              >
+                {l === "all" ? "Alla" : l}
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Sök i meddelande, källa, route…"
+              className="h-9 w-full sm:w-72"
+            />
+            <span className="whitespace-nowrap text-xs text-muted-foreground">
+              {filteredRows.length} rader
+            </span>
+          </div>
         </div>
 
         {logsQuery.isLoading ? (
