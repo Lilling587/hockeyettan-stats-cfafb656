@@ -25,6 +25,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -624,6 +625,9 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                 {user && isAdmin ? (
                   <>
                     <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground truncate">
+                      {user.email}
+                    </DropdownMenuLabel>
                     <DropdownMenuItem asChild>
                       <Link to="/notifications" className="flex items-center">
                         <Star className="mr-2 h-4 w-4" />
@@ -690,6 +694,9 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                 ) : user ? (
                   <>
                     <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground truncate">
+                      {user.email}
+                    </DropdownMenuLabel>
                     <DropdownMenuItem asChild>
                       <Link to="/notifications" className="flex items-center">
                         <Star className="mr-2 h-4 w-4" />
@@ -758,6 +765,10 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground truncate">
+                    {user?.email}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/notifications" className="flex items-center">
                       <Star className="mr-2 h-4 w-4" />
@@ -824,6 +835,9 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
               </DropdownMenu>
             ) : user ? (
               <>
+                <span className="hidden text-xs text-muted-foreground lg:block truncate max-w-[160px]">
+                  {user.email}
+                </span>
                 <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                   <Link to="/notifications">
                     <Star className="mr-2 h-4 w-4 shrink-0" />
