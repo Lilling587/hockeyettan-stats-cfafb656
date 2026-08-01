@@ -49,6 +49,7 @@ function UsagePage() {
   const fetchUsage = useServerFn(getUsageSnapshot);
   const navigate = useNavigate();
   const [hours, setHours] = useState<number>(24);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const adminQuery = useQuery({
     queryKey: ["is-admin"],
