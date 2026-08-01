@@ -244,14 +244,6 @@ function HealthPage() {
           scrape={data}
         />
 
-        <div id="vmix-status">
-          <VmixOverallBanner
-            data={vmixHealthQuery.data}
-            isLoading={vmixHealthQuery.isLoading}
-            error={vmixHealthQuery.error}
-          />
-        </div>
-
         <div id="supabase">
           <SupabaseHealthCard
             data={supabaseHealthQuery.data}
@@ -674,84 +666,6 @@ function VmixHealthCard({
         ) : null}
       </CardContent>
     </Card>
-  );
-}
-
-function VmixOverallBanner({
-  data,
-  isLoading,
-  error,
-}: {
-  data: import("@/lib/vmix-health.functions").VmixHealthReport | undefined;
-  isLoading: boolean;
-  error: unknown;
-}) {
-  // Two-state heartbeat: green when every endpoint responds OK, red otherwise
-  // (including loading, network errors, and any partial/full outage).
-  let state: "ok" | "fel" = "fel";
-  let title = "Kontrollerar vMix…";
-  let subtitle = "Pingar endpoints för att avgöra status.";
-
-  if (error) {
-    title = "Kunde inte pinga";
-    subtitle = error instanceof Error ? error.message : "Okänt fel.";
-  } else if (data) {
-    const total = data.endpoints.length;
-    const okCount = data.endpoints.filter((e) => e.ok).length;
-    if (data.overall === "ok") {
-      state = "ok";
-      title = "All OK";
-      subtitle = `${okCount}/${total} vMix-endpoints svarar korrekt.`;
-    } else {
-      title = "Fel";
-      subtitle = `${okCount}/${total} vMix-endpoints svarar. Kontrollera tabellen nedan.`;
-    }
-  } else if (isLoading) {
-    // defaults above; still red until we've confirmed OK
-  }
-
-  const config =
-    state === "ok"
-      ? {
-          icon: CheckCircle2,
-          border: "border-emerald-500/50",
-          bg: "bg-emerald-500/10",
-          text: "text-emerald-700 dark:text-emerald-400",
-          iconColor: "text-emerald-600 dark:text-emerald-400",
-          badgeClass: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400",
-        }
-      : {
-          icon: XCircle,
-          border: "border-rose-500/50",
-          bg: "bg-rose-500/10",
-          text: "text-rose-700 dark:text-rose-400",
-          iconColor: "text-rose-600 dark:text-rose-400",
-          badgeClass: "bg-destructive text-destructive-foreground hover:bg-destructive",
-        };
-  const Icon = config.icon;
-  const spinning = state === "fel" && isLoading && !error && !data;
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className={`rounded-lg border p-4 ${config.border} ${config.bg} ${config.text}`}
-    >
-      <div className="flex items-start gap-4">
-        <Icon
-          className={`h-6 w-6 shrink-0 ${config.iconColor} ${spinning ? "animate-pulse" : ""}`}
-        />
-        <div className="flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold">vMix status: {title}</span>
-            <Badge className={`text-[10px] uppercase ${config.badgeClass}`}>
-              {state}
-            </Badge>
-          </div>
-          <p className="text-xs opacity-90">{subtitle}</p>
-        </div>
-      </div>
-    </div>
   );
 }
 
