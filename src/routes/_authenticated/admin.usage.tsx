@@ -228,7 +228,7 @@ function UsagePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {snap?.recent.length ? snap.recent.map((r, i) => (
+                {filteredRecent.length ? filteredRecent.map((r, i) => (
                   <TableRow key={i}>
                     <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                       {new Date(r.at).toLocaleString("sv-SE")}
