@@ -125,6 +125,15 @@ function UsagePage() {
               Uppdaterad {new Date(snap.generatedAt).toLocaleTimeString("sv-SE")}
             </span>
           )}
+          <div className="ml-auto flex items-center gap-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Sök endpoints eller aktivitet…"
+              className="h-9 w-full sm:w-64"
+            />
+          </div>
         </div>
 
         <p className="text-sm text-muted-foreground">
