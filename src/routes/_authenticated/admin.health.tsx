@@ -252,6 +252,14 @@ function HealthPage() {
           />
         </div>
 
+        <div id="swehockey">
+          <SwehockeyHealthCard
+            data={swehockeyHealthQuery.data}
+            isLoading={swehockeyHealthQuery.isLoading}
+            error={swehockeyHealthQuery.error}
+          />
+        </div>
+
         <div id="vmix-endpoints">
           <VmixHealthCard
             data={vmixHealthQuery.data}
