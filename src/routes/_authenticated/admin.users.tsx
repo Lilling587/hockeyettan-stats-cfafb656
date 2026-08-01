@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useEffect, useState } from "react";
-import { Check, Mail, Search, Trash2, UserPlus, X } from "lucide-react";
+import { Check, Mail, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
@@ -28,7 +28,6 @@ import {
   type NotificationSubscriber,
 } from "@/lib/notifications.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -78,9 +77,6 @@ function AdminUsersPage() {
   const [mailType, setMailType] = useState<AuthEmailType | "">("");
   const sendMail = useServerFn(sendAuthEmail);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPending, setSelectedPending] = useState<Set<string>>(new Set());
-  const [selectedRejected, setSelectedRejected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
@@ -200,41 +196,20 @@ function AdminUsersPage() {
   const users: (Profile & { isAdmin: boolean; lastSignInAt: string | null })[] =
     profilesQuery.data?.users ?? [];
 
-  const query = searchQuery.trim().toLowerCase();
-  const matchesQuery = (u: { email: string | null; id?: string; userId?: string }) => {
-    if (!query) return true;
-    const id = u.id ?? u.userId ?? "";
-    const text = `${u.email ?? ""} ${id}`.toLowerCase();
-    return text.includes(query);
-  };
-
-  const pendingUsers = users.filter((u) => u.approvalStatus === "pending" && matchesQuery(u));
-  const approvedUsers = users.filter((u) => u.approvalStatus === "approved" && matchesQuery(u));
-  const rejectedUsers = users.filter((u) => u.approvalStatus === "rejected" && matchesQuery(u));
-  const filteredAdmins = admins.filter((a) => matchesQuery(a));
+  const pendingUsers = users.filter((u) => u.approvalStatus === "pending");
+  const approvedUsers = users.filter((u) => u.approvalStatus === "approved");
+  const rejectedUsers = users.filter((u) => u.approvalStatus === "rejected");
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
           <AdminNav />
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Admin-användare</h1>
-              <p className="text-sm text-muted-foreground">
-                Hantera godkännanden, administratörer och notisprenumeranter.
-              </p>
-            </div>
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Sök efter e-post eller ID…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Admin-användare</h1>
+            <p className="text-sm text-muted-foreground">
+              Hantera godkännanden, administratörer och notisprenumeranter.
+            </p>
           </div>
         </div>
       </header>
@@ -289,57 +264,8 @@ function AdminUsersPage() {
         </Card>
 
         <Card id="vantar">
-          <CardHeader className="pb-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <CardTitle>Väntar på godkännande ({pendingUsers.length})</CardTitle>
-              {pendingUsers.length > 0 && (
-                <div className="flex items-center gap-3">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-                    <Checkbox
-                      checked={
-                        selectedPending.size > 0 &&
-                        selectedPending.size === pendingUsers.length
-                      }
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedPending(new Set(pendingUsers.map((u) => u.id)));
-                        } else {
-                          setSelectedPending(new Set());
-                        }
-                      }}
-                    />
-                    Välj alla
-                  </label>
-                  {selectedPending.size > 0 && (
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        disabled={approveMutation.isPending}
-                        onClick={() => {
-                          selectedPending.forEach((id) => approveMutation.mutate(id));
-                          setSelectedPending(new Set());
-                        }}
-                      >
-                        <Check className="mr-2 h-4 w-4" />
-                        Godkänn {selectedPending.size}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={rejectMutation.isPending}
-                        onClick={() => {
-                          selectedPending.forEach((id) => rejectMutation.mutate(id));
-                          setSelectedPending(new Set());
-                        }}
-                      >
-                        <X className="mr-2 h-4 w-4" />
-                        Neka {selectedPending.size}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+          <CardHeader>
+            <CardTitle>Väntar på godkännande ({pendingUsers.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {profilesQuery.isLoading ? (
@@ -355,23 +281,12 @@ function AdminUsersPage() {
                     key={u.id}
                     className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Checkbox
-                        checked={selectedPending.has(u.id)}
-                        onCheckedChange={(checked) => {
-                          const next = new Set(selectedPending);
-                          if (checked) next.add(u.id);
-                          else next.delete(u.id);
-                          setSelectedPending(next);
-                        }}
-                      />
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium">
-                          {u.email ?? u.id}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Registrerad {new Date(u.createdAt).toLocaleDateString("sv-SE")}
-                        </div>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">
+                        {u.email ?? u.id}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Registrerad {new Date(u.createdAt).toLocaleDateString("sv-SE")}
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -460,43 +375,8 @@ function AdminUsersPage() {
         </Card>
 
         <Card id="nekade">
-          <CardHeader className="pb-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <CardTitle>Nekade användare ({rejectedUsers.length})</CardTitle>
-              {rejectedUsers.length > 0 && (
-                <div className="flex items-center gap-3">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-                    <Checkbox
-                      checked={
-                        selectedRejected.size > 0 &&
-                        selectedRejected.size === rejectedUsers.length
-                      }
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedRejected(new Set(rejectedUsers.map((u) => u.id)));
-                        } else {
-                          setSelectedRejected(new Set());
-                        }
-                      }}
-                    />
-                    Välj alla
-                  </label>
-                  {selectedRejected.size > 0 && (
-                    <Button
-                      size="sm"
-                      disabled={approveMutation.isPending}
-                      onClick={() => {
-                        selectedRejected.forEach((id) => approveMutation.mutate(id));
-                        setSelectedRejected(new Set());
-                      }}
-                    >
-                      <Check className="mr-2 h-4 w-4" />
-                      Godkänn {selectedRejected.size}
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
+          <CardHeader>
+            <CardTitle>Nekade användare ({rejectedUsers.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {profilesQuery.isLoading ? (
@@ -510,23 +390,12 @@ function AdminUsersPage() {
                     key={u.id}
                     className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Checkbox
-                        checked={selectedRejected.has(u.id)}
-                        onCheckedChange={(checked) => {
-                          const next = new Set(selectedRejected);
-                          if (checked) next.add(u.id);
-                          else next.delete(u.id);
-                          setSelectedRejected(next);
-                        }}
-                      />
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium">
-                          {u.email ?? u.id}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Registrerad {new Date(u.createdAt).toLocaleDateString("sv-SE")}
-                        </div>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">
+                        {u.email ?? u.id}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Registrerad {new Date(u.createdAt).toLocaleDateString("sv-SE")}
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -658,16 +527,16 @@ function AdminUsersPage() {
 
         <Card id="administratorer">
           <CardHeader>
-            <CardTitle>Nuvarande administratörer ({filteredAdmins.length})</CardTitle>
+            <CardTitle>Nuvarande administratörer ({admins.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {listQuery.isLoading ? (
               <p className="text-sm text-muted-foreground">Laddar…</p>
-            ) : filteredAdmins.length === 0 ? (
+            ) : admins.length === 0 ? (
               <p className="text-sm text-muted-foreground">Inga administratörer.</p>
             ) : (
               <ul className="divide-y divide-border">
-                {filteredAdmins.map((a) => {
+                {admins.map((a) => {
                   const isSelf = a.userId === currentUserId;
                   return (
                     <li
