@@ -199,9 +199,10 @@ function AdminUsersPage() {
     profilesQuery.data?.users ?? [];
 
   const query = searchQuery.trim().toLowerCase();
-  const matchesQuery = (u: { id: string; email: string | null }) => {
+  const matchesQuery = (u: { email: string | null; id?: string; userId?: string }) => {
     if (!query) return true;
-    const text = `${u.email ?? ""} ${u.id}`.toLowerCase();
+    const id = u.id ?? u.userId ?? "";
+    const text = `${u.email ?? ""} ${id}`.toLowerCase();
     return text.includes(query);
   };
 
