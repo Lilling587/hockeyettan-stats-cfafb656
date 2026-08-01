@@ -189,7 +189,7 @@ function UsagePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {snap?.endpoints.length ? snap.endpoints.map((r) => (
+                  {filteredEndpoints.length ? filteredEndpoints.map((r) => (
                     <TableRow key={r.endpoint}>
                       <TableCell className="font-mono text-xs">{r.endpoint}</TableCell>
                       <TableCell className="text-right">{r.total}</TableCell>
