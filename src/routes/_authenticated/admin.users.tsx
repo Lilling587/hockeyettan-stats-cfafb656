@@ -197,9 +197,18 @@ function AdminUsersPage() {
   const admins: AdminUser[] = listQuery.data?.admins ?? [];
   const users: (Profile & { isAdmin: boolean; lastSignInAt: string | null })[] =
     profilesQuery.data?.users ?? [];
-  const pendingUsers = users.filter((u) => u.approvalStatus === "pending");
-  const approvedUsers = users.filter((u) => u.approvalStatus === "approved");
-  const rejectedUsers = users.filter((u) => u.approvalStatus === "rejected");
+
+  const query = searchQuery.trim().toLowerCase();
+  const matchesQuery = (u: Profile & { isAdmin?: boolean; lastSignInAt?: string | null }) => {
+    if (!query) return true;
+    const text = `${u.email ?? ""} ${u.id}`.toLowerCase();
+    return text.includes(query);
+  };
+
+  const pendingUsers = users.filter((u) => u.approvalStatus === "pending" && matchesQuery(u));
+  const approvedUsers = users.filter((u) => u.approvalStatus === "approved" && matchesQuery(u));
+  const rejectedUsers = users.filter((u) => u.approvalStatus === "rejected" && matchesQuery(u));
+  const filteredAdmins = admins.filter((a) => matchesQuery(a));
 
   return (
     <div className="min-h-screen bg-background">
