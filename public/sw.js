@@ -41,10 +41,21 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  // Skip cross-origin & server-fn & OAuth callbacks.
+  // Skip cross-origin, server functions, OAuth callbacks and auth routes.
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/_serverFn") || url.pathname.startsWith("/api/")) return;
+  if (url.pathname.startsWith("/_serverFn")) return;
   if (url.pathname.startsWith("/~oauth") || url.pathname.startsWith("/auth")) return;
+
+  // Cache safe public broadcast endpoints so the producer UI keeps working
+  // during brief connectivity drops. These endpoints are read-only and idempotent.
+  const cacheablePublicApi =
+    url.pathname.startsWith("/api/public/vmix/") ||
+    url.pathname === "/api/public/vmix/current";
+  if (cacheablePublicApi) {
+    event.respondWith(staleWhileRevalidate(req, RUNTIME_CACHE));
+    return;
+  }
+  if (url.pathname.startsWith("/api/")) return;
 
   if (isHtmlNav(req)) {
     event.respondWith(networkFirst(req, HTML_CACHE));
