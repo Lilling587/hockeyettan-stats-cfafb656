@@ -43,8 +43,8 @@ async function probe(url: string, timeoutMs = 10_000): Promise<SwehockeyEndpoint
 }
 
 function endpointName(url: string): string {
-  if (url.includes("Schedule")) return "Schedule";
   if (url.includes("Standings")) return "Standings";
+  if (url.includes("Schedule")) return "Schedule";
   if (url.includes("ScoringAndGoalkeeping")) return "Scoring & Goalkeeping";
   if (url.includes("PowerplayAndPenaltyKilling")) return "Special Teams";
   if (url.includes("Game/Events")) return "Game Events";
