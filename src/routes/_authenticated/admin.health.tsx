@@ -172,7 +172,7 @@ function HealthPage() {
   const data = healthQuery.data;
 
   const anyFetching =
-    healthQuery.isFetching || supabaseHealthQuery.isFetching || vmixHealthQuery.isFetching;
+    healthQuery.isFetching || supabaseHealthQuery.isFetching || vmixHealthQuery.isFetching || swehockeyHealthQuery.isFetching;
 
   const refreshAll = () => {
     healthQuery.refetch();
