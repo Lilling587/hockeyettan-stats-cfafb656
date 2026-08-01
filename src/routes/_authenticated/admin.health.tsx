@@ -842,7 +842,7 @@ function BroadcastReadinessCard({
   vmix: { data?: import("@/lib/vmix-health.functions").VmixHealthReport; isLoading: boolean; error: unknown };
   supabase: { data?: import("@/lib/supabase-health.functions").SupabaseHealthReport; isLoading: boolean; error: unknown };
   swehockey: { data?: import("@/lib/swehockey-health.functions").SwehockeyHealth; isLoading: boolean; error: unknown };
-  scrape: import("@/lib/scrape-metrics.functions").ScrapeHealthSummary | undefined;
+  scrape: import("@/lib/scrape-metrics.server").ScrapeMetricsSummary | undefined;
 }) {
   const checks = [
     { name: "vMix", ok: vmix.data?.overall === "ok", loading: vmix.isLoading },
