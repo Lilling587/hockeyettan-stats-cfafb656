@@ -199,7 +199,7 @@ function AdminUsersPage() {
     profilesQuery.data?.users ?? [];
 
   const query = searchQuery.trim().toLowerCase();
-  const matchesQuery = (u: Profile & { isAdmin?: boolean; lastSignInAt?: string | null }) => {
+  const matchesQuery = (u: { id: string; email: string | null }) => {
     if (!query) return true;
     const text = `${u.email ?? ""} ${u.id}`.toLowerCase();
     return text.includes(query);
