@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Check, Mail, Trash2, UserPlus, X } from "lucide-react";
+import { Check, Mail, Search, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { checkIsAdmin } from "@/lib/roles.functions";
