@@ -55,6 +55,24 @@ function LogsPage() {
 
   const rows: ErrorLogRow[] = logsQuery.data?.rows ?? [];
 
+  const filteredRows = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((r) => {
+      const haystack = [
+        r.message,
+        r.source,
+        r.route,
+        r.stack,
+        typeof r.context === "string" ? r.context : JSON.stringify(r.context),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [rows, searchQuery]);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
