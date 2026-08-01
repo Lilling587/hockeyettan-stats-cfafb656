@@ -49,6 +49,7 @@ function HealthPage() {
   const fetchHealth = useServerFn(getScrapeHealth);
   const fetchSupabaseHealth = useServerFn(checkSupabaseHealth);
   const fetchVmixHealth = useServerFn(checkVmixHealth);
+  const fetchSwehockeyHealth = useServerFn(checkSwehockeyHealth);
   const logVmixTransition = useServerFn(logVmixHeartbeatTransition);
   const prevVmixStateRef = useRef<"ok" | "fel" | null>(null);
   const pendingVmixStateRef = useRef<{ state: "ok" | "fel"; count: number } | null>(null);
