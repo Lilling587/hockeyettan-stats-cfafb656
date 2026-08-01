@@ -747,4 +747,83 @@ function VmixOverallBanner({
   );
 }
 
+function SwehockeyHealthCard({
+  data,
+  isLoading,
+  error,
+}: {
+  data: import("@/lib/swehockey-health.functions").SwehockeyHealth | undefined;
+  isLoading: boolean;
+  error: unknown;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-base">Swehockey-källor</CardTitle>
+        {data ? (
+          <Badge
+            variant={
+              data.overall === "ok"
+                ? "secondary"
+                : data.overall === "degraded"
+                  ? "outline"
+                  : "destructive"
+            }
+            className="text-[10px] uppercase"
+          >
+            {data.overall}
+          </Badge>
+        ) : null}
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Kontrollerar…</p>
+        ) : error ? (
+          <p className="text-sm text-rose-600">
+            {error instanceof Error ? error.message : "Kunde inte hämta status."}
+          </p>
+        ) : data ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Källa</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Latens</TableHead>
+                <TableHead>Fel</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.endpoints.map((e) => (
+                <TableRow key={e.name}>
+                  <TableCell className="font-medium text-sm">{e.name}</TableCell>
+                  <TableCell>
+                    {e.status === "ok" ? (
+                      <Badge className="text-[10px] bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400">
+                        OK
+                      </Badge>
+                    ) : e.status === "degraded" ? (
+                      <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600">
+                        Degraded
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive" className="text-[10px]">FEL</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums text-xs text-muted-foreground">
+                    {e.latencyMs} ms
+                  </TableCell>
+                  <TableCell className="text-xs text-rose-600 max-w-xs truncate">
+                    {e.error ?? "—"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+
 
