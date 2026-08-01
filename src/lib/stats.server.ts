@@ -520,7 +520,15 @@ async function fetchSpecialTeamsFromHtml(
           if (Number.isFinite(goals)) entry.penaltyKillGoalsAgainst = goals;
           if (Number.isFinite(opportunities) && opportunities > 0) entry.penaltyKillOpportunities = opportunities;
         }
-        result[teamName] = entry;
+        const parsed = SpecialTeamsEntrySchema.safeParse(entry);
+        if (!parsed.success) {
+          console.warn(
+            `[specialTeams] schema validation failed for ${teamName}`,
+            JSON.stringify({ entry, issues: parsed.error.issues }),
+          );
+          continue;
+        }
+        result[teamName] = parsed.data;
       }
     }
     if (Object.keys(result).length === 0) {
