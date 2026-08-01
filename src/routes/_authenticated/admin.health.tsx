@@ -758,11 +758,19 @@ function BroadcastReadinessCard({
   swehockey: { data?: import("@/lib/swehockey-health.functions").SwehockeyHealth; isLoading: boolean; error: unknown };
   scrape: import("@/lib/scrape-metrics.server").ScrapeMetricsSummary | undefined;
 }) {
+  const vmixOk = vmix.data?.endpoints.filter((e) => e.ok).length ?? 0;
+  const vmixTotal = vmix.data?.endpoints.length ?? 0;
+  const supabaseOk = supabase.data
+    ? [supabase.data.connectivity.publishable.ok, supabase.data.connectivity.serviceRole.ok].filter(Boolean).length
+    : 0;
+  const swOk = swehockey.data?.endpoints.filter((e) => e.status === "ok").length ?? 0;
+  const swTotal = swehockey.data?.endpoints.length ?? 0;
+
   const checks = [
-    { name: "vMix", ok: vmix.data?.overall === "ok", loading: vmix.isLoading },
-    { name: "Supabase", ok: supabase.data?.overall === "ok", loading: supabase.isLoading },
-    { name: "Swehockey", ok: swehockey.data?.overall === "ok", loading: swehockey.isLoading },
-    { name: "Scraper", ok: (scrape?.successRate ?? 1) >= 0.95, loading: !scrape },
+    { name: "vMix", ok: vmix.data?.overall === "ok", loading: vmix.isLoading, detail: vmix.data ? `${vmixOk}/${vmixTotal}` : undefined },
+    { name: "Supabase", ok: supabase.data?.overall === "ok", loading: supabase.isLoading, detail: supabase.data ? `${supabaseOk}/2` : undefined },
+    { name: "Swehockey", ok: swehockey.data?.overall === "ok", loading: swehockey.isLoading, detail: swehockey.data ? `${swOk}/${swTotal}` : undefined },
+    { name: "Scraper", ok: (scrape?.successRate ?? 1) >= 0.95, loading: !scrape, detail: scrape ? `${(scrape.successRate * 100).toFixed(0)}%` : undefined },
   ];
 
   const loadingCount = checks.filter((c) => c.loading).length;
@@ -841,6 +849,9 @@ function BroadcastReadinessCard({
                   <span className="text-rose-600">Fel</span>
                 )}
               </div>
+              {!c.loading && c.detail && (
+                <div className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">{c.detail}</div>
+              )}
             </div>
           ))}
         </div>
