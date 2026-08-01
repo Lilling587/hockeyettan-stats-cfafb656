@@ -76,6 +76,10 @@ function AdminUsersPage() {
   const [mailType, setMailType] = useState<AuthEmailType | "">("");
   const sendMail = useServerFn(sendAuthEmail);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPending, setSelectedPending] = useState<Set<string>>(new Set());
+  const [selectedRejected, setSelectedRejected] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
   }, []);
