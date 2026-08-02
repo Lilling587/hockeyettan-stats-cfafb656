@@ -841,26 +841,34 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : user ? (
-              <>
-                <span className="hidden text-xs text-muted-foreground lg:block truncate max-w-[160px]">
-                  {user.email}
-                </span>
-                <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                  <Link to="/notifications">
-                    <Star className="mr-2 h-4 w-4 shrink-0" />
-                    Notiser
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                  onClick={handleSignOut}
-                >
-                  <LogOut className="mr-2 h-4 w-4 shrink-0" />
-                  Logga ut
-                </Button>
-              </>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Konto
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground truncate">
+                    {user.email}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/notifications" className="flex items-center">
+                      <Star className="mr-2 h-4 w-4" />
+                      Notiser
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logga ut
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
                 <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
