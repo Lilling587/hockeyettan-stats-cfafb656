@@ -30,7 +30,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/usage")({
   head: () => ({
     meta: [
-      { title: "Användning · admin" },
+      { title: "Databastrafik · admin" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -92,7 +92,7 @@ function UsagePage() {
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
           <AdminNav />
-          <h1 className="text-2xl font-semibold tracking-tight">Användning & jobb</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Databastrafik & jobb</h1>
         </div>
       </header>
 
