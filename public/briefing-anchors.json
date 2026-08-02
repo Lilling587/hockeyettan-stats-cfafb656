@@ -45,6 +45,15 @@
       }
     },
     {
+      "id": "special",
+      "label": "Special teams",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#special",
+        "published": "https://hockeyettan-stats.lovable.app/#special",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#special"
+      }
+    },
+    {
       "id": "form",
       "label": "Senaste 5",
       "urls": {
@@ -114,15 +123,6 @@
         "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#goalies",
         "published": "https://hockeyettan-stats.lovable.app/#goalies",
         "custom": "https://hockeyettan-stats.spdproduktion.se/#goalies"
-      }
-    },
-    {
-      "id": "special",
-      "label": "Special teams",
-      "urls": {
-        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#special",
-        "published": "https://hockeyettan-stats.lovable.app/#special",
-        "custom": "https://hockeyettan-stats.spdproduktion.se/#special"
       }
     },
     {
