@@ -281,6 +281,11 @@ export function BriefingView({
         <SeasonRecordCard home={data.home} away={data.away} />
       </div>
 
+     <div id="special" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <SpecialTeamsCard team={data.home} opponent={data.away} />
+        <SpecialTeamsCard team={data.away} opponent={data.home} />
+      </div>
+
       <div id="form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FormCard team={data.home} />
         <FormCard team={data.away} />
@@ -322,11 +327,6 @@ export function BriefingView({
       <div id="goalies" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <GoaliesCard team={data.home} />
         <GoaliesCard team={data.away} />
-      </div>
-
-     <div id="special" className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <SpecialTeamsCard team={data.home} opponent={data.away} />
-        <SpecialTeamsCard team={data.away} opponent={data.home} />
       </div>
 
       <div id="discipline">
