@@ -144,6 +144,7 @@ type Urls = {
   scoring: string;
   teamStats: string;
   specialTeams: string;
+  wonPeriods: string;
 };
 
 function buildUrls(competitionId: string): Urls {
@@ -154,6 +155,7 @@ function buildUrls(competitionId: string): Urls {
     scoring: `${STATS_BASE_URL}/Teams/Info/PlayersByTeam/${competitionId}`,
     teamStats: `${STATS_BASE_URL}/Teams/Statistics/ScoringAndGoalkeeping/${competitionId}`,
     specialTeams: `${STATS_BASE_URL}/Teams/Statistics/PowerplayAndPenaltyKilling/${competitionId}`,
+    wonPeriods: `${STATS_BASE_URL}/Teams/Statistics/WonPeriods/${competitionId}`,
   };
 }
 
@@ -541,6 +543,81 @@ async function fetchSpecialTeamsFromHtml(
   }
 }
 
+type PeriodWinPct = { p1: number; p2: number; p3: number };
+
+async function fetchWonPeriodsFromHtml(
+  urls: Urls,
+): Promise<Record<string, PeriodWinPct>> {
+  try {
+    const res = await withRetry(() =>
+      fetchWithTimeout(urls.wonPeriods, {
+        headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
+      }),
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+
+    const result: Record<string, Partial<PeriodWinPct>> = {};
+    const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+    const titleRe = /<span\s+title="([^"]+)"[^>]*>\s*<strong>[^<]+<\/strong>/i;
+    const cellRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+
+    // Split HTML into per-period sections using the tdSubTitle headers.
+    // Sections: "1st Period", "2nd Period", "3rd Period" (ignore OT, GWS, Total).
+    const subtitleRe = /<th\b[^>]*class="[^"]*tdSubTitle[^"]*"[^>]*>([\s\S]*?)<\/th>/gi;
+    const subtitles = [...html.matchAll(subtitleRe)].map((m) => ({
+      title: m[1].replace(/<[^>]+>/g, "").trim(),
+      start: (m.index ?? 0) + m[0].length,
+    }));
+
+    const periodMap: Record<string, keyof PeriodWinPct> = {
+      "1st Period": "p1",
+      "2nd Period": "p2",
+      "3rd Period": "p3",
+    };
+
+    for (const [i, section] of subtitles.entries()) {
+      const key = periodMap[section.title];
+      if (!key) continue;
+      const next = subtitles[i + 1]?.start ?? html.length;
+      const chunk = html.slice(section.start, next);
+
+      const rowIter = new RegExp(rowRe);
+      let rowMatch: RegExpExecArray | null;
+      while ((rowMatch = rowIter.exec(chunk)) !== null) {
+        const rowHtml = rowMatch[1];
+        const titleMatch = rowHtml.match(titleRe);
+        if (!titleMatch) continue;
+        const teamName = titleMatch[1].trim();
+        const cells: string[] = [];
+        const cellIter = new RegExp(cellRe);
+        let cellMatch: RegExpExecArray | null;
+        while ((cellMatch = cellIter.exec(rowHtml)) !== null) {
+          cells.push(cellMatch[1].replace(/<[^>]+>/g, "").replace(/&nbsp;| /g, " ").trim());
+        }
+        // Columns: Rk[0], Team[1], GP[2], W[3], T[4], L[5], W%[6]
+        const raw = cells[6]?.replace(",", ".");
+        const pct = checkRange(Number(raw), 0, 100, `wonPeriods.${key}(${teamName})`);
+        if (pct == null) continue;
+        result[teamName] ??= {};
+        result[teamName][key] = pct;
+      }
+    }
+
+    // Only return entries that have all three periods
+    const out: Record<string, PeriodWinPct> = {};
+    for (const [name, v] of Object.entries(result)) {
+      if (v.p1 != null && v.p2 != null && v.p3 != null) {
+        out[name] = v as PeriodWinPct;
+      }
+    }
+    if (Object.keys(out).length === 0) console.warn("[wonPeriods] empty result");
+    return out;
+  } catch (err) {
+    console.warn("[wonPeriods] fetch failed:", (err as Error).message);
+    return {};
+  }
+}
 
 // Generic helper: extract <td> cell text contents (tags stripped) from a row.
 function extractTdCells(rowHtml: string): string[] {
@@ -1274,7 +1351,7 @@ export async function buildBriefing(
   // internally) — if the schedule page is down, catch and degrade those two
   // as well so one unreachable source doesn't fail the entire briefing when
   // special teams / scoring / shots-on-goal fetched fine.
-  const [scheduleGames, scrapeMdResult, specialTeamsByName, scoringData, sogByName] =
+  const [scheduleGames, scrapeMdResult, specialTeamsByName, scoringData, sogByName, wonPeriodsByName] =
     await Promise.all([
       getScheduleGames(season, { force }).catch((err) => {
         console.warn("[buildBriefing] schedule fetch failed, degrading gracefully:", (err as Error).message);
@@ -1287,6 +1364,7 @@ export async function buildBriefing(
       fetchSpecialTeamsFromHtml(urls),
       fetchScoringPageData(urls),
       fetchTeamShotsOnGoal(urls),
+      fetchWonPeriodsFromHtml(urls),
     ]);
   const scheduleMd = scrapeMdResult.md;
   const warnings: string[] = checkServerEnv();
@@ -1328,6 +1406,7 @@ export async function buildBriefing(
     penaltyKillOpportunities: null,
     venueForm: null,
     periodGoals: null,
+    periodWinPct: null,
     goalies: [],
     hotPlayer: null,
     discipline: null,
@@ -1379,6 +1458,16 @@ export async function buildBriefing(
   const periodGoalsByName = computePeriodGoals(scheduleGames, [home, away]);
   object.home.periodGoals = periodGoalsByName[home] ?? null;
   object.away.periodGoals = periodGoalsByName[away] ?? null;
+  const pickWonPeriods = (name: string) => {
+    if (wonPeriodsByName[name]) return wonPeriodsByName[name];
+    const key = normalizeTeamKey(name);
+    for (const [k, v] of Object.entries(wonPeriodsByName)) {
+      if (normalizeTeamKey(k) === key) return v;
+    }
+    return null;
+  };
+  object.home.periodWinPct = pickWonPeriods(home);
+  object.away.periodWinPct = pickWonPeriods(away);
 
   // Goalies, top scorers (fallback), and discipline all come from the single
   // fetchScoringPageData call above — urls.scoring fetched exactly once.

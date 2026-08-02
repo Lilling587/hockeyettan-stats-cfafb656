@@ -47,11 +47,12 @@ export function PeriodGoalsCard({
             <div className="grid grid-cols-3 gap-2 sm:gap-4">
               {(() => {
                 const best = strongestPeriod(team);
+                const wp = team.periodWinPct;
                 return ([
-                  ["P1", pg.p1],
-                  ["P2", pg.p2],
-                  ["P3", pg.p3],
-                ] as const).map(([label, value]) => (
+                  ["P1", pg.p1, wp?.p1],
+                  ["P2", pg.p2, wp?.p2],
+                  ["P3", pg.p3, wp?.p3],
+                ] as const).map(([label, value, winPct]) => (
                   <div
                     key={label}
                     className={`text-center rounded-md border p-2 ${best?.label === label ? "border-primary bg-primary/5" : "border-transparent"}`}
@@ -60,6 +61,11 @@ export function PeriodGoalsCard({
                       {formatAverage(value, pg.games)}
                     </div>
                     <div className="text-xs text-muted-foreground">{label} / match</div>
+                    {winPct != null && (
+                      <div className="mt-1 text-xs tabular-nums text-muted-foreground">
+                        {winPct.toFixed(1)}% vunna
+                      </div>
+                    )}
                   </div>
                 ));
               })()}

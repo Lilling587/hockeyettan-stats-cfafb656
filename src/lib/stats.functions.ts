@@ -24,7 +24,7 @@ async function resolveSeason(label?: string | null): Promise<Season> {
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 const TEAMS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
-const CACHE_VERSION = "v22";
+const CACHE_VERSION = "v23";
 const HISTORY_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const LEAGUE_SLUG = "hockeyettan-sodra";
 
@@ -121,6 +121,11 @@ const TeamBriefing = z.object({
     .default(null)
     .describe("Win/tie/loss streaks split by venue"),
   periodGoals: PeriodGoals.nullable().default(null).describe("Season totals of goals scored per period"),
+  periodWinPct: z
+    .object({ p1: z.number(), p2: z.number(), p3: z.number() })
+    .nullable()
+    .default(null)
+    .describe("Period win % from Swehockey WonPeriods (0-100 scale)"),
   goalies: z.array(Goalie).max(5).default([]).describe("Goalies with playing time this season"),
   hotPlayer: z
     .object({
