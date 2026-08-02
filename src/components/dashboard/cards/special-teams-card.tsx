@@ -38,7 +38,7 @@ export function SpecialTeamsCard({
       <CardContent>
         <div className="grid grid-cols-2 gap-4">
           {/* Powerplay */}
-          <div>
+          <div className="space-y-2">
             <div className="text-xs text-muted-foreground">Powerplay</div>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-semibold">{fmtPct(team.powerPlayPct)}</span>
@@ -48,7 +48,7 @@ export function SpecialTeamsCard({
               {fmtGoalOpp(team.powerPlayGoals, team.powerPlayOpportunities, "mål")}
             </div>
             {team.ppTimePerGoal && (
-              <div className="mt-1">
+              <div>
                 <div className="text-xs text-muted-foreground">Tid i snitt</div>
                 <div className="text-sm">{team.ppTimePerGoal} per mål</div>
               </div>
@@ -56,7 +56,7 @@ export function SpecialTeamsCard({
           </div>
 
           {/* Boxplay */}
-          <div>
+          <div className="space-y-2">
             <div className="text-xs text-muted-foreground">Boxplay</div>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-semibold">{fmtPct(team.penaltyKillPct)}</span>
@@ -66,7 +66,7 @@ export function SpecialTeamsCard({
               {fmtGoalOpp(team.penaltyKillGoalsAgainst, team.penaltyKillOpportunities, "insläppta")}
             </div>
             {team.pkTimePerGoal && (
-              <div className="mt-1">
+              <div>
                 <div className="text-xs text-muted-foreground">Tid i snitt</div>
                 <div className="text-sm">{team.pkTimePerGoal} per mål</div>
               </div>
