@@ -593,6 +593,13 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
             <p className="text-sm text-muted-foreground">
               HockeyEttan Södra · matchstatistik för kommentatorer
             </p>
+            {briefing && (
+              <p className="text-xs text-muted-foreground">
+                {briefingMut.isPending
+                  ? "Uppdaterar…"
+                  : `Senast uppdaterad ${new Date(briefing.fetchedAt).toLocaleTimeString("sv-SE")}`}
+              </p>
+            )}
           </div>
           {/* Mobile: single Meny dropdown + icon buttons */}
           <div className="flex sm:hidden w-full items-center justify-end gap-2">
