@@ -96,11 +96,11 @@ function TeamCol({ team }: { team: TeamData }) {
       {team.goalTypeSplit && (
         <div className="space-y-2 border-t pt-3">
           <GoalSplitRow
-            label="Mål för — hur de avgörs"
+            label="Mål för — hur de görs"
             split={{ eq: team.goalTypeSplit.eqgPctFor, pp: team.goalTypeSplit.ppgPctFor, sh: team.goalTypeSplit.shgPctFor }}
           />
           <GoalSplitRow
-            label="Mål emot — hur de avgörs"
+            label="Mål emot — hur de görs"
             split={{ eq: team.goalTypeSplit.eqgPctAgainst, pp: team.goalTypeSplit.ppgPctAgainst, sh: team.goalTypeSplit.shgPctAgainst }}
           />
         </div>
