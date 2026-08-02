@@ -221,7 +221,7 @@ function AdminUsersPage() {
           </CardHeader>
           <CardContent>
             <form
-              className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[1fr_9rem_auto]"
+              className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_9rem_auto]"
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!email.trim()) return;
@@ -251,10 +251,13 @@ function AdminUsersPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" disabled={inviteMutation.isPending}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                {inviteMutation.isPending ? "Skickar…" : "Bjud in"}
-              </Button>
+              <div className="space-y-2">
+                <Label className="invisible select-none" aria-hidden="true">_</Label>
+                <Button type="submit" disabled={inviteMutation.isPending} className="w-full">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {inviteMutation.isPending ? "Skickar…" : "Bjud in"}
+                </Button>
+              </div>
             </form>
             <p className="mt-3 text-xs text-muted-foreground">
               Personen får ett mejl för att sätta sitt lösenord och godkänns automatiskt.
