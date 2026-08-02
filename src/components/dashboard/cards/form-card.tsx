@@ -61,21 +61,21 @@ function FormTrendSection({ team }: { team: TeamData }) {
   const recent = lastFivePpg(team);
   const season = teamPpg(team);
   const diff = recent != null && season != null ? recent - season : null;
-  const arrow = diff == null ? "→" : diff > 0.15 ? "▲" : diff < -0.15 ? "▼" : "→";
+  const arrow = diff == null ? "→" : diff > 0.20 ? "▲" : diff < -0.20 ? "▼" : "→";
   const tone =
     diff == null
       ? "text-muted-foreground"
-      : diff > 0.15
+      : diff > 0.20
         ? "text-emerald-500"
-        : diff < -0.15
+        : diff < -0.20
           ? "text-rose-500"
           : "text-muted-foreground";
   const label =
     diff == null
       ? "Saknar data"
-      : diff > 0.15
+      : diff > 0.20
         ? "Stigande form"
-        : diff < -0.15
+        : diff < -0.20
           ? "Sjunkande form"
           : "Stabil form";
 
