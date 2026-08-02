@@ -436,7 +436,7 @@ function pickSpecialTeams(
   for (const [k, v] of Object.entries(byName)) {
     if (normalizeTeamKey(k) === key) return v;
   }
-  return { powerPlayPct: null, penaltyKillPct: null, powerPlayGoals: null, penaltyKillGoalsAgainst: null, powerPlayOpportunities: null, penaltyKillOpportunities: null };
+  return { powerPlayPct: null, penaltyKillPct: null, powerPlayGoals: null, penaltyKillGoalsAgainst: null, powerPlayOpportunities: null, penaltyKillOpportunities: null, ppTimePerGoal: null, pkTimePerGoal: null };
 }
 
 type SpecialTeamsEntry = {
@@ -446,6 +446,8 @@ type SpecialTeamsEntry = {
   penaltyKillGoalsAgainst: number | null;
   powerPlayOpportunities: number | null;
   penaltyKillOpportunities: number | null;
+  ppTimePerGoal: string | null;
+  pkTimePerGoal: string | null;
 };
 
 export const SpecialTeamsEntrySchema = z.object({
@@ -455,6 +457,8 @@ export const SpecialTeamsEntrySchema = z.object({
   penaltyKillGoalsAgainst: z.number().nullable(),
   powerPlayOpportunities: z.number().nullable(),
   penaltyKillOpportunities: z.number().nullable(),
+  ppTimePerGoal: z.string().nullable(),
+  pkTimePerGoal: z.string().nullable(),
 });
 
 async function fetchSpecialTeamsFromHtml(
@@ -506,6 +510,7 @@ async function fetchSpecialTeamsFromHtml(
         if (pct == null) continue;
         const goals = Number(cells[4]?.replace(",", "."));
         const opportunities = Number(cells[3]?.replace(",", "."));
+        const timePerGoal = /^\d+:\d{2}$/.test(cells[7] ?? "") ? cells[7]! : null;
         const entry = result[teamName] ?? {
           powerPlayPct: null,
           penaltyKillPct: null,
@@ -513,16 +518,20 @@ async function fetchSpecialTeamsFromHtml(
           penaltyKillGoalsAgainst: null,
           powerPlayOpportunities: null,
           penaltyKillOpportunities: null,
+          ppTimePerGoal: null,
+          pkTimePerGoal: null,
         };
         if (section.key === "pp") {
           entry.powerPlayPct = pct;
           if (Number.isFinite(goals)) entry.powerPlayGoals = goals;
           if (Number.isFinite(opportunities) && opportunities > 0) entry.powerPlayOpportunities = opportunities;
+          if (timePerGoal) entry.ppTimePerGoal = timePerGoal;
         }
         if (section.key === "pk") {
           entry.penaltyKillPct = pct;
           if (Number.isFinite(goals)) entry.penaltyKillGoalsAgainst = goals;
           if (Number.isFinite(opportunities) && opportunities > 0) entry.penaltyKillOpportunities = opportunities;
+          if (timePerGoal) entry.pkTimePerGoal = timePerGoal;
         }
         const parsed = SpecialTeamsEntrySchema.safeParse(entry);
         if (!parsed.success) {
@@ -1501,6 +1510,8 @@ export async function buildBriefing(
     penaltyKillGoalsAgainst: null,
     powerPlayOpportunities: null,
     penaltyKillOpportunities: null,
+    ppTimePerGoal: null,
+    pkTimePerGoal: null,
     venueForm: null,
     periodGoals: null,
     periodWinPct: null,
@@ -1537,12 +1548,16 @@ export async function buildBriefing(
   object.home.penaltyKillGoalsAgainst = homeSpecialTeams.penaltyKillGoalsAgainst;
   object.home.powerPlayOpportunities = homeSpecialTeams.powerPlayOpportunities;
   object.home.penaltyKillOpportunities = homeSpecialTeams.penaltyKillOpportunities;
+  object.home.ppTimePerGoal = homeSpecialTeams.ppTimePerGoal;
+  object.home.pkTimePerGoal = homeSpecialTeams.pkTimePerGoal;
   object.away.powerPlayPct = awaySpecialTeams.powerPlayPct;
   object.away.penaltyKillPct = awaySpecialTeams.penaltyKillPct;
   object.away.powerPlayGoals = awaySpecialTeams.powerPlayGoals;
   object.away.penaltyKillGoalsAgainst = awaySpecialTeams.penaltyKillGoalsAgainst;
   object.away.powerPlayOpportunities = awaySpecialTeams.powerPlayOpportunities;
   object.away.penaltyKillOpportunities = awaySpecialTeams.penaltyKillOpportunities;
+  object.away.ppTimePerGoal = awaySpecialTeams.ppTimePerGoal;
+  object.away.pkTimePerGoal = awaySpecialTeams.pkTimePerGoal;
 
   // Venue form and period goals from the shared schedule games — no network call.
   const emptyVenueForm = (): VenueForm => ({

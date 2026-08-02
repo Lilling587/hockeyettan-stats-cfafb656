@@ -24,7 +24,7 @@ async function resolveSeason(label?: string | null): Promise<Season> {
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 const TEAMS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
-const CACHE_VERSION = "v24";
+const CACHE_VERSION = "v25";
 const HISTORY_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const LEAGUE_SLUG = "hockeyettan-sodra";
 
@@ -115,6 +115,8 @@ const TeamBriefing = z.object({
   penaltyKillGoalsAgainst: z.number().int().nullable().default(null).describe("PP goals conceded while shorthanded this season"),
   powerPlayOpportunities: z.number().int().nullable().default(null).describe("Total PP opportunities (ADV) this season"),
   penaltyKillOpportunities: z.number().int().nullable().default(null).describe("Total PK opportunities (DVG) this season"),
+  ppTimePerGoal: z.string().nullable().default(null).describe("Average PP ice time per goal scored (M:S format)"),
+  pkTimePerGoal: z.string().nullable().default(null).describe("Average PK ice time per goal conceded (M:S format)"),
   venueForm: z
     .object({ home: VenueSplit, away: VenueSplit })
     .nullable()
