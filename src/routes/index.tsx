@@ -131,7 +131,7 @@ export const Route = createFileRoute("/")({
       const { data, error } = await supabase.auth.getUser();
       if (!error && data.user) resolvedUser = data.user;
     }
-    if (!resolvedUser) throw redirect({ to: "/info" });
+    if (!resolvedUser) throw redirect({ to: "/auth" });
 
     // Block unapproved users — email verification lands here directly,
     // bypassing the sign-in flow where approval is normally enforced.
@@ -582,7 +582,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
     <Tabs
       value={activeTab}
       onValueChange={(value) => setActiveTab(value as "briefing" | "recap")}
-      className="min-h-screen bg-background"
+      className="min-h-dvh bg-background"
     >
       <header className="sticky top-0 z-50 border-b border-border bg-background">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-6 sm:flex-row sm:items-start sm:justify-between">
@@ -906,6 +906,36 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
             </TabsTrigger>
           </TabsList>
         </div>
+        {briefing && activeTab === "briefing" && (
+          <div className="flex gap-1.5 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {[
+              { id: "teams",          label: "Lag" },
+              { id: "h2h",            label: "H2H" },
+              { id: "form",           label: "Form" },
+              { id: "venue",          label: "H/B" },
+              { id: "hot",            label: "Hetast" },
+              { id: "shots",          label: "Skott" },
+              { id: "periods",        label: "Perioder" },
+              { id: "scorers",        label: "Poäng" },
+              { id: "goalies",        label: "Målvakter" },
+              { id: "special",        label: "PP/PK" },
+              { id: "discipline",     label: "Utvisn." },
+              { id: "faceoffs",       label: "Tekningar" },
+              { id: "lineup",         label: "Lineup" },
+              { id: "streaks",        label: "Sviter" },
+              { id: "rest",           label: "Vila" },
+              { id: "probability",    label: "Vinstchans" },
+            ].map(({ id, label }) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+        )}
       </div>
 
    <main className={`mx-auto max-w-6xl touch-pan-y px-6 py-8 ${tabletMode ? "space-y-10" : "space-y-6"}`}>

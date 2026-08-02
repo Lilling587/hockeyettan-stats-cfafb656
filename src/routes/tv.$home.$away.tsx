@@ -238,7 +238,7 @@ function TvMode() {
   const data = query.data?.briefing as Briefing | undefined;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-dvh bg-slate-950 text-slate-100 flex flex-col">
       <header className="absolute top-4 left-4 z-10 flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity">
         <Button asChild variant="ghost" size="sm" className="text-slate-300">
           <Link to="/" search={{ home, away }}>
