@@ -30,14 +30,12 @@ export function SpecialTeamsCard({
     return o ? `${g} / ${o}` : g;
   };
 
-  const split = team.goalTypeSplit;
-
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base min-w-0 truncate">{team.name} · Special teams</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
         <div className="grid grid-cols-2 gap-4">
           {/* Powerplay */}
           <div>
@@ -63,27 +61,6 @@ export function SpecialTeamsCard({
             </div>
           </div>
         </div>
-
-        {split && (
-          <div className="space-y-2 border-t pt-3">
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Mål för — hur de avgörs</div>
-              <div className="flex gap-3 text-sm">
-                <span><span className="font-medium tabular-nums">{fmtPct(split.eqgPctFor)}</span> <span className="text-muted-foreground text-xs">EQ</span></span>
-                <span><span className="font-medium tabular-nums">{fmtPct(split.ppgPctFor)}</span> <span className="text-muted-foreground text-xs">PP</span></span>
-                <span><span className="font-medium tabular-nums">{fmtPct(split.shgPctFor)}</span> <span className="text-muted-foreground text-xs">SH</span></span>
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Mål emot — hur de avgörs</div>
-              <div className="flex gap-3 text-sm">
-                <span><span className="font-medium tabular-nums">{fmtPct(split.eqgPctAgainst)}</span> <span className="text-muted-foreground text-xs">EQ</span></span>
-                <span><span className="font-medium tabular-nums">{fmtPct(split.ppgPctAgainst)}</span> <span className="text-muted-foreground text-xs">PP</span></span>
-                <span><span className="font-medium tabular-nums">{fmtPct(split.shgPctAgainst)}</span> <span className="text-muted-foreground text-xs">SH</span></span>
-              </div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

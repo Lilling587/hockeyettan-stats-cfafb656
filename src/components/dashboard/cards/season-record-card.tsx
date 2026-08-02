@@ -5,6 +5,26 @@ function fmt1(n: number | null) {
   return n != null ? n.toFixed(1) : "—";
 }
 
+function fmtPct(v: number | null) {
+  return v != null ? `${v.toFixed(1)}%` : "—";
+}
+
+function GoalSplitRow({ label, split }: {
+  label: string;
+  split: { eq: number | null; pp: number | null; sh: number | null };
+}) {
+  return (
+    <div>
+      <div className="text-xs text-muted-foreground mb-1">{label}</div>
+      <div className="flex gap-3 text-sm">
+        <span><span className="font-medium tabular-nums">{fmtPct(split.eq)}</span> <span className="text-muted-foreground text-xs">EQ</span></span>
+        <span><span className="font-medium tabular-nums">{fmtPct(split.pp)}</span> <span className="text-muted-foreground text-xs">PP</span></span>
+        <span><span className="font-medium tabular-nums">{fmtPct(split.sh)}</span> <span className="text-muted-foreground text-xs">SH</span></span>
+      </div>
+    </div>
+  );
+}
+
 function TeamCol({ team }: { team: TeamData }) {
   const gp = team.gamesPlayed ?? 0;
   const gfpg = team.goalsFor != null && gp > 0 ? team.goalsFor / gp : null;
@@ -73,6 +93,18 @@ function TeamCol({ team }: { team: TeamData }) {
           </div>
         )}
       </div>
+      {team.goalTypeSplit && (
+        <div className="space-y-2 border-t pt-3">
+          <GoalSplitRow
+            label="Mål för — hur de avgörs"
+            split={{ eq: team.goalTypeSplit.eqgPctFor, pp: team.goalTypeSplit.ppgPctFor, sh: team.goalTypeSplit.shgPctFor }}
+          />
+          <GoalSplitRow
+            label="Mål emot — hur de avgörs"
+            split={{ eq: team.goalTypeSplit.eqgPctAgainst, pp: team.goalTypeSplit.ppgPctAgainst, sh: team.goalTypeSplit.shgPctAgainst }}
+          />
+        </div>
+      )}
     </div>
   );
 }
