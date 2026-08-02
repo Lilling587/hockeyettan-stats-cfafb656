@@ -63,7 +63,7 @@ function HealthPage() {
     retry: false,
   });
 
-  const [refreshInterval, setRefreshInterval] = useState<number>(300_000);
+  const [refreshInterval, setRefreshInterval] = useState<number>(900_000);
   const isInitialMount = useRef(true);
 
   useEffect(() => {
