@@ -251,6 +251,7 @@ function AuthPage() {
                   {mode === "signin" && (
                     <button
                       type="button"
+                      tabIndex={-1}
                       className="text-xs text-muted-foreground hover:underline"
                       onClick={() => setMode("forgot")}
                     >
