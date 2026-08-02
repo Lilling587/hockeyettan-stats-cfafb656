@@ -68,14 +68,14 @@ export function FaceoffsCard({ briefing }: { briefing: Briefing }) {
     <section id="faceoffs">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            Tekningar (FO%)
+          <CardTitle className="text-base flex min-w-0 items-center gap-2">
+            <span className="truncate">Tekningar (FO%)</span>
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="shrink-0 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     aria-label="Förklaring av FO%"
                   >
                     <Info className="h-4 w-4" />

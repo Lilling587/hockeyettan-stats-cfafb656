@@ -39,7 +39,7 @@ export function DisciplineCard({ home, away }: { home: TeamData; away: TeamData 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Utvisningsminuter</CardTitle>
+        <CardTitle className="text-base min-w-0 truncate">Utvisningsminuter</CardTitle>
         <p className="text-xs text-muted-foreground">
           Utvisningsminuter per match.
         </p>

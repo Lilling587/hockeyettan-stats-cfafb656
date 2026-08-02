@@ -13,7 +13,7 @@ export function ScorersCard({ team }: { team: TeamData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{team.name} · Poängliga</CardTitle>
+        <CardTitle className="text-base min-w-0 truncate">{team.name} · Poängliga</CardTitle>
       </CardHeader>
       <CardContent>
         {team.topScorers.length === 0 ? (

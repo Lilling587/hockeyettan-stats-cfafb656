@@ -33,7 +33,7 @@ export function SpecialTeamsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{team.name} · Special teams</CardTitle>
+        <CardTitle className="text-base min-w-0 truncate">{team.name} · Special teams</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4">

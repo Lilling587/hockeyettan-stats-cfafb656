@@ -1041,7 +1041,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                 ) : null}
               </div>
               <div className="flex flex-col gap-2">
-                <Button disabled={briefingMut.isPending} onClick={handleLoadBriefing}>
+                <Button className="w-full sm:w-auto" disabled={briefingMut.isPending} onClick={handleLoadBriefing}>
                   {briefingMut.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1055,7 +1055,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
                   <Button
                     variant={autoRefresh ? "default" : "outline"}
                     size="sm"
-                    className="text-xs"
+                    className="w-full text-xs sm:w-auto"
                     title={
                       autoRefresh
                         ? "Stäng av auto-uppdatering"
