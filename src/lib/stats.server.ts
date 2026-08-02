@@ -679,10 +679,10 @@ async function fetchGoalForAgainstFromHtml(
             cellMatch[1].replace(/<[^>]+>/g, "").replace(/&nbsp;| /g, " ").trim(),
           );
         }
-        // Cols: Rk[0], Team[1], GP[2], EQG%[3], PPG%[4], SHG%[5], GF/GA[6], GFA/GAA[7]
-        const eqg = checkRange(Number(cells[3]?.replace(",", ".")), 0, 100, `goalForAgainst.eqg.${key}(${teamName})`);
-        const ppg = checkRange(Number(cells[4]?.replace(",", ".")), 0, 100, `goalForAgainst.ppg.${key}(${teamName})`);
-        const shg = checkRange(Number(cells[5]?.replace(",", ".")), 0, 100, `goalForAgainst.shg.${key}(${teamName})`);
+        // Cols: Rk[0], Team[1], GP[2], 5-5[3]…4-5[11], EQG%[12], PPG%[13], SHG%[14], ENG[15], PS[16], GWS[17], GF/GA[18], GFA/GAA[19]
+        const eqg = checkRange(Number(cells[12]?.replace(",", ".")), 0, 100, `goalForAgainst.eqg.${key}(${teamName})`);
+        const ppg = checkRange(Number(cells[13]?.replace(",", ".")), 0, 100, `goalForAgainst.ppg.${key}(${teamName})`);
+        const shg = checkRange(Number(cells[14]?.replace(",", ".")), 0, 100, `goalForAgainst.shg.${key}(${teamName})`);
         result[teamName] ??= {};
         if (key === "for") {
           if (eqg != null) result[teamName].eqgPctFor = eqg;
