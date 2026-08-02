@@ -39,10 +39,12 @@ export function SpecialTeamsCard({
         <div className="grid grid-cols-2 gap-4">
           {/* Powerplay */}
           <div className="space-y-2">
-            <div className="text-xs text-muted-foreground">Powerplay</div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-semibold">{fmtPct(team.powerPlayPct)}</span>
-              {edgeBadge(team.powerPlayPct, opponent.powerPlayPct)}
+            <div>
+              <div className="text-xs text-muted-foreground">Powerplay</div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-semibold">{fmtPct(team.powerPlayPct)}</span>
+                {edgeBadge(team.powerPlayPct, opponent.powerPlayPct)}
+              </div>
             </div>
             <div className="text-sm text-muted-foreground">
               {fmtGoalOpp(team.powerPlayGoals, team.powerPlayOpportunities, "mål")}
@@ -57,10 +59,12 @@ export function SpecialTeamsCard({
 
           {/* Boxplay */}
           <div className="space-y-2">
-            <div className="text-xs text-muted-foreground">Boxplay</div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-semibold">{fmtPct(team.penaltyKillPct)}</span>
-              {edgeBadge(team.penaltyKillPct, opponent.penaltyKillPct)}
+            <div>
+              <div className="text-xs text-muted-foreground">Boxplay</div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-semibold">{fmtPct(team.penaltyKillPct)}</span>
+                {edgeBadge(team.penaltyKillPct, opponent.penaltyKillPct)}
+              </div>
             </div>
             <div className="text-sm text-muted-foreground">
               {fmtGoalOpp(team.penaltyKillGoalsAgainst, team.penaltyKillOpportunities, "insläppta")}
