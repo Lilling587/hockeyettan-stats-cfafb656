@@ -271,7 +271,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
   }, []);
 
   const adminQuery = useQuery({
-    queryKey: ["admin-check"],
+    queryKey: ["admin-check", user?.email ?? null],
     queryFn: () => adminFn(),
     enabled: !!user,
     staleTime: 60 * 60 * 1000,
