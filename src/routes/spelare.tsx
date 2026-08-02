@@ -395,20 +395,28 @@ function PlayersPage() {
               {/* Mobile cards */}
               <ul className="divide-y divide-border sm:hidden">
                 {filtered.slice(0, 200).map((p, i) => (
-                  <li key={`m-${p.team}-${p.name}-${i}`} className="flex items-center gap-3 px-4 py-3">
-                    <span className="w-6 shrink-0 text-xs text-muted-foreground">{i + 1}</span>
-                    <TeamLogo team={p.team} size="md" />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium">{p.name}</div>
-                      <div className="truncate text-xs text-muted-foreground">
-                        {p.team} · {p.position}
+                  <li key={`m-${p.team}-${p.name}-${i}`} className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 shrink-0 text-xs text-muted-foreground">{i + 1}</span>
+                      <TeamLogo team={p.team} size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium">{p.name}</div>
+                        <div className="truncate text-xs text-muted-foreground">{p.team} · {p.position}</div>
                       </div>
                     </div>
-                    <div className="text-right text-xs tabular-nums">
-                      <div className="text-sm font-semibold">{p.points ?? "—"} P</div>
-                      <div className="text-muted-foreground">
-                        {p.goals ?? 0}+{p.assists ?? 0} · {p.gamesPlayed ?? "—"} GP
-                      </div>
+                    <div className="mt-2 grid grid-cols-5 pl-9 text-center text-xs">
+                      {[
+                        { label: "G", value: p.goals },
+                        { label: "A", value: p.assists },
+                        { label: "P", value: p.points },
+                        { label: "GP", value: p.gamesPlayed },
+                        { label: "PIM", value: p.pim },
+                      ].map(({ label, value }) => (
+                        <div key={label}>
+                          <div className="text-muted-foreground">{label}</div>
+                          <div className="tabular-nums font-medium">{value ?? "—"}</div>
+                        </div>
+                      ))}
                     </div>
                   </li>
                 ))}

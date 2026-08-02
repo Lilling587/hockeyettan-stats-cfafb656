@@ -190,7 +190,7 @@ function ComparePage() {
                 {(standingsQuery.error as Error).message}
               </p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="hidden overflow-x-auto sm:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -266,6 +266,49 @@ function ComparePage() {
                   </TableBody>
                 </Table>
               </div>
+            )}
+            {!standingsQuery.isLoading && !standingsQuery.error && (
+              <ul className="divide-y divide-border sm:hidden">
+                {sorted.map((row) => {
+                  const isHome = picked.home === row.team;
+                  const isAway = picked.away === row.team;
+                  return (
+                    <li
+                      key={`m-${row.team}`}
+                      className={`flex cursor-pointer flex-col gap-2 px-4 py-3 active:bg-muted/60 ${isHome || isAway ? "bg-muted/40" : ""}`}
+                      onClick={() => pickTeam(row.team)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 shrink-0 font-mono text-xs text-muted-foreground">{row.position}</span>
+                        <span className="flex-1 text-sm font-medium">{row.team}</span>
+                        {isHome && <span className="rounded bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">Hemma</span>}
+                        {isAway && <span className="rounded bg-secondary px-1.5 py-0.5 text-xs">Borta</span>}
+                      </div>
+                      <div className="grid grid-cols-3 gap-y-2 pl-7 text-center text-xs">
+                        {[
+                          { label: "W", value: String(row.wins), cls: "" },
+                          { label: "T", value: String(row.ties), cls: "" },
+                          { label: "L", value: String(row.losses), cls: "" },
+                          { label: "GF", value: String(row.goalsFor), cls: "" },
+                          { label: "GA", value: String(row.goalsAgainst), cls: "" },
+                          {
+                            label: "Diff",
+                            value: row.goalDiff > 0 ? `+${row.goalDiff}` : String(row.goalDiff),
+                            cls: row.goalDiff > 0 ? "text-green-600" : row.goalDiff < 0 ? "text-destructive" : "",
+                          },
+                          { label: "GP", value: String(row.gamesPlayed), cls: "" },
+                          { label: "Pts", value: String(row.points), cls: "font-semibold" },
+                        ].map(({ label, value, cls }) => (
+                          <div key={label}>
+                            <div className="text-muted-foreground">{label}</div>
+                            <div className={`tabular-nums ${cls}`}>{value}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </CardContent>
         </Card>
