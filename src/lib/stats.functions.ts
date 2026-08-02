@@ -24,7 +24,7 @@ async function resolveSeason(label?: string | null): Promise<Season> {
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 const TEAMS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
-const CACHE_VERSION = "v23";
+const CACHE_VERSION = "v24";
 const HISTORY_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const LEAGUE_SLUG = "hockeyettan-sodra";
 
@@ -126,6 +126,18 @@ const TeamBriefing = z.object({
     .nullable()
     .default(null)
     .describe("Period win % from Swehockey WonPeriods (0-100 scale)"),
+  goalTypeSplit: z
+    .object({
+      eqgPctFor: z.number().nullable(),
+      ppgPctFor: z.number().nullable(),
+      shgPctFor: z.number().nullable(),
+      eqgPctAgainst: z.number().nullable(),
+      ppgPctAgainst: z.number().nullable(),
+      shgPctAgainst: z.number().nullable(),
+    })
+    .nullable()
+    .default(null)
+    .describe("Goal type distribution (EQ/PP/SH %) from GoalForAgainst page"),
   goalies: z.array(Goalie).max(5).default([]).describe("Goalies with playing time this season"),
   hotPlayer: z
     .object({

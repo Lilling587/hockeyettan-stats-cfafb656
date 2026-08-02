@@ -145,6 +145,7 @@ type Urls = {
   teamStats: string;
   specialTeams: string;
   wonPeriods: string;
+  goalForAgainst: string;
 };
 
 function buildUrls(competitionId: string): Urls {
@@ -156,6 +157,7 @@ function buildUrls(competitionId: string): Urls {
     teamStats: `${STATS_BASE_URL}/Teams/Statistics/ScoringAndGoalkeeping/${competitionId}`,
     specialTeams: `${STATS_BASE_URL}/Teams/Statistics/PowerplayAndPenaltyKilling/${competitionId}`,
     wonPeriods: `${STATS_BASE_URL}/Teams/Statistics/WonPeriods/${competitionId}`,
+    goalForAgainst: `${STATS_BASE_URL}/Teams/Statistics/GoalForAgainst/${competitionId}`,
   };
 }
 
@@ -615,6 +617,100 @@ async function fetchWonPeriodsFromHtml(
     return out;
   } catch (err) {
     console.warn("[wonPeriods] fetch failed:", (err as Error).message);
+    return {};
+  }
+}
+
+type GoalTypeSplit = {
+  eqgPctFor: number | null;
+  ppgPctFor: number | null;
+  shgPctFor: number | null;
+  eqgPctAgainst: number | null;
+  ppgPctAgainst: number | null;
+  shgPctAgainst: number | null;
+};
+
+async function fetchGoalForAgainstFromHtml(
+  urls: Urls,
+): Promise<Record<string, GoalTypeSplit>> {
+  try {
+    const res = await withRetry(() =>
+      fetchWithTimeout(urls.goalForAgainst, {
+        headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
+      }),
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+
+    const result: Record<string, Partial<GoalTypeSplit>> = {};
+    const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+    const titleRe = /<span\s+title="([^"]+)"[^>]*>\s*<strong>[^<]+<\/strong>/i;
+    const cellRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+
+    const subtitleRe = /<th\b[^>]*class="[^"]*tdSubTitle[^"]*"[^>]*>([\s\S]*?)<\/th>/gi;
+    const subtitles = [...html.matchAll(subtitleRe)].map((m) => ({
+      title: m[1].replace(/<[^>]+>/g, "").trim(),
+      start: (m.index ?? 0) + m[0].length,
+    }));
+
+    for (const [i, section] of subtitles.entries()) {
+      const title = section.title.toLowerCase();
+      const key: "for" | "against" | null = /against/i.test(title)
+        ? "against"
+        : /for/i.test(title)
+          ? "for"
+          : null;
+      if (!key) continue;
+      const next = subtitles[i + 1]?.start ?? html.length;
+      const chunk = html.slice(section.start, next);
+
+      const rowIter = new RegExp(rowRe);
+      let rowMatch: RegExpExecArray | null;
+      while ((rowMatch = rowIter.exec(chunk)) !== null) {
+        const rowHtml = rowMatch[1];
+        const titleMatch = rowHtml.match(titleRe);
+        if (!titleMatch) continue;
+        const teamName = titleMatch[1].trim();
+        const cells: string[] = [];
+        const cellIter = new RegExp(cellRe);
+        let cellMatch: RegExpExecArray | null;
+        while ((cellMatch = cellIter.exec(rowHtml)) !== null) {
+          cells.push(
+            cellMatch[1].replace(/<[^>]+>/g, "").replace(/&nbsp;| /g, " ").trim(),
+          );
+        }
+        // Cols: Rk[0], Team[1], GP[2], EQG%[3], PPG%[4], SHG%[5], GF/GA[6], GFA/GAA[7]
+        const eqg = checkRange(Number(cells[3]?.replace(",", ".")), 0, 100, `goalForAgainst.eqg.${key}(${teamName})`);
+        const ppg = checkRange(Number(cells[4]?.replace(",", ".")), 0, 100, `goalForAgainst.ppg.${key}(${teamName})`);
+        const shg = checkRange(Number(cells[5]?.replace(",", ".")), 0, 100, `goalForAgainst.shg.${key}(${teamName})`);
+        result[teamName] ??= {};
+        if (key === "for") {
+          if (eqg != null) result[teamName].eqgPctFor = eqg;
+          if (ppg != null) result[teamName].ppgPctFor = ppg;
+          if (shg != null) result[teamName].shgPctFor = shg;
+        } else {
+          if (eqg != null) result[teamName].eqgPctAgainst = eqg;
+          if (ppg != null) result[teamName].ppgPctAgainst = ppg;
+          if (shg != null) result[teamName].shgPctAgainst = shg;
+        }
+      }
+    }
+
+    const out: Record<string, GoalTypeSplit> = {};
+    for (const [name, v] of Object.entries(result)) {
+      out[name] = {
+        eqgPctFor: v.eqgPctFor ?? null,
+        ppgPctFor: v.ppgPctFor ?? null,
+        shgPctFor: v.shgPctFor ?? null,
+        eqgPctAgainst: v.eqgPctAgainst ?? null,
+        ppgPctAgainst: v.ppgPctAgainst ?? null,
+        shgPctAgainst: v.shgPctAgainst ?? null,
+      };
+    }
+    if (Object.keys(out).length === 0) console.warn("[goalForAgainst] empty result");
+    return out;
+  } catch (err) {
+    console.warn("[goalForAgainst] fetch failed:", (err as Error).message);
     return {};
   }
 }
@@ -1351,7 +1447,7 @@ export async function buildBriefing(
   // internally) — if the schedule page is down, catch and degrade those two
   // as well so one unreachable source doesn't fail the entire briefing when
   // special teams / scoring / shots-on-goal fetched fine.
-  const [scheduleGames, scrapeMdResult, specialTeamsByName, scoringData, sogByName, wonPeriodsByName] =
+  const [scheduleGames, scrapeMdResult, specialTeamsByName, scoringData, sogByName, wonPeriodsByName, goalForAgainstByName] =
     await Promise.all([
       getScheduleGames(season, { force }).catch((err) => {
         console.warn("[buildBriefing] schedule fetch failed, degrading gracefully:", (err as Error).message);
@@ -1365,6 +1461,7 @@ export async function buildBriefing(
       fetchScoringPageData(urls),
       fetchTeamShotsOnGoal(urls),
       fetchWonPeriodsFromHtml(urls),
+      fetchGoalForAgainstFromHtml(urls),
     ]);
   const scheduleMd = scrapeMdResult.md;
   const warnings: string[] = checkServerEnv();
@@ -1407,6 +1504,7 @@ export async function buildBriefing(
     venueForm: null,
     periodGoals: null,
     periodWinPct: null,
+    goalTypeSplit: null,
     goalies: [],
     hotPlayer: null,
     discipline: null,
@@ -1468,6 +1566,17 @@ export async function buildBriefing(
   };
   object.home.periodWinPct = pickWonPeriods(home);
   object.away.periodWinPct = pickWonPeriods(away);
+
+  const pickGoalTypeSplit = (name: string) => {
+    if (goalForAgainstByName[name]) return goalForAgainstByName[name];
+    const key = normalizeTeamKey(name);
+    for (const [k, v] of Object.entries(goalForAgainstByName)) {
+      if (normalizeTeamKey(k) === key) return v;
+    }
+    return null;
+  };
+  object.home.goalTypeSplit = pickGoalTypeSplit(home);
+  object.away.goalTypeSplit = pickGoalTypeSplit(away);
 
   // Goalies, top scorers (fallback), and discipline all come from the single
   // fetchScoringPageData call above — urls.scoring fetched exactly once.
