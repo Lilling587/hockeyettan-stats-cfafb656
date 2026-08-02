@@ -900,51 +900,50 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
             <ThemeToggle />
           </div>
         </div>
-      </header>
-
-      {/* Mobile-only sticky tab strip: keeps Briefing/Recap reachable while scrolling */}
-      <div className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:hidden">
-        <div className="mx-auto max-w-6xl px-4 py-2">
-          <TabsList className="w-full">
-            <TabsTrigger value="briefing" className="flex-1">
-              Matchgenomgång
-            </TabsTrigger>
-            <TabsTrigger value="recap" className="flex-1">
-              Matchsammanfattning
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        {briefing && activeTab === "briefing" && (
-          <div className="flex gap-1.5 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {[
-              { id: "teams",          label: "Lag" },
-              { id: "h2h",            label: "H2H" },
-              { id: "form",           label: "Form" },
-              { id: "venue",          label: "H/B" },
-              { id: "hot",            label: "Hetast" },
-              { id: "shots",          label: "Skott" },
-              { id: "periods",        label: "Perioder" },
-              { id: "scorers",        label: "Poäng" },
-              { id: "goalies",        label: "Målvakter" },
-              { id: "special",        label: "PP/PK" },
-              { id: "discipline",     label: "Utvisn." },
-              { id: "faceoffs",       label: "Tekningar" },
-              { id: "lineup",         label: "Lineup" },
-              { id: "streaks",        label: "Sviter" },
-              { id: "rest",           label: "Vila" },
-              { id: "probability",    label: "Vinstchans" },
-            ].map(({ id, label }) => (
-              <a
-                key={id}
-                href={`#${id}`}
-                className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              >
-                {label}
-              </a>
-            ))}
+        {/* Mobile tab strip — inside header so it sticks together as one unit */}
+        <div className="sm:hidden">
+          <div className="mx-auto max-w-6xl px-4 py-2">
+            <TabsList className="w-full">
+              <TabsTrigger value="briefing" className="flex-1">
+                Matchgenomgång
+              </TabsTrigger>
+              <TabsTrigger value="recap" className="flex-1">
+                Matchsammanfattning
+              </TabsTrigger>
+            </TabsList>
           </div>
-        )}
-      </div>
+          {briefing && activeTab === "briefing" && (
+            <div className="flex gap-1.5 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {[
+                { id: "teams",      label: "Lag" },
+                { id: "h2h",        label: "H2H" },
+                { id: "form",       label: "Form" },
+                { id: "venue",      label: "H/B" },
+                { id: "hot",        label: "Hetast" },
+                { id: "shots",      label: "Skott" },
+                { id: "periods",    label: "Perioder" },
+                { id: "scorers",    label: "Poäng" },
+                { id: "goalies",    label: "Målvakter" },
+                { id: "special",    label: "PP/PK" },
+                { id: "discipline", label: "Utvisn." },
+                { id: "faceoffs",   label: "Tekningar" },
+                { id: "lineup",     label: "Lineup" },
+                { id: "streaks",    label: "Sviter" },
+                { id: "rest",       label: "Vila" },
+                { id: "probability",label: "Vinstchans" },
+              ].map(({ id, label }) => (
+                <a
+                  key={id}
+                  href={`#${id}`}
+                  className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </header>
 
    <main className={`mx-auto max-w-6xl touch-pan-y px-6 py-8 ${tabletMode ? "space-y-10" : "space-y-6"}`}>
         <PendingSeasonsBanner
