@@ -157,7 +157,7 @@ export function buildStorylines(b: Briefing): Storyline[] {
     out.push({
       id: "faceoffs",
       priority: 5,
-      text: `${better.name} styr tekningarna med ${num(better === home ? homeFo : awayFo)}% mot ${num(
+      text: `${better.name} leder tekningarna med ${num(better === home ? homeFo : awayFo)}% mot ${num(
         better === home ? awayFo : homeFo,
       )}%.${extra}`,
     });
