@@ -1,122 +1,60 @@
-# Förbättringsplan för HockeyEttan Stats
+# More commentator stats — pre-game storytelling nuggets
 
-Baserat på nuvarande läge (de flesta backlog-punkter klara, typcheck OK, säkerhetsfixar på plats) föreslår vi tre fokusområden: **producent-UX**, **sändningspålitlighet** och **backend-hälsa**. Varje område innehåller mätbara leverabler.
+## Goal
+Give commentators richer pre-game storylines by surfacing narrative-ready facts alongside the existing numbers. The work is scoped to new dashboard briefing cards and a small admin curation UI.
 
----
+## What we already have
+The match briefing already shows: standings, form, venue streaks, special teams, shots, period goals, scorers, goalies, discipline, faceoffs, lineup diff, rest days and win probability. Historical depth features (all-time H2H, last meeting recap, season trajectory) exist in the codebase but are only used in the post-game view.
 
-## 1. Frontend – producent- och kommentatorsupplevelse
+## Proposed additions
 
-### 1.1 Personligt dashboard (högst prioritet)
-- Låt inloggade användare dölja/ordna om briefing-kort via drag-and-drop.
-- Spara layouten i `localStorage` (och gärna i `notification_prefs` om vi vill ha den användarövergripande).
-- Standardlayout oförändrad för nya användare.
+1. **Storylines card** (` Kommentatorns snackisar `)
+   - A new top-of-briefing card that lists 3-5 bullet talking points.
+   - Generated from existing data: current streaks, form contrast, special-teams edge, faceoff edge, last meeting outcome, all-time H2H dominance, milestone watch (if available).
+   - Producers can override or add manual notes.
 
-### 1.2 Sök och filter i adminlistor
-- Lägg till sök i `/admin/users`, `/admin/audit`, `/admin/auth-emails` och `/admin/logs`.
-- Filter: status (pending/approved/rejected), roll (admin/användare), datumintervall.
-- Bulkåtgärder: godkänn/neka flera användare samtidigt.
+2. **Historical rivalry card**
+   - Reuse the existing `getAllTimeHeadToHead` server function.
+   - Show all-time record, meetings count, and home/away split between the two teams.
 
-### 1.3 Kommentatorsläge – offline och print
-- Cacha senaste laddade briefing i service workern så kommentatorsvyn fungerar om nätverket går ner under sändning.
-- Lägg till en ren print-CSS för briefing-korten (dölj header, toggle-knappar, bakgrundsfärger).
-- Visa en "Senast uppdaterad"-tidsstämpel per kort så kommentatorn vet vilken data som är aktuell.
+3. **Last meeting recap card**
+   - Reuse the existing `getLastMeetingRecap` server function.
+   - Show date, score, goal summary, shots and PIM from the most recent meeting.
 
-### 1.4 Konsekventa tomma/fel-tillstånd
-- Ersätt texten "Ingen data" med illustrerade/tomma tillståndskomponenter i alla kort.
-- Gemensam `<ErrorState retry={...} />`-komponent som används över hela appen.
+4. **Season trajectory mini-cards**
+   - Reuse the existing `getSeasonTrajectory` server function.
+   - Show a small sparkline/line chart of each team's cumulative points per game over the season, plus league-average baseline.
 
-### 1.5 Tillgänglighet (a11y)
-- ARIA-labels på alla ikonknappar i admin/vMix.
-- Fokusindikatorer i slot-redigeraren.
-- Se till att alla formulär har kopplade `<label>`-element.
+5. **Milestone / manual nuggets**
+   - Add a `story_nuggets` table with `id`, `team_name`, `type` (`milestone`, `returning_player`, `rivalry`, `manual`), `text`, `expires_at`, `created_by`, `created_at`.
+   - Admin UI under `/admin/stories` to create, edit, expire and pin nuggets.
+   - Nuggets appear in the Storylines card when they match one of the two teams and are not expired.
 
----
+## External data (optional, gated by secrets)
 
-## 2. Backend – pålitlighet, prestanda och övervakning
+- Add a generic `fetchExternalStoryContext` server helper that can call an external API for extra context (e.g. Elite Prospects player pages, local arena info, weather).
+- The helper reads `STORY_API_URL` and `STORY_API_KEY` from secrets and is disabled when not configured, so the app keeps working on Swehockey data alone.
 
-### 2.1 Distribuerad rate limiting (högst prioritet)
-- Nuvarande rate limiter är in-memory per Worker-instans.
-- Flytta till Supabase-backed lagring (t.ex. en `rate_limit_buckets`-tabell med RLS) så gränser gäller globalt även vid flera Worker-instanser.
-- Behåll interna undantag för server-till-server-anrop.
+## Files to touch
 
-### 2.2 Scrape-kö med retry och dead-letter
-- Inför en `scrape_queue`-tabell (eller använd befintlig `pgmq`) för misslyckade scrapes.
-- Automatisk retry med exponentiell backoff.
-- Dead-letter-kö efter 3 försök, exponerad i `/admin/health`.
+- `src/lib/stats.functions.ts` — add `getStorylines`, `getHistoricalRivalry`, `getLastMeetingRecapForBriefing`, `getSeasonTrajectoryForBriefing` wrappers.
+- `src/lib/stats.server.ts` — implement nugget generation logic and external-context fetcher.
+- `src/components/dashboard/cards/storylines-card.tsx` — new card component.
+- `src/components/dashboard/cards/historical-rivalry-card.tsx` — new card component.
+- `src/components/dashboard/cards/last-meeting-recap-card.tsx` — new card component.
+- `src/components/dashboard/cards/season-trajectory-mini-card.tsx` — new sparkline card.
+- `src/components/dashboard/briefing-view.tsx` — insert new cards near the top of the grid.
+- Supabase migration — create `story_nuggets` table with admin-only RLS.
+- `src/routes/_authenticated/admin.stories.tsx` — admin curation page.
+- `src/components/admin-nav.tsx` — add "Stories" link.
 
-### 2.3 Datavalidering med Zod
-- Definiera Zod-scheman för all extern data från `stats.swehockey.se` (standings, lineups, player stats, schedules).
-- Kasta tydliga fel vid oväntat format istället för tysta `null`-värden.
-- Logga schemafel till `error_log` med kontext.
+## Out of scope
 
-### 2.4 Prestandaindex och query-optimering
-- Lägg till index på ofta filtrerade kolumner: `vmix_publications.published_at`, `audit_events.created_at`, `scrape_metrics.fetched_at`, `error_log.created_at`.
-- Granska långsamma queries via `/admin/usage` och Supabase slow-query-loggen.
+- No changes to live play-by-play or TV rotation in this plan.
+- No new scraping sources are required; Swehockey-derived data is the baseline.
 
-### 2.5 Strukturerad loggning och larm
-- Ersätt `console.warn`/`console.error` i serverfunktioner med ett enhetligt loggformat: `{source, level, message, context, route}`.
-- Gruppera liknande fel i `/admin/logs` (t.ex. "Firecrawl timeout" – 12 st senaste timmen).
-- Lägg till en "Larm"-sektion i `/admin/health`: rött om samma fel upprepas >5 gånger per timme.
+## Success criteria
 
----
-
-## 3. Sändningsspecifika förbättringar
-
-### 3.1 Offlinelagring av senaste briefing
-- Service workern cache:ar `/` + senaste `/api/public/vmix/*`-anrop.
-- Visar en "Offline – visar cache"-banner.
-- Användbart om internet går ner i sändningsbussen.
-
-### 3.2 Auto-detektering av Swehockey API-fel
-- `/admin/health` jämför primära `vmix-new.hockeyettan.se` mot våra egna backup-endpoints.
-- När primära API:et misslyckas 3 gånger i rad, visa tydlig rekommendation: "Byt till backup-domän" med klickbar knapp som kopierar backup-URL:en.
-
-### 3.3 Utökad förberedelsekontroll
-- Lägg till "Senaste scraping OK" och "Logotyper uppladdade för båda lagen" i readiness-kortet.
-- Möjlighet att exportera en PDF/Screenshot av hela briefingvyn för producentens anteckningar.
-
-### 3.4 Sändningstidslinje
-- En ny tabell `broadcast_events` (eller återanvänd `vmix_audit_log`) loggar: puck drop, mål, periodslut, publicering, avpublicering.
-- Visas i `/admin/vmix` som en tidslinje under pågående sändning.
-
----
-
-## 4. Test och kvalitet
-
-### 4.1 Utöka testtäckningen
-- Idag finns endast ett test (`shot-timeline-card.test.tsx`).
-- Lägg till tester för:
-  - `form-card.tsx` – sortering och null-hantering.
-  - `goalies-card.tsx` – SV%-sortering.
-  - `venue-streak-card.tsx` – badge-rendering.
-  - `vmix.functions.ts` – publish/unpublish logik med mockad Supabase.
-
-### 4.2 CI-förbättringar
-- Lägg till `bun run lint` och `bun run test` i `.github/workflows/ci.yml` (idag körs bara build + typecheck).
-- Lägg till en byggvarning om `src/` är nyare än `dist/` vid produktionsbygge.
-
-### 4.3 Strict TypeScript
-- Åtgärda kvarvarande `as any`/`as never` (se IMPROVEMENTS.md punkt 16 – delvis klar).
-- Aktivera `noImplicitAny` och `strictNullChecks` fullt ut om de inte redan är på.
-
----
-
-## 5. Föreslagen prioritetsordning
-
-| Fas | Leverabler | Varför först? |
-|---|---|---|
-| **Fas 1** | Distribuerad rate limiter, scrape-kö, Zod-validering | Påverkar driftstabilitet och kreditförbrukning direkt. |
-| **Fas 2** | Personligt dashboard, sök/filter i admin, offline-cache | Mest synbara producent- och kommentatorförbättringar. |
-| **Fas 3** | Index/perf, strukturerad loggning, larm | Gör appen lättare att skala och felsöka. |
-| **Fas 4** | Sändningstidslinje, auto-failover, utökad readiness | Polish för broadcast-säsongen. |
-| **Fas 5** | Testtäckning, strict TS, CI-lint/test | Långsiktig kodkvalitet. |
-
----
-
-## Nästa steg
-
-1. Godkänn planen.
-2. Välj **fas 1** eller en specifik punkt att börja med.
-3. Jag börjar implementera och uppdaterar `IMPROVEMENTS.md` med nya punkter.
-
-Vill du att vi börjar med en specifik del, eller ska jag prioritera fas 1 (backend-stabilitet) först?
+- The briefing dashboard shows the new cards for any matchup.
+- Admins can create, edit and expire story nuggets.
+- The app builds and passes `bun run typecheck`.
