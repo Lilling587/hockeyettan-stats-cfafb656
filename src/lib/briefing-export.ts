@@ -61,10 +61,16 @@ export function briefingToTvText(b: Briefing): string {
         .join("\n")
     : "  (inga möten denna säsong)";
 
+  const stories = topStorylines(b);
+  const storyBlock = stories.length
+    ? ["── SNACKISAR ──", storylinesToText(stories), ""].join("\n")
+    : "";
+
   return [
     `${b.home.name} vs ${b.away.name}`,
     b.league,
     "",
+    storyBlock,
     sections("home"),
     "",
     sections("away"),
