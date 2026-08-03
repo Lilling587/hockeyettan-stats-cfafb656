@@ -5,8 +5,10 @@ import {
   daysSinceLast,
   lastFivePpg,
   strongestPeriod,
+  teamPpg,
   venueWinRate,
 } from "@/lib/dashboard-utils";
+
 
 export type Storyline = {
   id: string;
@@ -73,12 +75,26 @@ export function buildStorylines(b: Briefing): Storyline[] {
   const homePpg = lastFivePpg(home);
   const awayPpg = lastFivePpg(away);
   if (homePpg != null && awayPpg != null && Math.abs(homePpg - awayPpg) >= 0.8) {
+    const leader = homePpg > awayPpg ? home : away;
+    const trailer = leader === home ? away : home;
+    const leaderPpg = Math.max(homePpg, awayPpg);
+    const trailerPpg = Math.min(homePpg, awayPpg);
+    const trend = (t: TeamData, five: number) => {
+      const season = teamPpg(t);
+      if (season == null) return "";
+      const d = five - season;
+      if (Math.abs(d) < 0.3) return " (i nivå med säsongssnittet)";
+      return d > 0
+        ? ` (${num(d)} mer än säsongssnittet ${num(season)})`
+        : ` (${num(-d)} under säsongssnittet ${num(season)})`;
+    };
     out.push({
       id: "form-contrast",
       priority: 2,
-      text: `Formkurvorna pekar åt olika håll: ${home.name} tar ${num(homePpg)} poäng per match senaste fem, ${away.name} ${num(awayPpg)}.`,
+      text: `Senaste fem: ${leader.name} tar ${num(leaderPpg)} poäng per match${trend(leader, leaderPpg)}, ${trailer.name} ${num(trailerPpg)}${trend(trailer, trailerPpg)}.`,
     });
   }
+
 
   // 3. Tabellavstånd
   if (
