@@ -9,6 +9,7 @@
 
 export type BriefingAnchorId =
   | "briefing-capture"
+  | "storylines"
   | "form"
   | "venue"
   | "periods"
@@ -30,6 +31,7 @@ export type BriefingAnchor = {
 
 export const BRIEFING_ANCHORS: readonly BriefingAnchor[] = [
   { id: "briefing-capture", label: "Toppen (hela briefingen)" },
+  { id: "storylines", label: "Kommentatorns snackisar" },
   { id: "form", label: "Form" },
   { id: "venue", label: "Hemma/borta-svit" },
   { id: "periods", label: "Periodmål" },
@@ -44,6 +46,7 @@ export const BRIEFING_ANCHORS: readonly BriefingAnchor[] = [
   { id: "streaks", label: "Streak alerts" },
   { id: "discipline", label: "Disciplin" },
 ] as const;
+
 
 export const BRIEFING_ENVIRONMENTS = {
   preview: "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app",

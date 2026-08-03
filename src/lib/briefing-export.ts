@@ -1,4 +1,6 @@
 import type { Briefing } from "./stats.functions";
+import { storylinesToText, topStorylines } from "./storylines";
+
 
 function fmtPct(n: number | null | undefined): string {
   if (n === null || n === undefined || !Number.isFinite(n)) return "—";
@@ -59,10 +61,16 @@ export function briefingToTvText(b: Briefing): string {
         .join("\n")
     : "  (inga möten denna säsong)";
 
+  const stories = topStorylines(b);
+  const storyBlock = stories.length
+    ? ["── SNACKISAR ──", storylinesToText(stories), ""].join("\n")
+    : "";
+
   return [
     `${b.home.name} vs ${b.away.name}`,
     b.league,
     "",
+    storyBlock,
     sections("home"),
     "",
     sections("away"),
@@ -120,9 +128,16 @@ ${goalies || "_Inga noterade_"}`;
         .join("\n")
     : "_Inga möten denna säsong._";
 
+  const stories = topStorylines(b);
+  const storyBlock = stories.length
+    ? `## Snackisar\n\n${stories.map((s) => `- ${s.text}`).join("\n")}\n`
+    : "";
+
   return `# ${b.home.name} vs ${b.away.name}
 
 _${b.league}_
+
+${storyBlock}
 
 ${teamBlock("home")}
 

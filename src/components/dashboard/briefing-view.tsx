@@ -45,6 +45,9 @@ import { FaceoffsCard } from "./briefing/FaceoffsCard";
 
 import { HomeAwaySplitCard } from "./cards/home-away-split-card";
 import { SeasonRecordCard } from "./cards/season-record-card";
+import { StorylinesCard } from "./cards/storylines-card";
+
+
 
 
 export function BriefingView({
@@ -227,6 +230,12 @@ export function BriefingView({
         <TeamHeader team={data.home} side="Hemmalag" />
         <TeamHeader team={data.away} side="Bortalag" />
       </div>
+
+      <div id="storylines">
+        <StorylinesCard briefing={data} />
+      </div>
+
+
 
       <Card id="h2h">
         <CardHeader>

@@ -18,6 +18,16 @@
       }
     },
     {
+      "id": "storylines",
+      "label": "Kommentatorns snackisar",
+      "urls": {
+        "preview": "https://id-preview--b5d9d92f-3d6c-4d04-99c2-25be99cec0a2.lovable.app/#storylines",
+        "published": "https://hockeyettan-stats.lovable.app/#storylines",
+        "custom": "https://hockeyettan-stats.spdproduktion.se/#storylines"
+      }
+    },
+
+    {
       "id": "teams",
       "label": "Lagöversikt",
       "urls": {
