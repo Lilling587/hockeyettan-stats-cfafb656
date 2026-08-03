@@ -128,9 +128,16 @@ ${goalies || "_Inga noterade_"}`;
         .join("\n")
     : "_Inga möten denna säsong._";
 
+  const stories = topStorylines(b);
+  const storyBlock = stories.length
+    ? `## Snackisar\n\n${stories.map((s) => `- ${s.text}`).join("\n")}\n`
+    : "";
+
   return `# ${b.home.name} vs ${b.away.name}
 
 _${b.league}_
+
+${storyBlock}
 
 ${teamBlock("home")}
 
