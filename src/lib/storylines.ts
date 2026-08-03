@@ -133,21 +133,17 @@ export function buildStorylines(b: Briefing): Storyline[] {
         : null;
   if (biggest && Math.abs(biggest.diff) >= 4) {
     const better = biggest.diff > 0 ? home : away;
-    const value =
-      biggest.kind === "powerplay"
-        ? (better.powerPlayPct ?? 0)
-        : (better.penaltyKillPct ?? 0);
+    const other = better === home ? away : home;
+    const pick = (t: TeamData) =>
+      biggest.kind === "powerplay" ? (t.powerPlayPct ?? 0) : (t.penaltyKillPct ?? 0);
     const label = biggest.kind === "powerplay" ? "Powerplay" : "Boxplay";
     out.push({
       id: `special-${biggest.kind}`,
       priority: 4,
-      text: `${label}: ${better.name} är klart vassare med ${num(value)}% mot motståndarnas ${num(
-        biggest.kind === "powerplay"
-          ? ((better === home ? away.powerPlayPct : home.powerPlayPct) ?? 0)
-          : ((better === home ? away.penaltyKillPct : home.penaltyKillPct) ?? 0),
-      )}%.`,
+      text: `${label}: ${better.name} är klart vassare med ${num(pick(better))}% mot ${other.name}s ${num(pick(other))}%.`,
     });
   }
+
 
   // 5. Tekningar
   const homeFo = home.faceoffs?.teamFoPct ?? null;
