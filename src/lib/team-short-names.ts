@@ -1,27 +1,17 @@
 // AUTOGENERERAD — kör `node scripts/update-team-short-names.mjs` för att uppdatera.
-// Källa: https://stats.swehockey.se/Teams/Statistics/ScoringAndGoalkeeping/18271
-// Senast hämtad: 2026-08-07T18:08:04.846Z
+// Källa: https://stats.swehockey.se/Teams/Statistics/ScoringAndGoalkeeping/21044
+// Senast hämtad: 2026-08-07T19:30:10.293Z
 const SHORT_NAMES: Record<string, string> = {
-  "Borås HC": "BRS",
+  "Boro/Vetlanda HC": "BVE",
+  "Borås HC": "BOR",
   "Grums IK": "GRU",
-  "Grästorps IK": "GRÄ",
   "Halmstad Hammers HC": "HHHC",
   "Hanvikens SK": "HAN",
   "HC Dalen": "DAL",
   "HC Vita Hästen": "VIT",
-  "Huddinge IK": "HDG",
-  "Järfälla HC": "JÄR",
-  "Karlskrona HK": "KHK",
-  "Kungälvs IK": "KUN",
-  "Mariestad BoIS HC": "MAR",
-  "Mjölby HC": "MHC",
-  "Mörrums GoIS IK": "MÖR",
-  "Nyköpings SK": "NSK",
-  "Tingsryds AIF": "TAIF",
+  "Huddinge IK": "HUD",
+  "Karlskrona HK": "KAR",
   "Tranås AIF": "TRA",
-  "Tyringe SoSS": "TYR",
-  "Visby/Roma HK": "VIS",
-  "Västerviks IK": "VÄS",
 };
 
 export function shortTeamName(name: string): string {
