@@ -11,10 +11,10 @@
  *   node scripts/update-team-short-names.mjs --competition=18271
  *   node scripts/update-team-short-names.mjs --force   (ignorera cache-TTL)
  */
-import { writeFile, readFile, mkdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { writeFile, readFile, mkdir } from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -106,6 +106,10 @@ export function shortTeamName(name: string): string {
   if (upper.length >= 2 && upper.length <= 5) return upper;
   return trimmed.slice(0, 4).toUpperCase();
 }
+
+export const KNOWN_TEAM_NAMES: ReadonlySet<string> = new Set(
+  Object.keys(SHORT_NAMES),
+);
 `;
 }
 
