@@ -263,7 +263,7 @@ export function buildStorylines(b: Briefing): Storyline[] {
   }
 
   // 10. Inbördes möten denna säsong (endast spelade matcher)
-  const played = b.headToHead.filter(isPlayedMeeting);
+  const played = b.headToHead.filter((m) => isPlayedMeeting(m));
   if (played.length > 0) {
     const last = played[played.length - 1];
     out.push({
