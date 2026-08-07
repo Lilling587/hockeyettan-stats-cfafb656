@@ -1023,6 +1023,8 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
             shutouts: parseNum(cells[12]),
             wins: parseNum(cells[13]),
             losses: parseNum(cells[14]),
+            lastFiveSavePct: null,
+            lastFiveGamesPlayed: null,
           });
           if (goalieList.length >= 5) break;
         }
@@ -1085,6 +1087,72 @@ type ParsedGoal = {
   period: string | null;
   time: string | null;
 };
+
+function parseGameGoalies(
+  html: string,
+): Array<{ teamAbbrev: string; name: string; saves: number; shots: number }> {
+  const gkIdx = html.search(/Goalkeeper Summary<\/h3>/i);
+  if (gkIdx === -1) return [];
+  const after = html.slice(gkIdx + "Goalkeeper Summary</h3>".length);
+  const nextSection = after.search(/<th\b[^>]*class="[^"]*tdSubTitle/i);
+  const gkSection = nextSection > 0 ? after.slice(0, nextSection) : after;
+  const re = /<td[^>]*>([A-ZÅÄÖ]{2,5})<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*>[\s\S]*?\((\d+)\/(\d+)\)/gi;
+  const result: Array<{ teamAbbrev: string; name: string; saves: number; shots: number }> = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(gkSection)) !== null) {
+    const teamAbbrev = m[1];
+    const name = m[2].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().replace(/^\d+\.\s*/, "");
+    const saves = parseInt(m[3], 10);
+    const shots = parseInt(m[4], 10);
+    if (name && !isNaN(saves) && !isNaN(shots)) result.push({ teamAbbrev, name, saves, shots });
+  }
+  return result;
+}
+
+async function enrichGoaliesWithLastFive(
+  goalies: Briefing["home"]["goalies"],
+  teamCode: string,
+  games: ScheduleGame[],
+): Promise<Briefing["home"]["goalies"]> {
+  if (goalies.length === 0) return goalies;
+  const last5 = games
+    .filter((g) => g.played && g.id && (shortTeamName(g.homeTeam) === teamCode || shortTeamName(g.awayTeam) === teamCode))
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .slice(0, 5);
+  if (last5.length === 0) return goalies;
+  const perGame = await Promise.all(
+    last5.map(async (g) => {
+      try {
+        const res = await withRetry(() => fetchWithTimeout(`${STATS_BASE_URL}/Game/Events/${g.id}`, {
+          headers: { "user-agent": "Mozilla/5.0", "cache-control": "no-cache" },
+        }));
+        if (!res.ok) return [];
+        return parseGameGoalies(await res.text()).filter((r) => r.teamAbbrev === teamCode);
+      } catch {
+        return [];
+      }
+    }),
+  );
+  const agg: Record<string, { saves: number; shots: number; gamesPlayed: number }> = {};
+  for (const entries of perGame) {
+    for (const e of entries) {
+      const key = e.name.toLowerCase();
+      agg[key] ??= { saves: 0, shots: 0, gamesPlayed: 0 };
+      agg[key].saves += e.saves;
+      agg[key].shots += e.shots;
+      agg[key].gamesPlayed++;
+    }
+  }
+  return goalies.map((g) => {
+    const stats = agg[g.name.toLowerCase()];
+    if (!stats || stats.shots === 0) return g;
+    return {
+      ...g,
+      lastFiveSavePct: parseFloat(((stats.saves / stats.shots) * 100).toFixed(2)),
+      lastFiveGamesPlayed: stats.gamesPlayed,
+    };
+  });
+}
 
 function parseGameGoals(
   html: string,
@@ -1595,8 +1663,12 @@ export async function buildBriefing(
 
   // Goalies, top scorers (fallback), and discipline all come from the single
   // fetchScoringPageData call above — urls.scoring fetched exactly once.
-  object.home.goalies = scoringData.goalies[home] ?? [];
-  object.away.goalies = scoringData.goalies[away] ?? [];
+  const [homeGoaliesEnriched, awayGoaliesEnriched] = await Promise.all([
+    enrichGoaliesWithLastFive(scoringData.goalies[home] ?? [], homeCode, scheduleGames),
+    enrichGoaliesWithLastFive(scoringData.goalies[away] ?? [], awayCode, scheduleGames),
+  ]);
+  object.home.goalies = homeGoaliesEnriched;
+  object.away.goalies = awayGoaliesEnriched;
   object.home.discipline = scoringData.discipline[home] ?? null;
   object.away.discipline = scoringData.discipline[away] ?? null;
   object.home.faceoffs = scoringData.faceoffs[home] ?? null;

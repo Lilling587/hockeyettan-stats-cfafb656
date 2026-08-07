@@ -1,6 +1,6 @@
 // AUTOGENERERAD — kör `node scripts/update-team-short-names.mjs` för att uppdatera.
 // Källa: https://stats.swehockey.se/Teams/Statistics/ScoringAndGoalkeeping/18271
-// Senast hämtad: 2026-06-27T21:27:40.465Z
+// Senast hämtad: 2026-08-07T18:08:04.846Z
 const SHORT_NAMES: Record<string, string> = {
   "Borås HC": "BRS",
   "Grums IK": "GRU",

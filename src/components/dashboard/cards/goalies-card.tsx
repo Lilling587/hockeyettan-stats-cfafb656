@@ -32,6 +32,7 @@ export function GoaliesCard({ team }: { team: TeamData }) {
                   <TableHead>Målvakt</TableHead>
                   <TableHead className="text-right">GP</TableHead>
                   <TableHead className="text-right">SV%</TableHead>
+                  <TableHead className="text-right">SV% L5</TableHead>
                   <TableHead className="text-right">GAA</TableHead>
                   <TableHead className="text-right">SO</TableHead>
                 </TableRow>
@@ -43,6 +44,16 @@ export function GoaliesCard({ team }: { team: TeamData }) {
                     <TableCell className="text-right font-mono">{g.gamesPlayed ?? "—"}</TableCell>
                     <TableCell className="text-right font-mono">
                       {g.savePct != null ? g.savePct.toFixed(2) : "—"}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {g.lastFiveSavePct != null ? (
+                        <span title={`${g.lastFiveGamesPlayed ?? "?"}/5 matcher`}>
+                          {g.lastFiveSavePct.toFixed(2)}
+                          {g.lastFiveGamesPlayed != null && g.lastFiveGamesPlayed < 5 && (
+                            <span className="text-xs text-muted-foreground ml-1">({g.lastFiveGamesPlayed}m)</span>
+                          )}
+                        </span>
+                      ) : "—"}
                     </TableCell>
                     <TableCell className="text-right font-mono">
                       {g.gaa != null ? g.gaa.toFixed(2) : "—"}
