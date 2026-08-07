@@ -46,6 +46,25 @@ function recordFromResults(results: readonly string[]) {
 }
 
 /**
+ * En match räknas som spelad först när den har ett riktigt resultat och
+ * datumet inte ligger i framtiden. Kommande möten ska inte bli snackisar.
+ */
+export function isPlayedMeeting(
+  m: { date: string; score: string },
+  now: Date = new Date(),
+): boolean {
+  const score = (m.score ?? "").trim();
+  if (!/^\d+\s*[-–:]\s*\d+/.test(score)) return false;
+  const d = m.date ? new Date(m.date) : null;
+  if (d && !Number.isNaN(d.getTime())) {
+    const endOfDay = new Date(d);
+    endOfDay.setHours(23, 59, 59, 999);
+    if (endOfDay.getTime() > now.getTime()) return false;
+  }
+  return true;
+}
+
+/**
  * Deterministiska snackisar till kommentatorerna, härledda ur data som redan
  * finns i briefingen. Sorterade efter prioritet — lägre siffra = viktigare.
  */
