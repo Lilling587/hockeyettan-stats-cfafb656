@@ -11,7 +11,7 @@ const SHORT_NAMES: Record<string, string> = {
   "HC Dalen": "DAL",
   "HC Vita Hästen": "VIT",
   "Huddinge IK": "HUD",
-  "IF Troja-Ljungby": "TLJ",
+  "IF Troja-Ljungby": "TRO",
   "Karlskrona HK": "KAR",
   "Kungälvs IK": "KUN",
   "Mariestad BoIS HC": "MAR",
