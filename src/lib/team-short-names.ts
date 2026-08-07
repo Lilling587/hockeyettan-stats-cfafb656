@@ -5,13 +5,23 @@ const SHORT_NAMES: Record<string, string> = {
   "Boro/Vetlanda HC": "BVE",
   "Borås HC": "BOR",
   "Grums IK": "GRU",
+  "Grästorps IK": "GRÄ",
   "Halmstad Hammers HC": "HHHC",
   "Hanvikens SK": "HAN",
   "HC Dalen": "DAL",
   "HC Vita Hästen": "VIT",
   "Huddinge IK": "HUD",
+  "IF Troja-Ljungby": "TLJ",
   "Karlskrona HK": "KAR",
+  "Kungälvs IK": "KUN",
+  "Mariestad BoIS HC": "MAR",
+  "Mjölby HC": "MHC",
+  "Mörrums GoIS IK": "MÖR",
+  "Nyköpings SK": "NSK",
+  "Tingsryds AIF": "TAIF",
   "Tranås AIF": "TRA",
+  "Tyringe SoSS": "TYR",
+  "Västerviks IK": "VÄS",
 };
 
 export function shortTeamName(name: string): string {
