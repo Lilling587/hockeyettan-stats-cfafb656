@@ -17,7 +17,7 @@
 - **Banned:** NO pull requests, force-pushes, rebasing, amending, or squashing (breaks Lovable sync).
 
 ## Project Constants
-- **Grästorps IK ID:** 570 (Default team) | **2025-26 Comp ID:** 18271
+- **Grästorps IK ID:** 570 (Default team) | **2025-26 Comp ID:** 18271 | **2026-27 Comp ID:** 21044
 - **Pre-season Comp ID:** 21138 (`Preseason Games Herr` on stats.swehockey.se)
 - **Rate Limit:** 120 req/min per IP (internal exempt)
 - **Cache:** Bumps via `CACHE_VERSION` in `stats.functions.ts`
