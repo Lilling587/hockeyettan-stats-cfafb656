@@ -243,14 +243,15 @@ export function buildStorylines(b: Briefing): Storyline[] {
     });
   }
 
-  // 10. Inbördes möten denna säsong
-  if (b.headToHead.length > 0) {
-    const last = b.headToHead[b.headToHead.length - 1];
+  // 10. Inbördes möten denna säsong (endast spelade matcher)
+  const played = b.headToHead.filter(isPlayedMeeting);
+  if (played.length > 0) {
+    const last = played[played.length - 1];
     out.push({
       id: "h2h",
       priority: 10,
-      text: `Lagen har mötts ${b.headToHead.length} gång${
-        b.headToHead.length === 1 ? "" : "er"
+      text: `Lagen har mötts ${played.length} gång${
+        played.length === 1 ? "" : "er"
       } denna säsong. Senast: ${last.homeTeam} ${last.score} ${last.awayTeam}${
         last.date ? ` (${last.date})` : ""
       }.`,
