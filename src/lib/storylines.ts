@@ -46,6 +46,25 @@ function recordFromResults(results: readonly string[]) {
 }
 
 /**
+ * En match räknas som spelad först när den har ett riktigt resultat och
+ * datumet inte ligger i framtiden. Kommande möten ska inte bli snackisar.
+ */
+export function isPlayedMeeting(
+  m: { date: string; score: string },
+  now: Date = new Date(),
+): boolean {
+  const score = (m.score ?? "").trim();
+  if (!/^\d+\s*[-–:]\s*\d+/.test(score)) return false;
+  const d = m.date ? new Date(m.date) : null;
+  if (d && !Number.isNaN(d.getTime())) {
+    const endOfDay = new Date(d);
+    endOfDay.setHours(23, 59, 59, 999);
+    if (endOfDay.getTime() > now.getTime()) return false;
+  }
+  return true;
+}
+
+/**
  * Deterministiska snackisar till kommentatorerna, härledda ur data som redan
  * finns i briefingen. Sorterade efter prioritet — lägre siffra = viktigare.
  */
@@ -243,14 +262,15 @@ export function buildStorylines(b: Briefing): Storyline[] {
     });
   }
 
-  // 10. Inbördes möten denna säsong
-  if (b.headToHead.length > 0) {
-    const last = b.headToHead[b.headToHead.length - 1];
+  // 10. Inbördes möten denna säsong (endast spelade matcher)
+  const played = b.headToHead.filter((m) => isPlayedMeeting(m));
+  if (played.length > 0) {
+    const last = played[played.length - 1];
     out.push({
       id: "h2h",
       priority: 10,
-      text: `Lagen har mötts ${b.headToHead.length} gång${
-        b.headToHead.length === 1 ? "" : "er"
+      text: `Lagen har mötts ${played.length} gång${
+        played.length === 1 ? "" : "er"
       } denna säsong. Senast: ${last.homeTeam} ${last.score} ${last.awayTeam}${
         last.date ? ` (${last.date})` : ""
       }.`,
