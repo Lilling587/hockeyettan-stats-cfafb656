@@ -12,8 +12,8 @@ export type Season = {
 };
 
 export const SEASONS: Season[] = [
+  { label: "2026-27", competitionId: "21044" },
   { label: "2025-26", competitionId: "18271" },
-  // { label: "2026-27", competitionId: "XXXXX" },
 ];
 
 export const DEFAULT_SEASON = SEASONS[0];
