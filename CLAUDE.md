@@ -56,6 +56,11 @@
 - Run `bun run typecheck` before committing.
 
 
+## PWA Icons
+- **Location:** `public/icons/` (not Supabase). Three files: `icon192.png`, `icon512.png`, `apple-touch-icon.png`.
+- **Padding:** All icons require ~12% padding on all sides so the logo isn't clipped by the macOS squircle mask.
+- **Rebuilding:** If icons are replaced, regenerate with Pillow: resize source to `size - 2*pad`, paste centered on a transparent canvas of the target size.
+
 ## Strict Banned Practices
 - Do not use `www.` in production URL.
 - Do not modify `public/briefing-anchors.json` structure (Stream Deck dependency).
