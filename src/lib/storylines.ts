@@ -3,6 +3,7 @@ import type { TeamData } from "@/lib/dashboard-utils";
 import {
   currentStreak,
   daysSinceLast,
+  parseGameDate,
   lastFivePpg,
   strongestPeriod,
   teamPpg,
@@ -55,23 +56,56 @@ export function isPlayedMeeting(
 ): boolean {
   const score = (m.score ?? "").trim();
   if (!/^\d+\s*[-–:]\s*\d+/.test(score)) return false;
-  const d = m.date ? new Date(m.date) : null;
-  if (d && !Number.isNaN(d.getTime())) {
-    const endOfDay = new Date(d);
-    endOfDay.setHours(23, 59, 59, 999);
-    if (endOfDay.getTime() > now.getTime()) return false;
-  }
-  return true;
+  return !isFutureDate(m.date, now);
+}
+
+function isFutureDate(date: string | null | undefined, now: Date): boolean {
+  const d = date ? parseGameDate(date) : null;
+  if (!d || Number.isNaN(d.getTime())) return false;
+  const endOfDay = new Date(d);
+  endOfDay.setHours(23, 59, 59, 999);
+  return endOfDay.getTime() > now.getTime();
+}
+
+/**
+ * Samma speldatumsregel för lagens matchlistor: resultatet måste vara känt
+ * (inte "?") och datumet får inte ligga i framtiden.
+ */
+export function isPlayedGame(
+  g: { date: string; score: string; result: string },
+  now: Date = new Date(),
+): boolean {
+  if (!g.result || g.result === "?") return false;
+  return !isFutureDate(g.date, now);
+}
+
+/**
+ * Ett gemensamt datumfilter för hela briefingen. Alla snackisar byggs på den
+ * filtrerade kopian, så ingen textrad kan råka blanda in kommande matcher.
+ */
+export function filterBriefingToPlayed(b: Briefing, now: Date = new Date()): Briefing {
+  const filterTeam = (t: TeamData): TeamData => ({
+    ...t,
+    lastFive: (t.lastFive ?? []).filter((g) => isPlayedGame(g, now)),
+  });
+  return {
+    ...b,
+    home: filterTeam(b.home),
+    away: filterTeam(b.away),
+    headToHead: b.headToHead.filter((m) => isPlayedMeeting(m, now)),
+  };
 }
 
 /**
  * Deterministiska snackisar till kommentatorerna, härledda ur data som redan
  * finns i briefingen. Sorterade efter prioritet — lägre siffra = viktigare.
  */
-export function buildStorylines(b: Briefing): Storyline[] {
+export function buildStorylines(b: Briefing, now: Date = new Date()): Storyline[] {
   const out: Storyline[] = [];
-  const home = b.home;
-  const away = b.away;
+  const filtered = filterBriefingToPlayed(b, now);
+  const home = filtered.home;
+  const away = filtered.away;
+
 
   // 1. Sviter
   for (const [team, side] of [
@@ -263,7 +297,7 @@ export function buildStorylines(b: Briefing): Storyline[] {
   }
 
   // 10. Inbördes möten denna säsong (endast spelade matcher)
-  const played = b.headToHead.filter((m) => isPlayedMeeting(m));
+  const played = filtered.headToHead;
   if (played.length > 0) {
     const last = played[played.length - 1];
     out.push({
@@ -295,8 +329,12 @@ export function buildStorylines(b: Briefing): Storyline[] {
   return out.sort((a, c) => a.priority - c.priority);
 }
 
-export function topStorylines(b: Briefing, limit = MAX_STORYLINES): Storyline[] {
-  return buildStorylines(b).slice(0, limit);
+export function topStorylines(
+  b: Briefing,
+  limit = MAX_STORYLINES,
+  now: Date = new Date(),
+): Storyline[] {
+  return buildStorylines(b, now).slice(0, limit);
 }
 
 export function storylinesToText(lines: Storyline[]): string {
