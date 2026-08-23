@@ -2579,10 +2579,13 @@ function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: Ros
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">{players.length} spelare hittade</p>
             <div className="max-h-72 overflow-auto rounded border divide-y divide-border text-xs">
-              {players.map((p, i) => (
+              {players.map((p, i) => {
+                const num = p.number !== "" ? `${p.number}` : "";
+                const copyText = num ? `${num} ${p.name}` : p.name;
+                return (
                 <div key={i} className="flex items-center gap-3 px-3 py-1.5">
                   <span className="w-6 text-right font-mono text-muted-foreground shrink-0">
-                    {p.number !== "" ? `${p.number}` : "–"}
+                    {num || "–"}
                   </span>
                   <span className="flex-1 font-medium">{p.name}</span>
                   {p.position && (
@@ -2593,21 +2596,22 @@ function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: Ros
                     size="icon"
                     variant="ghost"
                     className="h-7 w-7 shrink-0"
-                    aria-label={`Kopiera ${p.name}`}
-                    title="Kopiera namn"
+                    aria-label={`Kopiera ${num ? `${num} ${p.name}` : p.name}`}
+                    title="Kopiera nummer och namn"
                     onClick={async () => {
                       try {
-                        await navigator.clipboard.writeText(p.name);
-                        toast.success(`Kopierade ${p.name}`);
+                        await navigator.clipboard.writeText(copyText);
+                        toast.success(`Kopierade ${copyText}`);
                       } catch {
-                        toast.error("Kunde inte kopiera namnet");
+                        toast.error("Kunde inte kopiera");
                       }
                     }}
                   >
                     <Copy className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-              ))}
+                );
+              })}
 
             </div>
           </div>
