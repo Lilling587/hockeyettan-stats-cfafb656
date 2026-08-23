@@ -2588,8 +2588,27 @@ function PreseasonRosterCard({ onRosterLoaded }: { onRosterLoaded: (players: Ros
                   {p.position && (
                     <span className="text-muted-foreground">{p.position}</span>
                   )}
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 shrink-0"
+                    aria-label={`Kopiera ${p.name}`}
+                    title="Kopiera namn"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(p.name);
+                        toast.success(`Kopierade ${p.name}`);
+                      } catch {
+                        toast.error("Kunde inte kopiera namnet");
+                      }
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               ))}
+
             </div>
           </div>
         )}
