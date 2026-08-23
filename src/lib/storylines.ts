@@ -3,6 +3,7 @@ import type { TeamData } from "@/lib/dashboard-utils";
 import {
   currentStreak,
   daysSinceLast,
+  parseGameDate,
   lastFivePpg,
   strongestPeriod,
   teamPpg,
@@ -296,7 +297,7 @@ export function buildStorylines(b: Briefing, now: Date = new Date()): Storyline[
   }
 
   // 10. Inbördes möten denna säsong (endast spelade matcher)
-  const played = b.headToHead.filter((m) => isPlayedMeeting(m));
+  const played = filtered.headToHead;
   if (played.length > 0) {
     const last = played[played.length - 1];
     out.push({
@@ -328,8 +329,12 @@ export function buildStorylines(b: Briefing, now: Date = new Date()): Storyline[
   return out.sort((a, c) => a.priority - c.priority);
 }
 
-export function topStorylines(b: Briefing, limit = MAX_STORYLINES): Storyline[] {
-  return buildStorylines(b).slice(0, limit);
+export function topStorylines(
+  b: Briefing,
+  limit = MAX_STORYLINES,
+  now: Date = new Date(),
+): Storyline[] {
+  return buildStorylines(b, now).slice(0, limit);
 }
 
 export function storylinesToText(lines: Storyline[]): string {
