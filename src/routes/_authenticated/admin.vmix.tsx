@@ -1853,6 +1853,7 @@ const SlotInputs = memo(
           placeholder="EFTERNAMN, FÖRNAMN"
           value={name}
           onChange={(e) => commit({ name: e.target.value })}
+          onPaste={handlePaste}
         />
       </div>
     </div>
