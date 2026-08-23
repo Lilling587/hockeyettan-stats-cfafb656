@@ -1762,6 +1762,20 @@ const SlotInputs = memo(
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = e.clipboardData.getData("text");
+    // Match "12 John Doe", "#12 John Doe", "John Doe #12" etc.
+    const leading = text.match(/^#?(\d+)\s*[\-–]?\s*(.+)$/);
+    const trailing = text.match(/^(.+?)\s*#(\d+)\s*$/);
+    if (leading) {
+      e.preventDefault();
+      commit({ number: Number(leading[1]), name: leading[2].trim() });
+    } else if (trailing) {
+      e.preventDefault();
+      commit({ number: Number(trailing[2]), name: trailing[1].trim() });
+    }
+  };
+
   // Split pool into display groups for <optgroup> labels.
   const goalies = useMemo(() => pool.filter((p) => /^(GK|MV)$/i.test(p.position ?? "")), [pool]);
   const defenders = useMemo(() => pool.filter((p) => /^(LD|RD|D|B)$/i.test(p.position ?? "")), [pool]);
