@@ -423,6 +423,25 @@ async function doComputeGameFlow(
     })),
   );
 
+    const nullShotsCount = parsedList.filter(
+    ({ parsed }) => !parsed || (parsed.homeShots == null && parsed.awayShots == null),
+  ).length;
+  if (teamGames.length > 0 && nullShotsCount > 0) {
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.from("error_log").insert({
+        source: "gameFlow",
+        level: nullShotsCount === teamGames.length ? "warn" : "info",
+        message: `${team} (${season.label}): ${teamGames.length} games looked up, ${nullShotsCount} had null shots. Game IDs with null shots: ${parsedList
+          .filter(({ parsed }) => !parsed || (parsed.homeShots == null && parsed.awayShots == null))
+          .map(({ g }) => g.id)
+          .join(", ")}`,
+      });
+    } catch {
+      // Never let diagnostics break the main flow.
+    }
+  }
+
   const points: GameFlowGamePoint[] = parsedList.map(({ g, parsed }) => {
     const isHome = g.homeTeam === team;
     const opponent = isHome ? g.awayTeam : g.homeTeam;
