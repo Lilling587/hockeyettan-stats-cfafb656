@@ -7,7 +7,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
-  "Cache-Control": "public, max-age=30, stale-while-revalidate=60",
+    "Cache-Control": "public, max-age=5",
   "Content-Type": "application/json; charset=utf-8",
 };
 
