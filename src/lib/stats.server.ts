@@ -1226,6 +1226,24 @@ function parseGameGoals(
 }
 
 type HotPlayer = NonNullable<Briefing["home"]["hotPlayer"]>;
+
+// Writes directly to the error_log table so these diagnostics are visible in
+// /admin/logs. Plain console.log/warn inside this server function only reach
+// the Cloudflare Worker runtime log, which the app has no UI for — this is
+// the practical fix for that gap, not just a debug convenience.
+async function logHotPlayerDiag(level: "info" | "warn" | "error", message: string): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("error_log").insert({
+      source: "hotPlayer",
+      level,
+      message: message.slice(0, 4000),
+    });
+  } catch {
+    // Never let diagnostics break the main flow.
+  }
+}
+
 async function fetchHotPlayersFromGameLogs(
   urls: Urls,
   teamLookups: Array<{ name: string; code: string | undefined }>,
@@ -1269,6 +1287,12 @@ async function fetchHotPlayersFromGameLogs(
         awayTeam: teams[2].trim(),
       });
     }
+    if (allGames.length === 0) {
+      await logHotPlayerDiag(
+        "warn",
+        "Schedule page parsed but 0 games found — /Game/Events link format or row markup may have changed.",
+      );
+    }
     const perTeam = new Map<string, { code: string; games: Game[] }>();
     for (const { name, code } of teamLookups) {
       if (!code) continue;
@@ -1278,9 +1302,17 @@ async function fetchHotPlayersFromGameLogs(
         .slice(0, recentGames);
       if (games.length > 0) perTeam.set(name, { code, games });
     }
+    if (perTeam.size === 0 && allGames.length > 0) {
+      const sampleNames = [...new Set(allGames.slice(0, 5).flatMap((g) => [g.homeTeam, g.awayTeam]))];
+      await logHotPlayerDiag(
+        "warn",
+        `Schedule had ${allGames.length} games but 0 matched lookup teams: ${teamLookups.map((t) => `${t.name}(${t.code ?? "no-code"})`).join(", ")}. Sample schedule names: ${sampleNames.join(" | ")}`,
+      );
+    }
     const gameIds = new Set<string>();
     for (const { games } of perTeam.values()) for (const g of games) gameIds.add(g.id);
     const fetchedPages = new Map<string, string>();
+    let pageFetchFailures = 0;
     await Promise.all(
       Array.from(gameIds).map(async (id) => {
         try {
@@ -1290,17 +1322,19 @@ async function fetchHotPlayersFromGameLogs(
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           fetchedPages.set(id, await r.text());
         } catch {
-          // ignore individual page failures
+          pageFetchFailures += 1;
         }
       }),
     );
     const result: Record<string, HotPlayer> = {};
+    let totalGoalsParsed = 0;
     for (const [teamName, { code, games }] of perTeam.entries()) {
       const tally = new Map<string, { goals: number; assists: number }>();
       for (const g of games) {
         const html = fetchedPages.get(g.id);
         if (!html) continue;
         const goals = parseGameGoals(html);
+        totalGoalsParsed += goals.length;
         for (const gl of goals) {
           if (gl.teamCode !== code) continue;
           const sc = tally.get(gl.scorer) ?? { goals: 0, assists: 0 };
@@ -1330,9 +1364,21 @@ async function fetchHotPlayersFromGameLogs(
         };
       }
     }
+    if (fetchedPages.size > 0 && totalGoalsParsed === 0) {
+      await logHotPlayerDiag(
+        "warn",
+        `Fetched ${fetchedPages.size} game pages (${pageFetchFailures} failed) but parsed 0 goals total — the "Total goals scored" marker in parseGameGoals likely no longer matches current page markup (possible Swehockey redesign).`,
+      );
+    } else {
+      await logHotPlayerDiag(
+        "info",
+        `allGames=${allGames.length} teamsWithGames=${perTeam.size} pagesFetched=${fetchedPages.size} pageFailures=${pageFetchFailures} goalsParsed=${totalGoalsParsed} resultTeams=${Object.keys(result).length}`,
+      );
+    }
     return result;
   } catch (err) {
     console.warn("[hotPlayer] failed:", (err as Error).message);
+    await logHotPlayerDiag("error", `fetchHotPlayersFromGameLogs threw: ${(err as Error).message}`);
     return {};
   }
 }
