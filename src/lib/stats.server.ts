@@ -138,6 +138,7 @@ const STATS_BASE_URL = "https://stats.swehockey.se";
 const LEAGUE_NAME = "Hockeyettan Södra";
 
 type Urls = {
+  competitionId: string;
   standings: string;
   schedule: string;
   roster: string;
@@ -150,6 +151,7 @@ type Urls = {
 
 function buildUrls(competitionId: string): Urls {
   return {
+    competitionId,
     standings: `${STATS_BASE_URL}/ScheduleAndResults/Standings/${competitionId}`,
     schedule: `${STATS_BASE_URL}/ScheduleAndResults/Schedule/${competitionId}`,
     roster: `${STATS_BASE_URL}/Teams/Info/TeamRoster/${competitionId}`,
