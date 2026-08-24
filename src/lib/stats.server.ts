@@ -1597,8 +1597,8 @@ export async function buildBriefing(
   // shortTeamName always returns a best-effort code (e.g. uppercase initials)
   // even for teams not yet in KNOWN_TEAM_NAMES, so a newly promoted team still
   // gets faceoff/hot-player data rather than silently falling through as undefined.
-  const homeCode = shortTeamName(home);
-  const awayCode = shortTeamName(away);
+    const homeCode = shortTeamName(home, season.competitionId);
+  const awayCode = shortTeamName(away, season.competitionId);
   if (!KNOWN_TEAM_NAMES.has(home)) {
     console.warn(`[briefing] "${home}" not in KNOWN_TEAM_NAMES — update team-short-names.ts (guessed code: ${homeCode})`);
   }
