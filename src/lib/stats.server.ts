@@ -1484,9 +1484,9 @@ async function fetchTeamShotsOnGoal(
 ): Promise<Record<string, { sfPerGame: number | null; saPerGame: number | null }>> {
   // Invert the SHORT_NAMES map: abbreviation → full name
   // e.g. "GRÄ" → "Grästorps IK"
-  const nameByAbbr: Record<string, string> = {};
+    const nameByAbbr: Record<string, string> = {};
   for (const name of KNOWN_TEAM_NAMES) {
-    nameByAbbr[shortTeamName(name)] = name;
+    nameByAbbr[shortTeamName(name, urls.competitionId)] = name;
   }
   try {
     const res = await withRetry(() => fetchWithTimeout(urls.teamStats, {
