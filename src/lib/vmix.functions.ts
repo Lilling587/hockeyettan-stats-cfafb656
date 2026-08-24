@@ -174,7 +174,7 @@ async function logAuditEvent(
 // endpoint; without caching that's 4–12+ queries/min. With a 10s TTL the
 // database sees at most ~6 queries/min regardless of polling frequency.
 let _pubCache: { data: VmixPublicationRow | null; ts: number } | null = null;
-const PUB_CACHE_TTL_MS = 30_000;
+const PUB_CACHE_TTL_MS = 5_000;
 
 async function fetchActivePublicationFresh(): Promise<VmixPublicationRow | null> {
   const { createClient } = await import("@supabase/supabase-js");
