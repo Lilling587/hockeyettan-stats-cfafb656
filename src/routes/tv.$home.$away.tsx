@@ -165,7 +165,7 @@ const CARDS: Card[] = [
   {
     title: "Inbördes (senaste 3)",
     render: (b) => {
-      const recent = b.headToHead.slice(-3);
+      const recent = b.headToHead.filter((m) => isPlayedMeeting(m)).slice(0, 3);
       return (
         <div className="w-full max-w-4xl space-y-4 text-2xl">
           {recent.length === 0 ? (

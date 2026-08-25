@@ -299,7 +299,8 @@ export function buildStorylines(b: Briefing, now: Date = new Date()): Storyline[
   // 10. Inbördes möten denna säsong (endast spelade matcher)
   const played = filtered.headToHead;
   if (played.length > 0) {
-    const last = played[played.length - 1];
+    // Listan är sorterad med nyaste först.
+    const last = played[0];
     out.push({
       id: "h2h",
       priority: 10,
