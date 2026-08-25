@@ -46,6 +46,7 @@ import { FaceoffsCard } from "./briefing/FaceoffsCard";
 import { HomeAwaySplitCard } from "./cards/home-away-split-card";
 import { SeasonRecordCard } from "./cards/season-record-card";
 import { StorylinesCard } from "./cards/storylines-card";
+import { isPlayedMeeting } from "@/lib/storylines";
 
 
 
@@ -78,6 +79,7 @@ export function BriefingView({
   });
   const homeFlow = gameFlowQuery.data?.home;
   const awayFlow = gameFlowQuery.data?.away;
+  const playedHeadToHead = data.headToHead.filter((m) => isPlayedMeeting(m));
 
   const handleCopy = async (kind: "text" | "markdown") => {
     const payload =
@@ -242,7 +244,7 @@ export function BriefingView({
           <CardTitle className="text-base">Inbördes möten</CardTitle>
         </CardHeader>
         <CardContent>
-          {data.headToHead.length === 0 ? (
+          {playedHeadToHead.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Inga tidigare möten denna säsong.
             </p>
@@ -258,7 +260,7 @@ export function BriefingView({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.headToHead.map((g, i) => (
+                  {playedHeadToHead.map((g, i) => (
                     <TableRow key={i}>
                       <TableCell>{g.date || "—"}</TableCell>
                       <TableCell>{g.homeTeam}</TableCell>

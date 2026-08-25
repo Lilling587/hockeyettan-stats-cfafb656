@@ -7,6 +7,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { ArrowLeft } from "lucide-react";
 
 import { getMatchupBriefing } from "@/lib/stats.functions";
+import { isPlayedMeeting } from "@/lib/storylines";
 import type { Briefing } from "@/lib/stats.functions";
 import { TeamLogo } from "@/components/team-logo";
 import { Button } from "@/components/ui/button";
@@ -165,7 +166,7 @@ const CARDS: Card[] = [
   {
     title: "Inbördes (senaste 3)",
     render: (b) => {
-      const recent = b.headToHead.slice(-3);
+      const recent = b.headToHead.filter((m) => isPlayedMeeting(m)).slice(0, 3);
       return (
         <div className="w-full max-w-4xl space-y-4 text-2xl">
           {recent.length === 0 ? (
