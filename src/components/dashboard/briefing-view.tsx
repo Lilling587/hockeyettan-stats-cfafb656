@@ -46,6 +46,7 @@ import { FaceoffsCard } from "./briefing/FaceoffsCard";
 import { HomeAwaySplitCard } from "./cards/home-away-split-card";
 import { SeasonRecordCard } from "./cards/season-record-card";
 import { StorylinesCard } from "./cards/storylines-card";
+import { isPlayedMeeting } from "@/lib/storylines";
 
 
 
@@ -78,6 +79,7 @@ export function BriefingView({
   });
   const homeFlow = gameFlowQuery.data?.home;
   const awayFlow = gameFlowQuery.data?.away;
+  const playedHeadToHead = data.headToHead.filter((m) => isPlayedMeeting(m));
 
   const handleCopy = async (kind: "text" | "markdown") => {
     const payload =
