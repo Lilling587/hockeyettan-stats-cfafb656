@@ -7,6 +7,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { ArrowLeft } from "lucide-react";
 
 import { getMatchupBriefing } from "@/lib/stats.functions";
+import { isPlayedMeeting } from "@/lib/storylines";
 import type { Briefing } from "@/lib/stats.functions";
 import { TeamLogo } from "@/components/team-logo";
 import { Button } from "@/components/ui/button";
