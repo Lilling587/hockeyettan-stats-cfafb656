@@ -402,6 +402,8 @@ function PlayersPage() {
                           <th className="px-2 py-2 text-right">SV%</th>
                           <th className="px-2 py-2 text-right">GAA</th>
                           <th className="px-2 py-2 text-right">SO</th>
+                          <th className="px-2 py-2 text-right">A</th>
+                          <th className="px-2 py-2 text-right">P</th>
                         </>
                       ) : (
                         <>
