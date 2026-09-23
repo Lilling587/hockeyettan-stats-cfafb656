@@ -459,8 +459,8 @@ export const SpecialTeamsEntrySchema = z.object({
   penaltyKillGoalsAgainst: z.number().nullable(),
   powerPlayOpportunities: z.number().nullable(),
   penaltyKillOpportunities: z.number().nullable(),
-  ppTimePerGoal: z.string().nullable(),
-  pkTimePerGoal: z.string().nullable(),
+  ppTimePerGoal: z.string().nullable().default(null),
+  pkTimePerGoal: z.string().nullable().default(null),
 });
 
 async function fetchSpecialTeamsFromHtml(
