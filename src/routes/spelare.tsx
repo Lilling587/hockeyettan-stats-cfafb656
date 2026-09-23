@@ -53,10 +53,10 @@ export const Route = createFileRoute("/spelare")({
   ),
 });
 
-type SortKey = "points" | "goals" | "assists" | "pim";
+type SortKey = "points" | "goals" | "assists" | "pim" | "savePct" | "gaa" | "shutouts";
 type PosFilter = "all" | "F" | "D" | "G";
 
-const SORT_KEYS: SortKey[] = ["points", "goals", "assists", "pim"];
+const SORT_KEYS: SortKey[] = ["points", "goals", "assists", "pim", "savePct", "gaa", "shutouts"];
 const POS_KEYS: PosFilter[] = ["all", "F", "D", "G"];
 
 function matchPosition(filter: PosFilter, pos: string): boolean {
@@ -164,9 +164,12 @@ function PlayersPage() {
 
 
   const filtered = useMemo(() => {
-    const all = (playersQuery.data?.players ?? []).filter(
-      (p) => p.position?.toUpperCase() !== "G",
-    );
+    const players = playersQuery.data?.players ?? [];
+    // Goalies only via the "Målvakter" filter; other filters hide them.
+    const all =
+      pos === "G"
+        ? players.filter((p) => p.position?.toUpperCase() === "G")
+        : players.filter((p) => p.position?.toUpperCase() !== "G");
     const q = query.trim().toLowerCase();
     const matched = all.filter((p) => {
       if (!matchPosition(pos, p.position)) return false;
