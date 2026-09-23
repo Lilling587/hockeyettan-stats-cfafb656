@@ -2622,9 +2622,10 @@ export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlaye
         const gp = Number(cells[5]);
         // Include goalies even with 0 games so they are searchable pre-season.
         // Columns: Rk, No, Name, GPT, GKD, GPI, MIP, GA, SVS, SOG, SVS%, GAA, SO, W, L
-        const sv = Number(cells[10]);
-        const gaa = Number(cells[11]);
-        const so = Number(cells[12]);
+        // Number("") === 0, so guard empty cells to keep them null.
+        const sv = cells[10] === "" ? NaN : Number(cells[10]);
+        const gaa = cells[11] === "" ? NaN : Number(cells[11]);
+        const so = cells[12] === "" ? NaN : Number(cells[12]);
         out.push({
           team, name, position: "G", gamesPlayed: Number.isFinite(gp) ? gp : null,
           goals: null, assists: null, points: null, pim: null,
