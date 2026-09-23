@@ -2561,6 +2561,7 @@ export type LeaguePlayerRow = {
   team: string; name: string; position: string;
   gamesPlayed: number | null; goals: number | null;
   assists: number | null; points: number | null; pim: number | null;
+  savePct: number | null; gaa: number | null; shutouts: number | null;
 };
 
 export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlayerRow[]> {
@@ -2607,6 +2608,7 @@ export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlaye
         assists: Number.isFinite(a) ? a : null,
         points: Number.isFinite(p) ? p : null,
         pim: Number.isFinite(pim) ? pim : null,
+        savePct: null, gaa: null, shutouts: null,
       });
     }
     if (gkSection) {
@@ -2619,7 +2621,17 @@ export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlaye
         if (!name) continue;
         const gp = Number(cells[5]);
         if (!Number.isFinite(gp) || gp === 0) continue;
-        out.push({ team, name, position: "G", gamesPlayed: gp, goals: null, assists: null, points: null, pim: null });
+        // Columns: Rk, No, Name, GPT, GKD, GPI, MIP, GA, SVS, SOG, SVS%, GAA, SO, W, L
+        const sv = Number(cells[10]);
+        const gaa = Number(cells[11]);
+        const so = Number(cells[12]);
+        out.push({
+          team, name, position: "G", gamesPlayed: gp,
+          goals: null, assists: null, points: null, pim: null,
+          savePct: Number.isFinite(sv) ? sv : null,
+          gaa: Number.isFinite(gaa) ? gaa : null,
+          shutouts: Number.isFinite(so) ? so : null,
+        });
       }
     }
   }
