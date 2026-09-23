@@ -226,7 +226,8 @@ function PlayersPage() {
     shutouts: "hållna nollor",
   };
 
-  const filtersDirty = query.trim().length > 0 || pos !== "all" || sort !== "points";
+  const sortIsDefault = pos === "G" ? sort === "savePct" || sort === "points" : sort === "points";
+  const filtersDirty = query.trim().length > 0 || pos !== "all" || !sortIsDefault;
   const activeFilterSummary = [
     query.trim() ? `Sök: "${query.trim()}"` : null,
     pos !== "all" ? `Position: ${posLabel[pos]}` : null,
@@ -238,7 +239,7 @@ function PlayersPage() {
   const resetFilters = () => {
     setQuery("");
     setPos("all");
-    setSort("points");
+    setSort(pos === "G" ? "savePct" : "points");
   };
 
   return (
@@ -331,12 +332,18 @@ function PlayersPage() {
               <div className="ml-auto flex flex-wrap items-center gap-2">
                 <span className="text-xs font-medium text-muted-foreground">Sortera:</span>
                 {(
-                  [
-                    ["points", "P"],
-                    ["goals", "G"],
-                    ["assists", "A"],
-                    ["pim", "PIM"],
-                  ] as Array<[SortKey, string]>
+                  pos === "G"
+                    ? ([
+                        ["savePct", "SV%"],
+                        ["gaa", "GAA"],
+                        ["shutouts", "SO"],
+                      ] as Array<[SortKey, string]>)
+                    : ([
+                        ["points", "P"],
+                        ["goals", "G"],
+                        ["assists", "A"],
+                        ["pim", "PIM"],
+                      ] as Array<[SortKey, string]>)
                 ).map(([key, label]) => (
                   <Button key={key} size="sm" variant={sort === key ? "default" : "ghost"} onClick={() => setSort(key)}>
                     {label}
