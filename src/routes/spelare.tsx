@@ -391,10 +391,20 @@ function PlayersPage() {
                       <th className="px-4 py-2">Lag</th>
                       <th className="px-2 py-2">Pos</th>
                       <th className="px-2 py-2 text-right">GP</th>
-                      <th className="px-2 py-2 text-right">G</th>
-                      <th className="px-2 py-2 text-right">A</th>
-                      <th className="px-2 py-2 text-right">P</th>
-                      <th className="px-2 py-2 text-right">PIM</th>
+                      {pos === "G" ? (
+                        <>
+                          <th className="px-2 py-2 text-right">SV%</th>
+                          <th className="px-2 py-2 text-right">GAA</th>
+                          <th className="px-2 py-2 text-right">SO</th>
+                        </>
+                      ) : (
+                        <>
+                          <th className="px-2 py-2 text-right">G</th>
+                          <th className="px-2 py-2 text-right">A</th>
+                          <th className="px-2 py-2 text-right">P</th>
+                          <th className="px-2 py-2 text-right">PIM</th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -410,10 +420,24 @@ function PlayersPage() {
                         </td>
                         <td className="px-2 py-2 text-muted-foreground">{p.position}</td>
                         <td className="px-2 py-2 text-right tabular-nums">{p.gamesPlayed ?? "—"}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{p.goals ?? "—"}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
-                        <td className="px-2 py-2 text-right font-semibold tabular-nums">{p.points ?? "—"}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{p.pim ?? "—"}</td>
+                        {pos === "G" ? (
+                          <>
+                            <td className="px-2 py-2 text-right font-semibold tabular-nums">
+                              {p.savePct != null ? p.savePct.toFixed(2) : "—"}
+                            </td>
+                            <td className="px-2 py-2 text-right tabular-nums">
+                              {p.gaa != null ? p.gaa.toFixed(2) : "—"}
+                            </td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.shutouts ?? "—"}</td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.goals ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
+                            <td className="px-2 py-2 text-right font-semibold tabular-nums">{p.points ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.pim ?? "—"}</td>
+                          </>
+                        )}
                       </tr>
                     ))}
                   </tbody>
