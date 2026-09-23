@@ -2626,9 +2626,23 @@ export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlaye
         const sv = cells[10] === "" ? NaN : Number(cells[10]);
         const gaa = cells[11] === "" ? NaN : Number(cells[11]);
         const so = cells[12] === "" ? NaN : Number(cells[12]);
+        // Swehockey lists goalies twice: once in Scoring Statistics (goals,
+        // assists, points, PIM) and once here. Merge the scoring row into this
+        // one and drop the duplicate.
+        const skaterIdx = out.findIndex(
+          (r) =>
+            r.team === team &&
+            r.name === name &&
+            /^g/i.test(r.position),
+        );
+        const skater = skaterIdx === -1 ? null : out[skaterIdx];
+        if (skaterIdx !== -1) out.splice(skaterIdx, 1);
         out.push({
           team, name, position: "G", gamesPlayed: Number.isFinite(gp) ? gp : null,
-          goals: null, assists: null, points: null, pim: null,
+          goals: skater?.goals ?? null,
+          assists: skater?.assists ?? null,
+          points: skater?.points ?? null,
+          pim: skater?.pim ?? null,
           savePct: Number.isFinite(sv) ? sv : null,
           gaa: Number.isFinite(gaa) ? gaa : null,
           shutouts: Number.isFinite(so) ? so : null,

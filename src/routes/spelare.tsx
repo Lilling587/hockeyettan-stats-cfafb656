@@ -137,6 +137,7 @@ function PlayersPage() {
 
   const setQuery = (v: string) =>
     navigate({ search: (p: SearchParams) => ({ ...p, q: v }), replace: true });
+  // Sorts that only make sense for goalies; points/assists work for both.
   const GOALIE_SORTS: SortKey[] = ["savePct", "gaa", "shutouts"];
   const setPos = (v: PosFilter) =>
     navigate({
@@ -205,7 +206,10 @@ function PlayersPage() {
 
       return words.every((w: string) => combined.includes(w)) || p.team.toLowerCase().includes(q);
     });
-    const key: SortKey = pos === "G" && !["savePct", "gaa", "shutouts"].includes(sort) ? "savePct" : sort;
+    const key: SortKey =
+      pos === "G" && !["savePct", "gaa", "shutouts", "points", "assists"].includes(sort)
+        ? "savePct"
+        : sort;
     const get = (p: LeaguePlayer): number => {
       if (key === "goals") return p.goals ?? -1;
       if (key === "assists") return p.assists ?? -1;
@@ -347,6 +351,8 @@ function PlayersPage() {
                         ["savePct", "SV%"],
                         ["gaa", "GAA"],
                         ["shutouts", "SO"],
+                        ["points", "P"],
+                        ["assists", "A"],
                       ] as Array<[SortKey, string]>)
                     : ([
                         ["points", "P"],
@@ -396,6 +402,8 @@ function PlayersPage() {
                           <th className="px-2 py-2 text-right">SV%</th>
                           <th className="px-2 py-2 text-right">GAA</th>
                           <th className="px-2 py-2 text-right">SO</th>
+                          <th className="px-2 py-2 text-right">A</th>
+                          <th className="px-2 py-2 text-right">P</th>
                         </>
                       ) : (
                         <>
@@ -429,6 +437,8 @@ function PlayersPage() {
                               {p.gaa != null ? p.gaa.toFixed(2) : "—"}
                             </td>
                             <td className="px-2 py-2 text-right tabular-nums">{p.shutouts ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.points ?? "—"}</td>
                           </>
                         ) : (
                           <>
@@ -456,13 +466,15 @@ function PlayersPage() {
                         <div className="truncate text-xs text-muted-foreground">{p.team} · {p.position}</div>
                       </div>
                     </div>
-                    <div className={`mt-2 grid pl-9 text-center text-xs ${pos === "G" ? "grid-cols-4" : "grid-cols-5"}`}>
+                    <div className={`mt-2 grid pl-9 text-center text-xs ${pos === "G" ? "grid-cols-6" : "grid-cols-5"}`}>
                       {(pos === "G"
                         ? [
                             { label: "GP", value: p.gamesPlayed },
                             { label: "SV%", value: p.savePct != null ? p.savePct.toFixed(2) : null },
                             { label: "GAA", value: p.gaa != null ? p.gaa.toFixed(2) : null },
                             { label: "SO", value: p.shutouts },
+                            { label: "A", value: p.assists },
+                            { label: "P", value: p.points },
                           ]
                         : [
                             { label: "G", value: p.goals },
