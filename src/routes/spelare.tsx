@@ -195,14 +195,19 @@ function PlayersPage() {
 
       return words.every((w: string) => combined.includes(w)) || p.team.toLowerCase().includes(q);
     });
-    const key = sort;
+    const key: SortKey = pos === "G" && !["savePct", "gaa", "shutouts"].includes(sort) ? "savePct" : sort;
     const get = (p: LeaguePlayer): number => {
       if (key === "goals") return p.goals ?? -1;
       if (key === "assists") return p.assists ?? -1;
       if (key === "pim") return p.pim ?? -1;
+      if (key === "savePct") return p.savePct ?? -1;
+      if (key === "shutouts") return p.shutouts ?? -1;
+      if (key === "gaa") return p.gaa ?? Infinity; // handled asc below
       return p.points ?? -1;
     };
-    return matched.slice().sort((a, b) => get(b) - get(a));
+    return matched
+      .slice()
+      .sort((a, b) => (key === "gaa" ? get(a) - get(b) : get(b) - get(a)));
   }, [playersQuery.data, query, pos, sort]);
 
   const posLabel: Record<PosFilter, string> = {
@@ -216,6 +221,9 @@ function PlayersPage() {
     goals: "mål",
     assists: "assist",
     pim: "utvisningsminuter",
+    savePct: "SV%",
+    gaa: "GAA",
+    shutouts: "hållna nollor",
   };
 
   const filtersDirty = query.trim().length > 0 || pos !== "all" || sort !== "points";
