@@ -350,6 +350,8 @@ function PlayersPage() {
                         ["savePct", "SV%"],
                         ["gaa", "GAA"],
                         ["shutouts", "SO"],
+                        ["points", "P"],
+                        ["assists", "A"],
                       ] as Array<[SortKey, string]>)
                     : ([
                         ["points", "P"],
