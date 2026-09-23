@@ -205,7 +205,10 @@ function PlayersPage() {
 
       return words.every((w: string) => combined.includes(w)) || p.team.toLowerCase().includes(q);
     });
-    const key: SortKey = pos === "G" && !["savePct", "gaa", "shutouts"].includes(sort) ? "savePct" : sort;
+    const key: SortKey =
+      pos === "G" && !["savePct", "gaa", "shutouts", "points", "assists"].includes(sort)
+        ? "savePct"
+        : sort;
     const get = (p: LeaguePlayer): number => {
       if (key === "goals") return p.goals ?? -1;
       if (key === "assists") return p.assists ?? -1;
