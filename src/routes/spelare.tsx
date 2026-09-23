@@ -456,14 +456,22 @@ function PlayersPage() {
                         <div className="truncate text-xs text-muted-foreground">{p.team} · {p.position}</div>
                       </div>
                     </div>
-                    <div className="mt-2 grid grid-cols-5 pl-9 text-center text-xs">
-                      {[
-                        { label: "G", value: p.goals },
-                        { label: "A", value: p.assists },
-                        { label: "P", value: p.points },
-                        { label: "GP", value: p.gamesPlayed },
-                        { label: "PIM", value: p.pim },
-                      ].map(({ label, value }) => (
+                    <div className={`mt-2 grid pl-9 text-center text-xs ${pos === "G" ? "grid-cols-4" : "grid-cols-5"}`}>
+                      {(pos === "G"
+                        ? [
+                            { label: "GP", value: p.gamesPlayed },
+                            { label: "SV%", value: p.savePct != null ? p.savePct.toFixed(2) : null },
+                            { label: "GAA", value: p.gaa != null ? p.gaa.toFixed(2) : null },
+                            { label: "SO", value: p.shutouts },
+                          ]
+                        : [
+                            { label: "G", value: p.goals },
+                            { label: "A", value: p.assists },
+                            { label: "P", value: p.points },
+                            { label: "GP", value: p.gamesPlayed },
+                            { label: "PIM", value: p.pim },
+                          ]
+                      ).map(({ label, value }) => (
                         <div key={label}>
                           <div className="text-muted-foreground">{label}</div>
                           <div className="tabular-nums font-medium">{value ?? "—"}</div>
