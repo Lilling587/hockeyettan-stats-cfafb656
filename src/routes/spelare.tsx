@@ -137,8 +137,18 @@ function PlayersPage() {
 
   const setQuery = (v: string) =>
     navigate({ search: (p: SearchParams) => ({ ...p, q: v }), replace: true });
+  const GOALIE_SORTS: SortKey[] = ["savePct", "gaa", "shutouts"];
   const setPos = (v: PosFilter) =>
-    navigate({ search: (p: SearchParams) => ({ ...p, pos: v }), replace: true });
+    navigate({
+      search: (p: SearchParams) => {
+        const isGoalieSort = (GOALIE_SORTS as string[]).includes(p.sort);
+        let sort = p.sort;
+        if (v === "G" && !isGoalieSort) sort = "savePct";
+        if (v !== "G" && isGoalieSort) sort = "points";
+        return { ...p, pos: v, sort };
+      },
+      replace: true,
+    });
   const setSort = (v: SortKey) =>
     navigate({ search: (p: SearchParams) => ({ ...p, sort: v }), replace: true });
   const setSeason = (v: string) =>
