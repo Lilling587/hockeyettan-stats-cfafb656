@@ -53,10 +53,10 @@ export const Route = createFileRoute("/spelare")({
   ),
 });
 
-type SortKey = "points" | "goals" | "assists" | "pim";
+type SortKey = "points" | "goals" | "assists" | "pim" | "savePct" | "gaa" | "shutouts";
 type PosFilter = "all" | "F" | "D" | "G";
 
-const SORT_KEYS: SortKey[] = ["points", "goals", "assists", "pim"];
+const SORT_KEYS: SortKey[] = ["points", "goals", "assists", "pim", "savePct", "gaa", "shutouts"];
 const POS_KEYS: PosFilter[] = ["all", "F", "D", "G"];
 
 function matchPosition(filter: PosFilter, pos: string): boolean {
@@ -137,8 +137,18 @@ function PlayersPage() {
 
   const setQuery = (v: string) =>
     navigate({ search: (p: SearchParams) => ({ ...p, q: v }), replace: true });
+  const GOALIE_SORTS: SortKey[] = ["savePct", "gaa", "shutouts"];
   const setPos = (v: PosFilter) =>
-    navigate({ search: (p: SearchParams) => ({ ...p, pos: v }), replace: true });
+    navigate({
+      search: (p: SearchParams) => {
+        const isGoalieSort = (GOALIE_SORTS as string[]).includes(p.sort);
+        let sort = p.sort;
+        if (v === "G" && !isGoalieSort) sort = "savePct";
+        if (v !== "G" && isGoalieSort) sort = "points";
+        return { ...p, pos: v, sort };
+      },
+      replace: true,
+    });
   const setSort = (v: SortKey) =>
     navigate({ search: (p: SearchParams) => ({ ...p, sort: v }), replace: true });
   const setSeason = (v: string) =>
@@ -164,9 +174,12 @@ function PlayersPage() {
 
 
   const filtered = useMemo(() => {
-    const all = (playersQuery.data?.players ?? []).filter(
-      (p) => p.position?.toUpperCase() !== "G",
-    );
+    const players = playersQuery.data?.players ?? [];
+    // Goalies only via the "Målvakter" filter; other filters hide them.
+    const all =
+      pos === "G"
+        ? players.filter((p) => p.position?.toUpperCase() === "G")
+        : players.filter((p) => p.position?.toUpperCase() !== "G");
     const q = query.trim().toLowerCase();
     const matched = all.filter((p) => {
       if (!matchPosition(pos, p.position)) return false;
@@ -192,14 +205,19 @@ function PlayersPage() {
 
       return words.every((w: string) => combined.includes(w)) || p.team.toLowerCase().includes(q);
     });
-    const key = sort;
+    const key: SortKey = pos === "G" && !["savePct", "gaa", "shutouts"].includes(sort) ? "savePct" : sort;
     const get = (p: LeaguePlayer): number => {
       if (key === "goals") return p.goals ?? -1;
       if (key === "assists") return p.assists ?? -1;
       if (key === "pim") return p.pim ?? -1;
+      if (key === "savePct") return p.savePct ?? -1;
+      if (key === "shutouts") return p.shutouts ?? -1;
+      if (key === "gaa") return p.gaa ?? Infinity; // handled asc below
       return p.points ?? -1;
     };
-    return matched.slice().sort((a, b) => get(b) - get(a));
+    return matched
+      .slice()
+      .sort((a, b) => (key === "gaa" ? get(a) - get(b) : get(b) - get(a)));
   }, [playersQuery.data, query, pos, sort]);
 
   const posLabel: Record<PosFilter, string> = {
@@ -213,9 +231,13 @@ function PlayersPage() {
     goals: "mål",
     assists: "assist",
     pim: "utvisningsminuter",
+    savePct: "SV%",
+    gaa: "GAA",
+    shutouts: "hållna nollor",
   };
 
-  const filtersDirty = query.trim().length > 0 || pos !== "all" || sort !== "points";
+  const sortIsDefault = pos === "G" ? sort === "savePct" || sort === "points" : sort === "points";
+  const filtersDirty = query.trim().length > 0 || pos !== "all" || !sortIsDefault;
   const activeFilterSummary = [
     query.trim() ? `Sök: "${query.trim()}"` : null,
     pos !== "all" ? `Position: ${posLabel[pos]}` : null,
@@ -227,7 +249,7 @@ function PlayersPage() {
   const resetFilters = () => {
     setQuery("");
     setPos("all");
-    setSort("points");
+    setSort(pos === "G" ? "savePct" : "points");
   };
 
   return (
@@ -320,12 +342,18 @@ function PlayersPage() {
               <div className="ml-auto flex flex-wrap items-center gap-2">
                 <span className="text-xs font-medium text-muted-foreground">Sortera:</span>
                 {(
-                  [
-                    ["points", "P"],
-                    ["goals", "G"],
-                    ["assists", "A"],
-                    ["pim", "PIM"],
-                  ] as Array<[SortKey, string]>
+                  pos === "G"
+                    ? ([
+                        ["savePct", "SV%"],
+                        ["gaa", "GAA"],
+                        ["shutouts", "SO"],
+                      ] as Array<[SortKey, string]>)
+                    : ([
+                        ["points", "P"],
+                        ["goals", "G"],
+                        ["assists", "A"],
+                        ["pim", "PIM"],
+                      ] as Array<[SortKey, string]>)
                 ).map(([key, label]) => (
                   <Button key={key} size="sm" variant={sort === key ? "default" : "ghost"} onClick={() => setSort(key)}>
                     {label}
@@ -363,10 +391,20 @@ function PlayersPage() {
                       <th className="px-4 py-2">Lag</th>
                       <th className="px-2 py-2">Pos</th>
                       <th className="px-2 py-2 text-right">GP</th>
-                      <th className="px-2 py-2 text-right">G</th>
-                      <th className="px-2 py-2 text-right">A</th>
-                      <th className="px-2 py-2 text-right">P</th>
-                      <th className="px-2 py-2 text-right">PIM</th>
+                      {pos === "G" ? (
+                        <>
+                          <th className="px-2 py-2 text-right">SV%</th>
+                          <th className="px-2 py-2 text-right">GAA</th>
+                          <th className="px-2 py-2 text-right">SO</th>
+                        </>
+                      ) : (
+                        <>
+                          <th className="px-2 py-2 text-right">G</th>
+                          <th className="px-2 py-2 text-right">A</th>
+                          <th className="px-2 py-2 text-right">P</th>
+                          <th className="px-2 py-2 text-right">PIM</th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -382,10 +420,24 @@ function PlayersPage() {
                         </td>
                         <td className="px-2 py-2 text-muted-foreground">{p.position}</td>
                         <td className="px-2 py-2 text-right tabular-nums">{p.gamesPlayed ?? "—"}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{p.goals ?? "—"}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
-                        <td className="px-2 py-2 text-right font-semibold tabular-nums">{p.points ?? "—"}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{p.pim ?? "—"}</td>
+                        {pos === "G" ? (
+                          <>
+                            <td className="px-2 py-2 text-right font-semibold tabular-nums">
+                              {p.savePct != null ? p.savePct.toFixed(2) : "—"}
+                            </td>
+                            <td className="px-2 py-2 text-right tabular-nums">
+                              {p.gaa != null ? p.gaa.toFixed(2) : "—"}
+                            </td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.shutouts ?? "—"}</td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.goals ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
+                            <td className="px-2 py-2 text-right font-semibold tabular-nums">{p.points ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.pim ?? "—"}</td>
+                          </>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -404,14 +456,22 @@ function PlayersPage() {
                         <div className="truncate text-xs text-muted-foreground">{p.team} · {p.position}</div>
                       </div>
                     </div>
-                    <div className="mt-2 grid grid-cols-5 pl-9 text-center text-xs">
-                      {[
-                        { label: "G", value: p.goals },
-                        { label: "A", value: p.assists },
-                        { label: "P", value: p.points },
-                        { label: "GP", value: p.gamesPlayed },
-                        { label: "PIM", value: p.pim },
-                      ].map(({ label, value }) => (
+                    <div className={`mt-2 grid pl-9 text-center text-xs ${pos === "G" ? "grid-cols-4" : "grid-cols-5"}`}>
+                      {(pos === "G"
+                        ? [
+                            { label: "GP", value: p.gamesPlayed },
+                            { label: "SV%", value: p.savePct != null ? p.savePct.toFixed(2) : null },
+                            { label: "GAA", value: p.gaa != null ? p.gaa.toFixed(2) : null },
+                            { label: "SO", value: p.shutouts },
+                          ]
+                        : [
+                            { label: "G", value: p.goals },
+                            { label: "A", value: p.assists },
+                            { label: "P", value: p.points },
+                            { label: "GP", value: p.gamesPlayed },
+                            { label: "PIM", value: p.pim },
+                          ]
+                      ).map(({ label, value }) => (
                         <div key={label}>
                           <div className="text-muted-foreground">{label}</div>
                           <div className="tabular-nums font-medium">{value ?? "—"}</div>

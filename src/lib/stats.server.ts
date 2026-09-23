@@ -459,8 +459,8 @@ export const SpecialTeamsEntrySchema = z.object({
   penaltyKillGoalsAgainst: z.number().nullable(),
   powerPlayOpportunities: z.number().nullable(),
   penaltyKillOpportunities: z.number().nullable(),
-  ppTimePerGoal: z.string().nullable(),
-  pkTimePerGoal: z.string().nullable(),
+  ppTimePerGoal: z.string().nullable().default(null),
+  pkTimePerGoal: z.string().nullable().default(null),
 });
 
 async function fetchSpecialTeamsFromHtml(
@@ -2561,6 +2561,7 @@ export type LeaguePlayerRow = {
   team: string; name: string; position: string;
   gamesPlayed: number | null; goals: number | null;
   assists: number | null; points: number | null; pim: number | null;
+  savePct: number | null; gaa: number | null; shutouts: number | null;
 };
 
 export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlayerRow[]> {
@@ -2607,6 +2608,7 @@ export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlaye
         assists: Number.isFinite(a) ? a : null,
         points: Number.isFinite(p) ? p : null,
         pim: Number.isFinite(pim) ? pim : null,
+        savePct: null, gaa: null, shutouts: null,
       });
     }
     if (gkSection) {
@@ -2618,8 +2620,19 @@ export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlaye
         const name = cells[2];
         if (!name) continue;
         const gp = Number(cells[5]);
-        if (!Number.isFinite(gp) || gp === 0) continue;
-        out.push({ team, name, position: "G", gamesPlayed: gp, goals: null, assists: null, points: null, pim: null });
+        // Include goalies even with 0 games so they are searchable pre-season.
+        // Columns: Rk, No, Name, GPT, GKD, GPI, MIP, GA, SVS, SOG, SVS%, GAA, SO, W, L
+        // Number("") === 0, so guard empty cells to keep them null.
+        const sv = cells[10] === "" ? NaN : Number(cells[10]);
+        const gaa = cells[11] === "" ? NaN : Number(cells[11]);
+        const so = cells[12] === "" ? NaN : Number(cells[12]);
+        out.push({
+          team, name, position: "G", gamesPlayed: Number.isFinite(gp) ? gp : null,
+          goals: null, assists: null, points: null, pim: null,
+          savePct: Number.isFinite(sv) ? sv : null,
+          gaa: Number.isFinite(gaa) ? gaa : null,
+          shutouts: Number.isFinite(so) ? so : null,
+        });
       }
     }
   }
