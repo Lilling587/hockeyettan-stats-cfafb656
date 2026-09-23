@@ -466,13 +466,15 @@ function PlayersPage() {
                         <div className="truncate text-xs text-muted-foreground">{p.team} · {p.position}</div>
                       </div>
                     </div>
-                    <div className={`mt-2 grid pl-9 text-center text-xs ${pos === "G" ? "grid-cols-4" : "grid-cols-5"}`}>
+                    <div className={`mt-2 grid pl-9 text-center text-xs ${pos === "G" ? "grid-cols-6" : "grid-cols-5"}`}>
                       {(pos === "G"
                         ? [
                             { label: "GP", value: p.gamesPlayed },
                             { label: "SV%", value: p.savePct != null ? p.savePct.toFixed(2) : null },
                             { label: "GAA", value: p.gaa != null ? p.gaa.toFixed(2) : null },
                             { label: "SO", value: p.shutouts },
+                            { label: "A", value: p.assists },
+                            { label: "P", value: p.points },
                           ]
                         : [
                             { label: "G", value: p.goals },
