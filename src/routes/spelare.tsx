@@ -175,12 +175,11 @@ function PlayersPage() {
 
 
   const filtered = useMemo(() => {
-    const players = playersQuery.data?.players ?? [];
-    // Goalies only via the "Målvakter" filter; other filters hide them.
-    const all =
-      pos === "G"
-        ? players.filter((p) => p.position?.toUpperCase() === "G")
-        : players.filter((p) => p.position?.toUpperCase() !== "G");
+        // "Alla" now includes everyone — skaters and goalies together — so the
+    // count matches the vMix roster pool. matchPosition() below still
+    // isolates goalies-only (G) or skaters-only (F/D) when those filters
+    // are selected.
+    const all = playersQuery.data?.players ?? [];
     const q = query.trim().toLowerCase();
     const matched = all.filter((p) => {
       if (!matchPosition(pos, p.position)) return false;
@@ -397,13 +396,23 @@ function PlayersPage() {
                       <th className="px-4 py-2">Lag</th>
                       <th className="px-2 py-2">Pos</th>
                       <th className="px-2 py-2 text-right">GP</th>
-                      {pos === "G" ? (
+                                           {pos === "G" ? (
                         <>
                           <th className="px-2 py-2 text-right">SV%</th>
                           <th className="px-2 py-2 text-right">GAA</th>
                           <th className="px-2 py-2 text-right">SO</th>
                           <th className="px-2 py-2 text-right">A</th>
                           <th className="px-2 py-2 text-right">P</th>
+                        </>
+                      ) : pos === "all" ? (
+                        <>
+                          <th className="px-2 py-2 text-right">G</th>
+                          <th className="px-2 py-2 text-right">A</th>
+                          <th className="px-2 py-2 text-right">P</th>
+                          <th className="px-2 py-2 text-right">PIM</th>
+                          <th className="px-2 py-2 text-right">SV%</th>
+                          <th className="px-2 py-2 text-right">GAA</th>
+                          <th className="px-2 py-2 text-right">SO</th>
                         </>
                       ) : (
                         <>
@@ -428,7 +437,7 @@ function PlayersPage() {
                         </td>
                         <td className="px-2 py-2 text-muted-foreground">{p.position}</td>
                         <td className="px-2 py-2 text-right tabular-nums">{p.gamesPlayed ?? "—"}</td>
-                        {pos === "G" ? (
+                                                {pos === "G" ? (
                           <>
                             <td className="px-2 py-2 text-right font-semibold tabular-nums">
                               {p.savePct != null ? p.savePct.toFixed(2) : "—"}
@@ -439,6 +448,20 @@ function PlayersPage() {
                             <td className="px-2 py-2 text-right tabular-nums">{p.shutouts ?? "—"}</td>
                             <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
                             <td className="px-2 py-2 text-right tabular-nums">{p.points ?? "—"}</td>
+                          </>
+                        ) : pos === "all" ? (
+                          <>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.goals ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
+                            <td className="px-2 py-2 text-right font-semibold tabular-nums">{p.points ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.pim ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">
+                              {p.savePct != null ? p.savePct.toFixed(2) : "—"}
+                            </td>
+                            <td className="px-2 py-2 text-right tabular-nums">
+                              {p.gaa != null ? p.gaa.toFixed(2) : "—"}
+                            </td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.shutouts ?? "—"}</td>
                           </>
                         ) : (
                           <>
@@ -466,8 +489,13 @@ function PlayersPage() {
                         <div className="truncate text-xs text-muted-foreground">{p.team} · {p.position}</div>
                       </div>
                     </div>
-                    <div className={`mt-2 grid pl-9 text-center text-xs ${pos === "G" ? "grid-cols-6" : "grid-cols-5"}`}>
-                      {(pos === "G"
+                                       {(() => {
+                      // Under "Alla" a row can be either type — decide per
+                      // player, not per whole list, so goalie cards show
+                      // goalie stats and skater cards show skater stats
+                      // instead of cramming both sets into every card.
+                      const isGoalieRow = p.position?.toUpperCase() === "G";
+                      const stats = isGoalieRow
                         ? [
                             { label: "GP", value: p.gamesPlayed },
                             { label: "SV%", value: p.savePct != null ? p.savePct.toFixed(2) : null },
@@ -482,14 +510,18 @@ function PlayersPage() {
                             { label: "P", value: p.points },
                             { label: "GP", value: p.gamesPlayed },
                             { label: "PIM", value: p.pim },
-                          ]
-                      ).map(({ label, value }) => (
-                        <div key={label}>
-                          <div className="text-muted-foreground">{label}</div>
-                          <div className="tabular-nums font-medium">{value ?? "—"}</div>
+                          ];
+                      return (
+                        <div className={`mt-2 grid pl-9 text-center text-xs ${stats.length === 6 ? "grid-cols-6" : "grid-cols-5"}`}>
+                          {stats.map(({ label, value }) => (
+                                                    <div key={label}>
+                              <div className="text-muted-foreground">{label}</div>
+                              <div className="tabular-nums font-medium">{value ?? "—"}</div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })()}
                   </li>
                 ))}
               </ul>
