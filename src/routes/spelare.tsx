@@ -437,6 +437,8 @@ function PlayersPage() {
                               {p.gaa != null ? p.gaa.toFixed(2) : "—"}
                             </td>
                             <td className="px-2 py-2 text-right tabular-nums">{p.shutouts ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.points ?? "—"}</td>
                           </>
                         ) : (
                           <>
