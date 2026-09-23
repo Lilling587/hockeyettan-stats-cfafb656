@@ -412,7 +412,6 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
   const canLoad = home && selectedAway && home !== selectedAway;
   const [activeTab, setActiveTab] = useState<"briefing" | "recap">("briefing");
   const hasLoadedSavedTab = useRef(false);
-  const [autoRefresh, setAutoRefresh] = useState(false);
 
   useEffect(() => {
     if (!hasLoadedSavedTab.current) {
@@ -527,14 +526,7 @@ const [favorite, setFavorite] = useState<string>(DEFAULT_FAVORITE_TEAM);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canLoad, briefing, briefingMut.isPending, home, selectedAway]);
 
-  useEffect(() => {
-    if (!autoRefresh || !briefing) return;
-    const id = setInterval(() => {
-      briefingMut.mutate({ home, away: selectedAway, force: true });
-    }, 30 * 60 * 1000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRefresh, !!briefing, home, selectedAway]);
+ 
 
  // Detect new deploys by polling the root HTML every 5 minutes.
   // Vite generates new hashed bundle filenames on every deploy, so if
