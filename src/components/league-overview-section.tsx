@@ -182,10 +182,10 @@ function LeagueOverviewView({
                     </TableCell>
                   </TableRow>
                 ))}
-                {data.topGoalies.length === 0 ? (
+                                {data.topGoalies.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-6">
-                      No goalie data available.
+                      Ingen målvaktsstatistik ännu — kräver minst 5 spelade matcher per målvakt.
                     </TableCell>
                   </TableRow>
                 ) : null}
