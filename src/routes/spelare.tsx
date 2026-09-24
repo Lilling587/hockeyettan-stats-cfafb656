@@ -401,6 +401,7 @@ function PlayersPage() {
                           <th className="px-2 py-2 text-right">SV%</th>
                           <th className="px-2 py-2 text-right">GAA</th>
                           <th className="px-2 py-2 text-right">SO</th>
+                          <th className="px-2 py-2 text-right">G</th>
                           <th className="px-2 py-2 text-right">A</th>
                           <th className="px-2 py-2 text-right">P</th>
                         </>
@@ -446,6 +447,7 @@ function PlayersPage() {
                               {p.gaa != null ? p.gaa.toFixed(2) : "—"}
                             </td>
                             <td className="px-2 py-2 text-right tabular-nums">{p.shutouts ?? "—"}</td>
+                            <td className="px-2 py-2 text-right tabular-nums">{p.goals ?? "—"}</td>
                             <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
                             <td className="px-2 py-2 text-right tabular-nums">{p.points ?? "—"}</td>
                           </>
@@ -501,6 +503,7 @@ function PlayersPage() {
                             { label: "SV%", value: p.savePct != null ? p.savePct.toFixed(2) : null },
                             { label: "GAA", value: p.gaa != null ? p.gaa.toFixed(2) : null },
                             { label: "SO", value: p.shutouts },
+                            { label: "G", value: p.goals },
                             { label: "A", value: p.assists },
                             { label: "P", value: p.points },
                           ]
@@ -512,7 +515,7 @@ function PlayersPage() {
                             { label: "PIM", value: p.pim },
                           ];
                       return (
-                        <div className={`mt-2 grid pl-9 text-center text-xs ${stats.length === 6 ? "grid-cols-6" : "grid-cols-5"}`}>
+                        <div className={`mt-2 grid pl-9 text-center text-xs ${stats.length === 7 ? "grid-cols-7" : stats.length === 6 ? "grid-cols-6" : "grid-cols-5"}`}>
                           {stats.map(({ label, value }) => (
                                                     <div key={label}>
                               <div className="text-muted-foreground">{label}</div>
