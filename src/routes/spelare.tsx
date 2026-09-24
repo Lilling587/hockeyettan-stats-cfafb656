@@ -137,8 +137,8 @@ function PlayersPage() {
 
   const setQuery = (v: string) =>
     navigate({ search: (p: SearchParams) => ({ ...p, q: v }), replace: true });
-  // Sorts that only make sense for goalies; points/assists work for both.
-  const GOALIE_SORTS: SortKey[] = ["savePct", "gaa", "shutouts"];
+  // Sorts that only make sense for goalies; points/assists/goals work for both.
+  const GOALIE_SORTS: SortKey[] = ["savePct", "gaa", "shutouts", "goals"];
   const setPos = (v: PosFilter) =>
     navigate({
       search: (p: SearchParams) => {
@@ -206,7 +206,7 @@ function PlayersPage() {
       return words.every((w: string) => combined.includes(w)) || p.team.toLowerCase().includes(q);
     });
     const key: SortKey =
-      pos === "G" && !["savePct", "gaa", "shutouts", "points", "assists"].includes(sort)
+      pos === "G" && !["savePct", "gaa", "shutouts", "points", "assists", "goals"].includes(sort)
         ? "savePct"
         : sort;
     const get = (p: LeaguePlayer): number => {
@@ -351,6 +351,7 @@ function PlayersPage() {
                         ["gaa", "GAA"],
                         ["shutouts", "SO"],
                         ["points", "P"],
+                        ["goals", "G"],
                         ["assists", "A"],
                       ] as Array<[SortKey, string]>)
                     : ([
