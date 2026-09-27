@@ -12,6 +12,7 @@ const ALLOWED_NEXT = new Set([
   "/admin/assets",
   "/admin/audit",
   "/connect",
+  "/fraga",
 ]);
 
 export const Route = createFileRoute("/_authenticated")({

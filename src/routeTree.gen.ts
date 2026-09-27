@@ -18,6 +18,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as IndexIndexRouteImport } from './routes/index.index'
+import { Route as ApiStatsChatRouteImport } from './routes/api/stats-chat'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedConnectRouteImport } from './routes/_authenticated/connect'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -87,6 +88,11 @@ const IndexRoute = IndexRouteImport.update({
 const IndexIndexRoute = IndexIndexRouteImport.update({
   id: '/index/',
   path: '/index/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStatsChatRoute = ApiStatsChatRouteImport.update({
+  id: '/api/stats-chat',
+  path: '/api/stats-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedNotificationsRoute =
@@ -245,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/connect': typeof AuthenticatedConnectRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/api/stats-chat': typeof ApiStatsChatRoute
   '/index/': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
@@ -281,6 +288,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/connect': typeof AuthenticatedConnectRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/api/stats-chat': typeof ApiStatsChatRoute
   '/index': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/assets': typeof AuthenticatedAdminAssetsRoute
@@ -319,6 +327,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/connect': typeof AuthenticatedConnectRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/api/stats-chat': typeof ApiStatsChatRoute
   '/index/': typeof IndexIndexRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/admin/assets': typeof AuthenticatedAdminAssetsRoute
@@ -357,6 +366,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/connect'
     | '/notifications'
+    | '/api/stats-chat'
     | '/index/'
     | '/.mcp/invoke-tool/$tool'
     | '/admin/assets'
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/connect'
     | '/notifications'
+    | '/api/stats-chat'
     | '/index'
     | '/.mcp/invoke-tool/$tool'
     | '/admin/assets'
@@ -430,6 +441,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/connect'
     | '/_authenticated/notifications'
+    | '/api/stats-chat'
     | '/index/'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/admin/assets'
@@ -466,6 +478,7 @@ export interface RootRouteChildren {
   SpelareRoute: typeof SpelareRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  ApiStatsChatRoute: typeof ApiStatsChatRoute
   IndexIndexRoute: typeof IndexIndexRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
@@ -547,6 +560,13 @@ declare module '@tanstack/react-router' {
       path: '/index'
       fullPath: '/index/'
       preLoaderRoute: typeof IndexIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stats-chat': {
+      id: '/api/stats-chat'
+      path: '/api/stats-chat'
+      fullPath: '/api/stats-chat'
+      preLoaderRoute: typeof ApiStatsChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/notifications': {
@@ -773,6 +793,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  ApiStatsChatRoute: ApiStatsChatRoute,
   IndexIndexRoute: IndexIndexRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,

@@ -19,6 +19,7 @@ function systemPrompt(seasonLabels: string[], defaultSeason: string) {
 Svara alltid på svenska, kort och tydligt, gärna med en liten markdown-tabell när du listar flera spelare.
 Använd ALLTID verktygen för att hämta siffror – hitta aldrig på statistik. Om data saknas, säg det.
 Tillgängliga säsonger: ${seasonLabels.join(", ")}. Standard är ${defaultSeason} om användaren inte anger något.
+Om en säsong saknar spelad statistik (alla värden tomma eller 0 matcher), säg det och använd föregående säsong istället.
 Positioner: G = målvakt, D = back, F/C/LW/RW = forward. Målvakter har SV% (räddningsprocent), GAA (insläppta mål per match) och SO (hållna nollor).
 Lagkoder är förkortningar (t.ex. GRÄ = Grästorps IK). Använd list_teams om du är osäker på en kod.
 Håll svaret under cirka 200 ord.`;
