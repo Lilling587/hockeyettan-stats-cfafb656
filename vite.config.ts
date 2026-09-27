@@ -168,6 +168,8 @@ export default defineConfig({
         "zod",
         "ai",
         "@ai-sdk/react",
+        "streamdown",
+        "use-stick-to-bottom",
       ],
     },
   },
