@@ -911,6 +911,8 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
 
       // --- Top scorers (first 5 skaters by points) ---
       const scorerList: Briefing["home"]["topScorers"] = [];
+      // --- Plus/minus leaders (top 5 skaters by +/-) ---
+      const pmEntries: Array<{ name: string; plusMinus: number; gamesPlayed: number | null }> = [];
       // --- Discipline (PIM totals + top offenders, skaters only) ---
       let totalPim = 0;
       let maxGp = 0;
@@ -954,6 +956,16 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
           if (validPim > 0) {
             offenders.push({ name, pim: validPim, gamesPlayed: validGp ?? null });
           }
+        }
+
+        // Plus/minus: columns are Rk, No, Name, Pos, GP, G, A, TP, PIM, +, -, +/-, ...
+        const pmRaw = cells.length > 11 && cells[11] !== "" ? Number(cells[11]) : NaN;
+        const validPm = Number.isFinite(pmRaw)
+          ? checkRange(pmRaw, -200, 200, `scoring.plusMinus(${teamName}/${name})`)
+          : null;
+        if (validPm != null) {
+          const validGp = checkRange(gp, 0, 80, `scoring.gp(${teamName}/${name})`);
+          pmEntries.push({ name, plusMinus: validPm, gamesPlayed: validGp ?? null });
         }
 
         // Collect faceoff data — process all rows (not just top scorers)
