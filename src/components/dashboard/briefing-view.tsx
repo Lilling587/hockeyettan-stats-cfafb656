@@ -32,6 +32,7 @@ import { FormCard } from "./cards/form-card";
 import { VenueStreakCard } from "./cards/venue-streak-card";
 import { PeriodGoalsCard } from "./cards/period-goals-card";
 import { ScorersCard } from "./cards/scorers-card";
+import { PlusMinusCard } from "./cards/plus-minus-card";
 import { GoaliesCard } from "./cards/goalies-card";
 import { ShotCard } from "./cards/shot-card";
 import { SpecialTeamsCard } from "./cards/special-teams-card";
@@ -333,6 +334,11 @@ export function BriefingView({
       <div id="scorers" className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <ScorersCard team={data.home} />
         <ScorersCard team={data.away} />
+      </div>
+
+      <div id="plusminus" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <PlusMinusCard team={data.home} />
+        <PlusMinusCard team={data.away} />
       </div>
 
       <div id="goalies" className="grid grid-cols-1 gap-4 md:grid-cols-2">

@@ -1800,6 +1800,7 @@ export async function buildBriefing(
     | "powerPlayPct"
     | "penaltyKillPct"
     | "topScorers"
+    | "topPlusMinus"
     | "lastFive";
   const missingBefore = (team: Briefing["home"]): Set<FieldKey> => {
     const set = new Set<FieldKey>();
