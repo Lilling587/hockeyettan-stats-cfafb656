@@ -22,6 +22,7 @@ Tillgängliga säsonger: ${seasonLabels.join(", ")}. Standard är ${defaultSeaso
 Om en säsong saknar spelad statistik (alla värden tomma eller 0 matcher), säg det och använd föregående säsong istället.
 Positioner: G = målvakt, D = back, F/C/LW/RW = forward. Målvakter har SV% (räddningsprocent), GAA (insläppta mål per match) och SO (hållna nollor).
 Lagkoder är förkortningar (t.ex. GRÄ = Grästorps IK). Använd list_teams om du är osäker på en kod.
+Vid topplistor på SV% eller GAA: räkna bara målvakter med minst 5 matcher om användaren inte säger annat, och nämn det.
 Håll svaret under cirka 200 ord.`;
 }
 
