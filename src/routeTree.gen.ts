@@ -20,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as IndexIndexRouteImport } from './routes/index.index'
 import { Route as ApiStatsChatRouteImport } from './routes/api/stats-chat'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedFragaRouteImport } from './routes/_authenticated/fraga'
 import { Route as AuthenticatedConnectRouteImport } from './routes/_authenticated/connect'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -101,6 +102,11 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedFragaRoute = AuthenticatedFragaRouteImport.update({
+  id: '/fraga',
+  path: '/fraga',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedConnectRoute = AuthenticatedConnectRouteImport.update({
   id: '/connect',
   path: '/connect',
@@ -250,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/connect': typeof AuthenticatedConnectRoute
+  '/fraga': typeof AuthenticatedFragaRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/api/stats-chat': typeof ApiStatsChatRoute
   '/index/': typeof IndexIndexRoute
@@ -287,6 +294,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/connect': typeof AuthenticatedConnectRoute
+  '/fraga': typeof AuthenticatedFragaRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/api/stats-chat': typeof ApiStatsChatRoute
   '/index': typeof IndexIndexRoute
@@ -326,6 +334,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/connect': typeof AuthenticatedConnectRoute
+  '/_authenticated/fraga': typeof AuthenticatedFragaRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/api/stats-chat': typeof ApiStatsChatRoute
   '/index/': typeof IndexIndexRoute
@@ -365,6 +374,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/connect'
+    | '/fraga'
     | '/notifications'
     | '/api/stats-chat'
     | '/index/'
@@ -402,6 +412,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/connect'
+    | '/fraga'
     | '/notifications'
     | '/api/stats-chat'
     | '/index'
@@ -440,6 +451,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/connect'
+    | '/_authenticated/fraga'
     | '/_authenticated/notifications'
     | '/api/stats-chat'
     | '/index/'
@@ -574,6 +586,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/fraga': {
+      id: '/_authenticated/fraga'
+      path: '/fraga'
+      fullPath: '/fraga'
+      preLoaderRoute: typeof AuthenticatedFragaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/connect': {
@@ -756,6 +775,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedConnectRoute: typeof AuthenticatedConnectRoute
+  AuthenticatedFragaRoute: typeof AuthenticatedFragaRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedAdminAssetsRoute: typeof AuthenticatedAdminAssetsRoute
   AuthenticatedAdminAuthEmailsRoute: typeof AuthenticatedAdminAuthEmailsRoute
@@ -768,6 +788,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConnectRoute: AuthenticatedConnectRoute,
+  AuthenticatedFragaRoute: AuthenticatedFragaRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedAdminAssetsRoute: AuthenticatedAdminAssetsRoute,
   AuthenticatedAdminAuthEmailsRoute: AuthenticatedAdminAuthEmailsRoute,
