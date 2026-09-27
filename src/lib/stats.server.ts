@@ -987,6 +987,9 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
 
       if (scorerList.length > 0) topScorers[teamName] = scorerList;
 
+      pmEntries.sort((a, b) => b.plusMinus - a.plusMinus);
+      if (pmEntries.length > 0) topPlusMinus[teamName] = pmEntries.slice(0, 5);
+
       offenders.sort((a, b) => b.pim - a.pim);
       discipline[teamName] = {
         totalPim,
@@ -1054,7 +1057,7 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
     console.warn("[scoringPage] fetch failed:", (err as Error).message);
   }
 
-  return { topScorers, goalies, discipline, faceoffs };
+  return { topScorers, topPlusMinus, goalies, discipline, faceoffs };
 }
 
 // ---------------------------------------------------------------------------
@@ -1634,6 +1637,7 @@ export async function buildBriefing(
     gamesPlayed: null,
     lastFive: [],
     topScorers: [],
+    topPlusMinus: [],
     powerPlayPct: null,
     penaltyKillPct: null,
     powerPlayGoals: null,
