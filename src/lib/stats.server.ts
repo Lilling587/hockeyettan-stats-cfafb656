@@ -2561,6 +2561,7 @@ export type LeaguePlayerRow = {
   team: string; name: string; position: string;
   gamesPlayed: number | null; goals: number | null;
   assists: number | null; points: number | null; pim: number | null;
+  plusMinus: number | null;
   savePct: number | null; gaa: number | null; shutouts: number | null;
 };
 
@@ -2601,6 +2602,8 @@ export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlaye
       const a = Number(cells[6]);
       const p = Number(cells[7]);
       const pim = Number(cells[8]);
+      // Columns: Rk, No, Name, Pos, GP, G, A, TP, PIM, +, -, +/-, GWG, ...
+      const pm = cells[11] === "" || cells[11] == null ? NaN : Number(cells[11]);
       out.push({
         team, name, position: pos,
         gamesPlayed: Number.isFinite(gp) ? gp : null,
@@ -2608,6 +2611,7 @@ export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlaye
         assists: Number.isFinite(a) ? a : null,
         points: Number.isFinite(p) ? p : null,
         pim: Number.isFinite(pim) ? pim : null,
+        plusMinus: Number.isFinite(pm) ? pm : null,
         savePct: null, gaa: null, shutouts: null,
       });
     }
@@ -2643,6 +2647,7 @@ export async function fetchAllLeaguePlayers(season: Season): Promise<LeaguePlaye
           assists: skater?.assists ?? null,
           points: skater?.points ?? null,
           pim: skater?.pim ?? null,
+          plusMinus: skater?.plusMinus ?? null,
           savePct: Number.isFinite(sv) ? sv : null,
           gaa: Number.isFinite(gaa) ? gaa : null,
           shutouts: Number.isFinite(so) ? so : null,
