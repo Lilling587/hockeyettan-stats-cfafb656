@@ -53,10 +53,10 @@ export const Route = createFileRoute("/spelare")({
   ),
 });
 
-type SortKey = "points" | "goals" | "assists" | "pim" | "savePct" | "gaa" | "shutouts";
+type SortKey = "points" | "goals" | "assists" | "pim" | "plusMinus" | "savePct" | "gaa" | "shutouts";
 type PosFilter = "all" | "F" | "D" | "G";
 
-const SORT_KEYS: SortKey[] = ["points", "goals", "assists", "pim", "savePct", "gaa", "shutouts"];
+const SORT_KEYS: SortKey[] = ["points", "goals", "assists", "pim", "plusMinus", "savePct", "gaa", "shutouts"];
 const POS_KEYS: PosFilter[] = ["all", "F", "D", "G"];
 
 function matchPosition(filter: PosFilter, pos: string): boolean {
@@ -214,6 +214,7 @@ function PlayersPage() {
       if (key === "goals") return p.goals ?? -1;
       if (key === "assists") return p.assists ?? -1;
       if (key === "pim") return p.pim ?? -1;
+      if (key === "plusMinus") return p.plusMinus ?? -Infinity;
       if (key === "savePct") return p.savePct ?? -1;
       if (key === "shutouts") return p.shutouts ?? -1;
       if (key === "gaa") return p.gaa ?? Infinity; // handled asc below
@@ -235,6 +236,7 @@ function PlayersPage() {
     goals: "mål",
     assists: "assist",
     pim: "utvisningsminuter",
+    plusMinus: "+/-",
     savePct: "SV%",
     gaa: "GAA",
     shutouts: "hållna nollor",
@@ -358,12 +360,13 @@ function PlayersPage() {
                         ["goals", "G"],
                         ["assists", "A"],
                       ] as Array<[SortKey, string]>)
-                    : ([
-                        ["points", "P"],
-                        ["goals", "G"],
-                        ["assists", "A"],
-                        ["pim", "PIM"],
-                      ] as Array<[SortKey, string]>)
+                     : ([
+                         ["points", "P"],
+                         ["goals", "G"],
+                         ["assists", "A"],
+                         ["pim", "PIM"],
+                         ["plusMinus", "+/-"],
+                       ] as Array<[SortKey, string]>)
                 ).map(([key, label]) => (
                   <Button key={key} size="sm" variant={sort === key ? "default" : "ghost"} onClick={() => setSort(key)}>
                     {label}
