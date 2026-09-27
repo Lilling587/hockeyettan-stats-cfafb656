@@ -137,8 +137,9 @@ function PlayersPage() {
 
   const setQuery = (v: string) =>
     navigate({ search: (p: SearchParams) => ({ ...p, q: v }), replace: true });
-  // Sorts that only make sense for goalies; points/assists/goals work for both.
-  const GOALIE_SORTS: SortKey[] = ["savePct", "gaa", "shutouts", "goals"];
+  // Sorts that only exist for goalies. points/assists/goals work for both,
+  // so they must survive a position change and must not be force-reset.
+  const GOALIE_SORTS: SortKey[] = ["savePct", "gaa", "shutouts"];
   const setPos = (v: PosFilter) =>
     navigate({
       search: (p: SearchParams) => {
