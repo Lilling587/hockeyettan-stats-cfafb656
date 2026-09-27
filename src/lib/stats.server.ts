@@ -853,6 +853,7 @@ async function fetchStandingsFromHtml(
 
 type ScoringPageData = {
   topScorers: Record<string, Briefing["home"]["topScorers"]>;
+  topPlusMinus: Record<string, Briefing["home"]["topPlusMinus"]>;
   goalies: Record<string, Briefing["home"]["goalies"]>;
   discipline: Record<string, NonNullable<Briefing["home"]["discipline"]>>;
   faceoffs: Record<string, {
@@ -865,6 +866,7 @@ type ScoringPageData = {
 
 async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
   const topScorers: Record<string, Briefing["home"]["topScorers"]> = {};
+  const topPlusMinus: Record<string, Briefing["home"]["topPlusMinus"]> = {};
   const goalies: Record<string, Briefing["home"]["goalies"]> = {};
   const discipline: Record<string, NonNullable<Briefing["home"]["discipline"]>> = {};
   const faceoffs: Record<string, {
