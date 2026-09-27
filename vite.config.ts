@@ -66,9 +66,9 @@ export default defineConfig({
     plugins: [keepPreviewAliveAfterDevServerRestart(), mcpPlugin()],
     resolve: {
       alias: {
-        "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),
-        "entities/lib/encode.js": path.resolve(__dirname, "node_modules/entities/lib/encode.js"),
-        entities: path.resolve(__dirname, "node_modules/entities"),
+        // htmlparser2 needs entities v4 (lib/ paths); parse5 (chat markdown) needs root entities v6.
+        "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities-v4/lib/decode.js"),
+        "entities/lib/encode.js": path.resolve(__dirname, "node_modules/entities-v4/lib/encode.js"),
       },
     },
     server: {
@@ -166,6 +166,8 @@ export default defineConfig({
         "tailwind-merge",
         "vaul",
         "zod",
+        "ai",
+        "@ai-sdk/react",
       ],
     },
   },
