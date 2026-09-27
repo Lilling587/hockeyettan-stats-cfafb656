@@ -175,7 +175,11 @@ function ChatWindow({ initialMessages }: { initialMessages: UIMessage[] }) {
                     if (isToolUIPart(p)) {
                       return (
                         <Tool key={i} defaultOpen={false}>
-                          <ToolHeader title={TOOL_LABELS[p.type] ?? "Verktyg"} type={p.type} state={p.state} />
+                          <ToolHeader
+                            title={TOOL_LABELS[p.type] ?? "Verktyg"}
+                            type={p.type === "dynamic-tool" ? "tool-dynamic" : p.type}
+                            state={p.state}
+                          />
                           <ToolContent>
                             <ToolInput input={p.input} />
                             <ToolOutput output={p.output} errorText={p.errorText} />
@@ -208,7 +212,16 @@ function ChatWindow({ initialMessages }: { initialMessages: UIMessage[] }) {
           />
           <PromptInputFooter>
             <PromptInputTools />
-            <PromptInputSubmit status={status} onStop={stop} disabled={!busy && !input.trim()} />
+            <PromptInputSubmit
+              status={status}
+              disabled={!busy && !input.trim()}
+              onClick={(e) => {
+                if (busy) {
+                  e.preventDefault();
+                  void stop();
+                }
+              }}
+            />
           </PromptInputFooter>
         </PromptInput>
         <p className="mt-2 text-center text-xs text-muted-foreground">Max 30 frågor per dygn.</p>
