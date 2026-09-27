@@ -20,9 +20,9 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@ai-sdk/openai": "^4.0.78",
+    "@ai-sdk/openai": "^3",
     "@ai-sdk/openai-compatible": "^2.0.51",
-    "@ai-sdk/react": "^4.0.119",
+    "@ai-sdk/react": "^3",
     "@hookform/resolvers": "^5.2.2",
     "@lovable.dev/email-js": "^0.0.4",
     "@lovable.dev/mcp-js": "^0.20.0",
