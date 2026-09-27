@@ -267,6 +267,9 @@ function PlayersPage() {
             <p className="text-sm text-muted-foreground">HockeyEttan Södra · sök bland alla spelare i ligan</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Button asChild size="sm">
+              <Link to="/fraga">Fråga statistiken</Link>
+            </Button>
             <Button asChild variant="outline" size="sm">
               <Link to="/">
                 <ArrowLeft className="mr-2 h-4 w-4" />
