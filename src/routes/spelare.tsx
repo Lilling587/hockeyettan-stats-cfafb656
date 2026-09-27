@@ -53,10 +53,10 @@ export const Route = createFileRoute("/spelare")({
   ),
 });
 
-type SortKey = "points" | "goals" | "assists" | "pim" | "savePct" | "gaa" | "shutouts";
+type SortKey = "points" | "goals" | "assists" | "pim" | "plusMinus" | "savePct" | "gaa" | "shutouts";
 type PosFilter = "all" | "F" | "D" | "G";
 
-const SORT_KEYS: SortKey[] = ["points", "goals", "assists", "pim", "savePct", "gaa", "shutouts"];
+const SORT_KEYS: SortKey[] = ["points", "goals", "assists", "pim", "plusMinus", "savePct", "gaa", "shutouts"];
 const POS_KEYS: PosFilter[] = ["all", "F", "D", "G"];
 
 function matchPosition(filter: PosFilter, pos: string): boolean {
@@ -214,6 +214,7 @@ function PlayersPage() {
       if (key === "goals") return p.goals ?? -1;
       if (key === "assists") return p.assists ?? -1;
       if (key === "pim") return p.pim ?? -1;
+      if (key === "plusMinus") return p.plusMinus ?? -Infinity;
       if (key === "savePct") return p.savePct ?? -1;
       if (key === "shutouts") return p.shutouts ?? -1;
       if (key === "gaa") return p.gaa ?? Infinity; // handled asc below
@@ -235,6 +236,7 @@ function PlayersPage() {
     goals: "mål",
     assists: "assist",
     pim: "utvisningsminuter",
+    plusMinus: "+/-",
     savePct: "SV%",
     gaa: "GAA",
     shutouts: "hållna nollor",
@@ -358,12 +360,13 @@ function PlayersPage() {
                         ["goals", "G"],
                         ["assists", "A"],
                       ] as Array<[SortKey, string]>)
-                    : ([
-                        ["points", "P"],
-                        ["goals", "G"],
-                        ["assists", "A"],
-                        ["pim", "PIM"],
-                      ] as Array<[SortKey, string]>)
+                     : ([
+                         ["points", "P"],
+                         ["goals", "G"],
+                         ["assists", "A"],
+                         ["pim", "PIM"],
+                         ["plusMinus", "+/-"],
+                       ] as Array<[SortKey, string]>)
                 ).map(([key, label]) => (
                   <Button key={key} size="sm" variant={sort === key ? "default" : "ghost"} onClick={() => setSort(key)}>
                     {label}
@@ -415,19 +418,21 @@ function PlayersPage() {
                           <th className="px-2 py-2 text-right">G</th>
                           <th className="px-2 py-2 text-right">A</th>
                           <th className="px-2 py-2 text-right">P</th>
-                          <th className="px-2 py-2 text-right">PIM</th>
-                          <th className="px-2 py-2 text-right">SV%</th>
+                           <th className="px-2 py-2 text-right">PIM</th>
+                           <th className="px-2 py-2 text-right">+/-</th>
+                           <th className="px-2 py-2 text-right">SV%</th>
                           <th className="px-2 py-2 text-right">GAA</th>
                           <th className="px-2 py-2 text-right">SO</th>
                         </>
-                      ) : (
-                        <>
-                          <th className="px-2 py-2 text-right">G</th>
-                          <th className="px-2 py-2 text-right">A</th>
-                          <th className="px-2 py-2 text-right">P</th>
-                          <th className="px-2 py-2 text-right">PIM</th>
-                        </>
-                      )}
+                       ) : (
+                         <>
+                           <th className="px-2 py-2 text-right">G</th>
+                           <th className="px-2 py-2 text-right">A</th>
+                           <th className="px-2 py-2 text-right">P</th>
+                           <th className="px-2 py-2 text-right">PIM</th>
+                           <th className="px-2 py-2 text-right">+/-</th>
+                         </>
+                       )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -461,10 +466,11 @@ function PlayersPage() {
                             <td className="px-2 py-2 text-right tabular-nums">{p.goals ?? "—"}</td>
                             <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
                             <td className="px-2 py-2 text-right font-semibold tabular-nums">{p.points ?? "—"}</td>
-                            <td className="px-2 py-2 text-right tabular-nums">{p.pim ?? "—"}</td>
-                            <td className="px-2 py-2 text-right tabular-nums">
-                              {p.savePct != null ? p.savePct.toFixed(2) : "—"}
-                            </td>
+                             <td className="px-2 py-2 text-right tabular-nums">{p.pim ?? "—"}</td>
+                             <td className="px-2 py-2 text-right tabular-nums">{p.plusMinus ?? "—"}</td>
+                             <td className="px-2 py-2 text-right tabular-nums">
+                               {p.savePct != null ? p.savePct.toFixed(2) : "—"}
+                             </td>
                             <td className="px-2 py-2 text-right tabular-nums">
                               {p.gaa != null ? p.gaa.toFixed(2) : "—"}
                             </td>
@@ -474,11 +480,12 @@ function PlayersPage() {
                           <>
                             <td className="px-2 py-2 text-right tabular-nums">{p.goals ?? "—"}</td>
                             <td className="px-2 py-2 text-right tabular-nums">{p.assists ?? "—"}</td>
-                            <td className="px-2 py-2 text-right font-semibold tabular-nums">{p.points ?? "—"}</td>
-                            <td className="px-2 py-2 text-right tabular-nums">{p.pim ?? "—"}</td>
-                          </>
-                        )}
-                      </tr>
+                             <td className="px-2 py-2 text-right font-semibold tabular-nums">{p.points ?? "—"}</td>
+                             <td className="px-2 py-2 text-right tabular-nums">{p.pim ?? "—"}</td>
+                             <td className="px-2 py-2 text-right tabular-nums">{p.plusMinus ?? "—"}</td>
+                           </>
+                         )}
+                       </tr>
                     ))}
                   </tbody>
                 </table>
@@ -512,13 +519,14 @@ function PlayersPage() {
                             { label: "A", value: p.assists },
                             { label: "P", value: p.points },
                           ]
-                        : [
-                            { label: "G", value: p.goals },
-                            { label: "A", value: p.assists },
-                            { label: "P", value: p.points },
-                            { label: "GP", value: p.gamesPlayed },
-                            { label: "PIM", value: p.pim },
-                          ];
+                         : [
+                             { label: "G", value: p.goals },
+                             { label: "A", value: p.assists },
+                             { label: "P", value: p.points },
+                             { label: "GP", value: p.gamesPlayed },
+                             { label: "PIM", value: p.pim },
+                             { label: "+/-", value: p.plusMinus },
+                           ];
                       return (
                         <div className={`mt-2 grid pl-9 text-center text-xs ${stats.length === 7 ? "grid-cols-7" : stats.length === 6 ? "grid-cols-6" : "grid-cols-5"}`}>
                           {stats.map(({ label, value }) => (
