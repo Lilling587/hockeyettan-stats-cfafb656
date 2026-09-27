@@ -24,7 +24,7 @@ async function resolveSeason(label?: string | null): Promise<Season> {
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 const TEAMS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
-const CACHE_VERSION = "v30";
+const CACHE_VERSION = "v31";
 const HISTORY_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const LEAGUE_SLUG = "hockeyettan-sodra";
 
@@ -64,6 +64,12 @@ const Scorer = z.object({
   goals: z.number().nullable(),
   assists: z.number().nullable(),
   points: z.number().nullable(),
+  gamesPlayed: z.number().nullable().default(null),
+});
+
+const PlusMinusEntry = z.object({
+  name: z.string(),
+  plusMinus: z.number().nullable(),
   gamesPlayed: z.number().nullable().default(null),
 });
 
@@ -111,6 +117,7 @@ const TeamBriefing = z.object({
   gamesPlayed: z.number().nullable(),
   lastFive: z.array(GameResult).max(5),
   topScorers: z.array(Scorer).max(5),
+  topPlusMinus: z.array(PlusMinusEntry).max(5).default([]),
   powerPlayPct: z.number().nullable().describe("PP% as a percent number"),
   penaltyKillPct: z.number().nullable().describe("PK% as a percent number"),
   powerPlayGoals: z.number().int().nullable().default(null).describe("PP goals scored this season"),

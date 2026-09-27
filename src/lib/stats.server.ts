@@ -853,6 +853,7 @@ async function fetchStandingsFromHtml(
 
 type ScoringPageData = {
   topScorers: Record<string, Briefing["home"]["topScorers"]>;
+  topPlusMinus: Record<string, Briefing["home"]["topPlusMinus"]>;
   goalies: Record<string, Briefing["home"]["goalies"]>;
   discipline: Record<string, NonNullable<Briefing["home"]["discipline"]>>;
   faceoffs: Record<string, {
@@ -865,6 +866,7 @@ type ScoringPageData = {
 
 async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
   const topScorers: Record<string, Briefing["home"]["topScorers"]> = {};
+  const topPlusMinus: Record<string, Briefing["home"]["topPlusMinus"]> = {};
   const goalies: Record<string, Briefing["home"]["goalies"]> = {};
   const discipline: Record<string, NonNullable<Briefing["home"]["discipline"]>> = {};
   const faceoffs: Record<string, {
@@ -909,6 +911,8 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
 
       // --- Top scorers (first 5 skaters by points) ---
       const scorerList: Briefing["home"]["topScorers"] = [];
+      // --- Plus/minus leaders (top 5 skaters by +/-) ---
+      const pmEntries: Array<{ name: string; plusMinus: number; gamesPlayed: number | null }> = [];
       // --- Discipline (PIM totals + top offenders, skaters only) ---
       let totalPim = 0;
       let maxGp = 0;
@@ -954,6 +958,16 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
           }
         }
 
+        // Plus/minus: columns are Rk, No, Name, Pos, GP, G, A, TP, PIM, +, -, +/-, ...
+        const pmRaw = cells.length > 11 && cells[11] !== "" ? Number(cells[11]) : NaN;
+        const validPm = Number.isFinite(pmRaw)
+          ? checkRange(pmRaw, -200, 200, `scoring.plusMinus(${teamName}/${name})`)
+          : null;
+        if (validPm != null) {
+          const validGp = checkRange(gp, 0, 80, `scoring.gp(${teamName}/${name})`);
+          pmEntries.push({ name, plusMinus: validPm, gamesPlayed: validGp ?? null });
+        }
+
         // Collect faceoff data — process all rows (not just top scorers)
         const foWins = cells.length >= 21 ? Number(cells[17]) : NaN;
         const foLosses = cells.length >= 21 ? Number(cells[18]) : NaN;
@@ -972,6 +986,9 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
       }
 
       if (scorerList.length > 0) topScorers[teamName] = scorerList;
+
+      pmEntries.sort((a, b) => b.plusMinus - a.plusMinus);
+      if (pmEntries.length > 0) topPlusMinus[teamName] = pmEntries.slice(0, 5);
 
       offenders.sort((a, b) => b.pim - a.pim);
       discipline[teamName] = {
@@ -1040,7 +1057,7 @@ async function fetchScoringPageData(urls: Urls): Promise<ScoringPageData> {
     console.warn("[scoringPage] fetch failed:", (err as Error).message);
   }
 
-  return { topScorers, goalies, discipline, faceoffs };
+  return { topScorers, topPlusMinus, goalies, discipline, faceoffs };
 }
 
 // ---------------------------------------------------------------------------
@@ -1620,6 +1637,7 @@ export async function buildBriefing(
     gamesPlayed: null,
     lastFive: [],
     topScorers: [],
+    topPlusMinus: [],
     powerPlayPct: null,
     penaltyKillPct: null,
     powerPlayGoals: null,
@@ -1721,6 +1739,8 @@ export async function buildBriefing(
   object.away.discipline = scoringData.discipline[away] ?? null;
   object.home.faceoffs = scoringData.faceoffs[home] ?? null;
   object.away.faceoffs = scoringData.faceoffs[away] ?? null;
+  object.home.topPlusMinus = scoringData.topPlusMinus[home] ?? [];
+  object.away.topPlusMinus = scoringData.topPlusMinus[away] ?? [];
   object.home.shotsForPerGame = sogByName[home]?.sfPerGame ?? null;
   object.away.shotsForPerGame = sogByName[away]?.sfPerGame ?? null;
   object.home.shotsAgainstPerGame = sogByName[home]?.saPerGame ?? null;
@@ -1780,6 +1800,7 @@ export async function buildBriefing(
     | "powerPlayPct"
     | "penaltyKillPct"
     | "topScorers"
+    | "topPlusMinus"
     | "lastFive";
   const missingBefore = (team: Briefing["home"]): Set<FieldKey> => {
     const set = new Set<FieldKey>();
@@ -1904,6 +1925,13 @@ export async function buildBriefing(
       if (sc && sc.length > 0) {
         team.topScorers = sc;
         filled.push({ field: "topScorers", source: "scoringData" });
+      }
+    }
+    if (team.topPlusMinus.length === 0) {
+      const pm = scoringData.topPlusMinus[name];
+      if (pm && pm.length > 0) {
+        team.topPlusMinus = pm;
+        filled.push({ field: "topPlusMinus", source: "scoringData" });
       }
     }
     const lf = lastFiveByName[name];
