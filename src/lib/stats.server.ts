@@ -1739,6 +1739,8 @@ export async function buildBriefing(
   object.away.discipline = scoringData.discipline[away] ?? null;
   object.home.faceoffs = scoringData.faceoffs[home] ?? null;
   object.away.faceoffs = scoringData.faceoffs[away] ?? null;
+  object.home.topPlusMinus = scoringData.topPlusMinus[home] ?? [];
+  object.away.topPlusMinus = scoringData.topPlusMinus[away] ?? [];
   object.home.shotsForPerGame = sogByName[home]?.sfPerGame ?? null;
   object.away.shotsForPerGame = sogByName[away]?.sfPerGame ?? null;
   object.home.shotsAgainstPerGame = sogByName[home]?.saPerGame ?? null;
@@ -1922,6 +1924,13 @@ export async function buildBriefing(
       if (sc && sc.length > 0) {
         team.topScorers = sc;
         filled.push({ field: "topScorers", source: "scoringData" });
+      }
+    }
+    if (team.topPlusMinus.length === 0) {
+      const pm = scoringData.topPlusMinus[name];
+      if (pm && pm.length > 0) {
+        team.topPlusMinus = pm;
+        filled.push({ field: "topPlusMinus", source: "scoringData" });
       }
     }
     const lf = lastFiveByName[name];
